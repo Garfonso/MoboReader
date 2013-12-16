@@ -1,3 +1,6 @@
+/*jslint newcap: true */
+/*global jo, ArticleList, joCard, joTitle, joStack, joScreen, joNavbar, joLog */
+
 // initialize jo
 jo.load();
 
@@ -5,6 +8,7 @@ var unreadList = new ArticleList();
 unreadList.setDefault("<p><strong>No articles loaded, yet</strong></p>");
 unreadList.setReadOnly(true);
 unreadList.selectEvent.subscribe(function articleSelected(id) {
+	"use strict";
 	//TODO: select article view of right article here!
 	joLog("unread selected:", id);
 });
