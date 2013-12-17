@@ -1,5 +1,5 @@
 /*jslint newcap: true */
-/*global joLog, window, joSubject */
+/*global jo, joLog, window, XMLHttpRequest, LocalStorageWrapper, console, setTimeout, joSubject */
 
 var PocketApi = {
 	accessToken: "blub", //user authentication, get via oauth or whatever. Need to figure that one out. Store it somewhere save
@@ -17,55 +17,40 @@ var PocketApi = {
 	syncProgressEvent: new joSubject(this), //TODO: implement and specify how data is transferred
 
 	needAuthEvent: new joSubject(this), //emitted when no accessToken is found in localStorage
-	authStartedEvent: new joSubject(this), //emitted when auth has started successful
-	authDoneEvent: new joSubject(this), //emitted when auth comes back successful
-	authErrorEvent: new joSubject(this),
+	authStartedEvent: new joSubject(this), //emitted when auth has started successful, UI should display a message and button.
+										   //should call continueAuth when user finished sign in.
+	authDoneEvent: new joSubject(this), //emitted when auth comes back, check success member of data if success or not.
 
-	components: [
 
-		//get data:
-		{
-			kind: "enyo.WebService",
-			name: "getData",
-			url: "https://getpocket.com/v3/get",
-			method: "POST",
-			handleAs: "json",
-			contentType: "application/json; charset=UTF8",
-			headers: { "X-Accept": "application/json" },
-			timeout: 10000,
-			onResponse: "gotData",
-			onError: "falsyResult"
-		},
-
-		//request auth token
-		{
-			kind: "enyo.WebService",
-			name: "requestAuthToken",
-			url: "https://getpocket.com/v3/oauth/request",
-			method: "POST",
-			handleAs: "json",
-			contentType: "application/json; charset=UTF8",
-			headers: { "X-Accept": "application/json" },
-			timeout: 10000,
-			onResponse: "gotAuthToken",
-			onError: "falsyAuthResult"
-		},
-
-		//request access token
-		{
-			kind: "enyo.WebService",
-			name: "getAccessToken",
-			url: "https://getpocket.com/v3/oauth/authorize",
-			method: "POST",
-			handleAs: "json",
-			contentType: "application/json; charset=UTF8",
-			headers: { "X-Accept": "application/json" },
-			timeout: 10000,
-			onResponse: "gotAccessToken",
-			onError: "falsyAuthResult"
+	//TODO: add timeout mechanism, maybe also retry.
+	ajaxCall: function (url, data, successCB, errorCB) {
+		"use strict";
+		var request = new XMLHttpRequest();
+		if (typeof data !== "string") {
+			data = JSON.stringify(data);
 		}
-	],
+		request.open("POST", url, true);
+		request.setRequestHeader("Content-type","application/json; charset=UTF8","X-Accept","application/json");
+		request.send(data);
+
+		request.onreadystatechange= function () {
+			if (request.readyState === 4) { //i.e. finished
+				if (request.status === 200) { //success, yeah :)
+					successCB(JSON.parse(request.responseText));
+				} else {
+					joLog("Error in request to", url, " status code:", request.status, " text:", request.statusText);
+					joLog("Response text:", request.responseText);
+					if (errorCB) {
+						errorCB(request);
+					}
+				}
+			}
+		};
+	},
+
+	//TODO: rework LocalStorageWrapper! Or at least copy it here... urgs?
 	init: function () {
+		"use strict";
 		var creds = LocalStorageWrapper.get("credentials"),
 			syncState = LocalStorageWrapper.get("syncState");
 		if (creds) {
@@ -76,7 +61,7 @@ var PocketApi = {
 			console.log("No cred data, need to login!");
 			setTimeout(function () {
 				console.log("Emitting onNeedAuth signal.");
-				//enyo.Signals.send("onNeedAuth", {});
+				this.needAuthEvent.fired();
 			}, 500);
 		}
 
@@ -95,29 +80,32 @@ var PocketApi = {
 	 * Sync
 	 */
 	startSync: function () {
+		"use strict";
 		//TODO: before getting new data sync up unsynced local actions.
 
 		this.getData();
 	},
 	getData: function () {
+		"use strict";
 		console.log("Sending data request to pocket.com");
-		this.$.getData.send({}, {
-			postBody: {
-				consumer_key: this.consumerKey,
-				access_token: this.accessToken,
-				since: this.lastSync,
-				detailType: "simple",
-				contentType: "article",
-				sort: "oldest"
-			}
-		});
+
+		var data = {
+			consumer_key: this.consumerKey,
+			access_token: this.accessToken,
+			since: this.lastSync,
+			detailType: "simple",
+			contentType: "article",
+			sort: "oldest"
+		};
+		this.ajaxCall("https://getpocket.com/v3/get", data, this.gotData.bind(this), this.falsyResult.bind(this));
 	},
-	gotData: function (inSender, inEvent) {
-		console.log("Got response: " + JSON.stringify(inEvent.data));
-		this.lastSync = inEvent.data.since || 0;
+	gotData: function (responseObj) {
+		"use strict";
+		console.log("Got response: " + JSON.stringify(responseObj));
+		this.lastSync = responseObj.since || 0;
 		console.log("Read since: " + this.lastSync);
 
-		var key, list = inEvent.data.list, article, newArticles = [];
+		var key, list = responseObj.list, article, newArticles = [];
 		if (list) {
 			console.log("Got list of new items...");
 			for (key in list) {
@@ -144,53 +132,56 @@ var PocketApi = {
 			console.log("Now have " + newArticles.length + " new items.");
 		}
 
-		enyo.Signals.send("onSyncDone", {newArticles: newArticles});
+		this.syncDoneEvent.fire({newArticles: newArticles});
 	},
 	saveSyncState: function () {
+		"use strict";
 		LocalStorageWrapper.set("syncState", {
 			lastSync: this.lastSync,
 			unsyncedActions: this.unsyncedActions
 		});
 	},
-	falsyResult: function (inSender, inEvent) {
+	falsyResult: function () {
+		"use strict";
 		console.log("Got falsy response!");
-		enyo.Signals.send("onSyncDone", {});
-		console.log("In Data: " + JSON.stringify(inEvent.data || inEvent));
+		this.syncDoneEvent.fire({});
 	},
 
 	/**
 	 * Authorization
 	 */
 	startAuth: function () {
+		"use strict";
 		delete this.access_token; //remove old token..?
-		this.$.requestAuthToken.send({}, {
-			postBody: {
-				consumer_key: this.consumerKey,
-				redirect_uri: this.redirectUri
-			}
-		});
+		var data = {
+			consumer_key: this.consumerKey,
+			redirect_uri: this.redirectUri
+		};
+		this.ajaxCall("https://getpocket.com/v3/oauth/request", data, this.gotAuthToken.bind(this), this.falsyAuthResult.bind(this));
 	},
-	gotAuthToken: function (inSender, inEvent) {
-		console.log("Got response: " + JSON.stringify(inEvent.data));
-		this.authToken = inEvent.data.code || inEvent.data;
+	gotAuthToken: function (responseObj) {
+		"use strict";
+		console.log("Got response: " + JSON.stringify(responseObj));
+		this.authToken = responseObj.code || responseObj;
 		console.log("Set authToken to: " + this.authToken);
 
 		window.open("https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri);
-		//TODO: display some button to tap on... hm.
+		this.authStartedEvent.fired({authToken: this.authToken});
 		console.log("Request send to pocket.com. Now login with browser and grant authentication for app. After that, close browser and come back here. Tap finish sign in button.");
 	},
 	continueAuth: function () {
-		this.$.getAccessToken.send({}, {
-			postBody: {
-				consumer_key: this.consumerKey,
-				code: this.authToken
-			}
-		});
+		"use strict";
+		var data = {
+			consumer_key: this.consumerKey,
+			code: this.authToken
+		};
+		this.ajaxCall("https://getpocket.com/v3/oauth/authorize", data, this.gotAccessToken.bind(this), this.falsyAuthResult.bind(this));
 	},
-	gotAccessToken: function (inSender, inEvent) {
-		console.log("Got response: " + JSON.stringify(inEvent.data));
-		this.accessToken = inEvent.data.access_token || inEvent.data;
-		this.username = inEvent.data.username || inEvent.data;
+	gotAccessToken: function (responseObj) {
+		"use strict";
+		console.log("Got response: " + JSON.stringify(responseObj));
+		this.accessToken = responseObj.access_token || responseObj;
+		this.username = responseObj.username || responseObj;
 		console.log("Set accessToken to: " + this.accessToken);
 		console.log("Set username to: " + this.username);
 
@@ -200,13 +191,15 @@ var PocketApi = {
 			username: this.username
 		});
 
-		enyo.Signals.send("onAuthDone", {});
+		this.authDoneEvent.fire({success: true});
 	},
-	falsyAuthResult: function (inSender, inEvent) {
+	falsyAuthResult: function () {
+		"use strict";
 		console.log("Got falsy auth response!");
-		enyo.Signals.send("onAuthError", {});
-		console.log("In Data: " + JSON.stringify(inEvent.data || inEvent));
+		this.authDoneEvent.fire({success: false});
 	}
 };
 
+//is this necessary? Think so..
 jo.loadEvent.subscribe(PocketApi.init, PocketApi);
+jo.unloadEvent.subscribe(PocketApi.saveSyncState, PocketApi);
