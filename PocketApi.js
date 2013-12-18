@@ -1,5 +1,5 @@
 /*jslint newcap: true */
-/*global jo, window, XMLHttpRequest, LocalStorageWrapper, setTimeout, joSubject */
+/*global jo, log, debug, window, XMLHttpRequest, LocalStorageWrapper, setTimeout, joSubject */
 
 var PocketApi = {
     accessToken: "blub", //user authentication, get via oauth or whatever. Need to figure that one out. Store it somewhere save
@@ -30,10 +30,10 @@ var PocketApi = {
             data = JSON.stringify(data);
         }
         request.open("POST", url, true);
-        request.setRequestHeader("Content-type","application/json; charset=UTF8","X-Accept","application/json");
+        request.setRequestHeader("Content-type", "application/json; charset=UTF8", "X-Accept", "application/json");
         request.send(data);
 
-        request.onreadystatechange= function () {
+        request.onreadystatechange = function () {
             if (request.readyState === 4) { //i.e. finished
                 if (request.status === 200) { //success, yeah :)
                     successCB(JSON.parse(request.responseText));
@@ -112,8 +112,8 @@ var PocketApi = {
         if (list) {
             debug("Got list of new items...");
             for (key in list) {
-                debug("processing: " + key);
                 if (list.hasOwnProperty(key)) {
+                    debug("processing: " + key);
                     article = list[key];
 
                     debug("Content: ", article);

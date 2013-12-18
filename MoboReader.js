@@ -1,44 +1,93 @@
 /*jslint newcap: true */
-/*global jo, ArticleList, joCard, joTitle, joStack, joScreen, joNavbar, joLog */
+/*global
+    log,
+    PocketApi,
+    ArticleList,
+    jo,
+    joButton,
+    joCache,
+    joCard,
+    joDialog,
+    joDivider,
+    joFlexcol,
+    joHTML,
+    joLabel,
+    joNavbar,
+    joScreen,
+    joStack,
+    joStackScroller,
+    joTitle,
+    joToolbar
+*/
 
-//initialize stuff:
-jo.load();
-PocketApi.init();
+var App = {
+    /* kind of constructor */
+    init: function () {
+        "use strict";
+        /*jslint newcap: true */
 
-var unreadList = new ArticleList();
-unreadList.setDefault("<p><strong>No articles loaded, yet</strong></p>");
-unreadList.setReadOnly(true);
-unreadList.selectEvent.subscribe(function articleSelected(id) {
+        //initialize stuff:
+        jo.load();
+        PocketApi.init();
+
+        //list for unread articles.
+        this.unreadList = new ArticleList();
+        this.unreadList.setDefault("<p><strong>No articles loaded, yet</strong></p>");
+        this.unreadList.setReadOnly(true);
+        this.unreadList.selectEvent.subscribe(this.articleSelected.bind(this));
+
+        // create our view card, notice we're nesting widgets inline
+        this.unreadCard = new joCard(new joFlexcol([
+            this.unreadList
+        ]));
+        this.unreadCard.setTitle("Unread articles");
+
+        // setup our stack and screen
+        this.screen = new joScreen(new joFlexcol([
+            this.navbar = new joNavbar(),
+            this.stack = new joStackScroller(),
+            this.toolbar = new joToolbar("Bottom toolbar, yeah.")
+        ]));
+
+        this.navbar.setStack(this.stack);
+
+        // put the card on our view stack
+        this.stack.push(this.unreadCard);
+
+        PocketApi.needAuthEvent.subscribe(this.needAuthCB.bind(this));
+    },
+
+    articleSelected: function (id) {
+        "use strict";
+        //TODO: select article view of right article here!
+        log("unread selected:", id);
+    },
+
+    //==================== authorization: ==============================
+    needAuthCB: function () {
+        "use strict";
+        log("Need Auth callback.");
+
+        App.screen.showPopup(joCache.get("authDialog")); //.show();
+    }
+
+};
+
+joCache.set("authDialog", function () {
     "use strict";
-    //TODO: select article view of right article here!
-    log("unread selected:", id);
-});
+    /*jslint newcap: true */
 
-// create our view card, notice we're nesting widgets inline
-var unreadCard = new joCard([
-    new joTitle("Mobo Reader"),
-    unreadList
-]);
-
-// setup our stack and screen
-var stack = new joStackScroller();
-var screen = new joScreen(stack);
-
-var x = new joNavbar();
-x.setStack(stack);
-
-// put the card on our view stack
-stack.push(unreadCard);
-
-//==================== authorization: ==============================
-PocketApi.needAuthEvent.subscribe(function needAuthCB() {
-    var authDialog = new joDialog([
-        new joFlexcol(
-            new joHTML("MoboReader needs to be authorized. Press button below to open getpocket.com, login and give access to this app."),
+    var authDialog = //new NonHidableShim([
+        new joDialog(new joFlexcol([
+            new joTitle("Authorization required"),
+            new joDivider(),
+            new joLabel("MoboReader needs to be connected to your account. Press button below to open getpocket.com, login and give access to this app."),
+            new joDivider(),
             new joButton("Start authorization")
-        )
-    ]);
-    authDialog.setTitle("Authoriation required");
+        ]));
+    //joDialog.setStyle("height: 90%;");
+    //]);
+    authDialog.lastParent = App.stack;
 
-    authDialog.show();
+    return authDialog;
 });

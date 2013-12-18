@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 </head>
-<body>
+<body onload="App.init()">
 
     <!-- look at that for async stuff maybe: https://github.com/jakearchibald/ES6-Promises/blob/master/README.md, but http://www.html5rocks.com/en/tutorials/es6/promises/sync-example.html has 2.0.4? -->
 
@@ -57,6 +57,9 @@
     <script src="LocalStorageWrapper.js"></script>
     <script src="PocketApi.js"></script>
     <script src="ArticleList.js"></script>
+
+    <script src="NonHidableShim.js"></script>
+
     <script src="MoboReader.js"></script>
 
 <!--svg class="spinner" viewBox="0 0 100 100" width="20" height="20">
