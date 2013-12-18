@@ -2,18 +2,66 @@
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="css-jo/flattery/jo-flattery.css">
+    <link rel="stylesheet" type="text/css" href="Spinner.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no, width=device-width, height=device-height">
+    <meta name="format-detection" content="false">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
 </head>
 <body>
+
+    <!-- look at that for async stuff maybe: https://github.com/jakearchibald/ES6-Promises/blob/master/README.md, but http://www.html5rocks.com/en/tutorials/es6/promises/sync-example.html has 2.0.4? -->
 
     <!-- any static page content goes here -->
 
     <!-- load jo library -->
     <script src="jo_min.js"></script>
 
+    <script>
+        function log () {
+            if (arguments) {
+                var i, strParts = [], key;
+                for (i = 0; i < arguments.length; i += 1) {
+                    if (typeof arguments[i] === "string") {
+                        strParts.push(arguments[i]);
+                    } else {
+                        try {
+                            strParts.push(JSON.stringify(arguments[i]));
+                        } catch (e) {
+                            //catch circular JSON exceptions here
+                            strParts.push("(circulat object): {");
+                            for (key in arguments[i]) {
+                                if (arguments[i].hasOwnProperty(key) && typeof arguments[i][key] !== "function") {
+                                    strParts.push(key + " = " + arguments[i][key]);
+                                }
+                            }
+                            strParts.push("}");
+                        }
+                    }
+                }
+                console.log(strParts.join(" "));
+            }
+        }
+
+        function debug () {
+            log.apply(this, arguments);
+        }
+
+        debug("Test...");
+    </script>
+
     <!-- any application JavaScript files go here -->
-	<script src="ArticleList.js"></script>
+    <script src="LocalStorageWrapper.js"></script>
+    <script src="PocketApi.js"></script>
+    <script src="ArticleList.js"></script>
     <script src="MoboReader.js"></script>
-	
+
+<!--svg class="spinner" viewBox="0 0 100 100" width="20" height="20">
+    <circle cx="50" cy="50" r="42" transform="rotate(-90,50,50)" />
+</svg-->
 
 </body>
 </html>
