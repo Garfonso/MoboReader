@@ -3,7 +3,10 @@
 //article list
 var ArticleList = function () {
     "use strict";
-    joList.call(this);
+    joList.apply(this, arguments);
+
+    this.setDefault(new joLabel("No articles in list. Please press refresh."));
+    this.setReadOnly(true);
 };
 
 ArticleList.extend(joList, {

@@ -30,12 +30,14 @@ var PocketApi = {
             data = JSON.stringify(data);
         }
         request.open("POST", url, true);
-        request.setRequestHeader("Content-type", "application/json; charset=UTF8", "X-Accept", "application/json");
+        request.setRequestHeader("Content-type", "application/json; charset=UTF8");
+        request.setRequestHeader("X-Accept", "application/json");
         request.send(data);
 
         request.onreadystatechange = function () {
             if (request.readyState === 4) { //i.e. finished
                 if (request.status === 200) { //success, yeah :)
+                    log("Got truthy response:", request.responseText);
                     successCB(JSON.parse(request.responseText));
                 } else {
                     log("Error in request to", url, " status code:", request.status, " text:", request.statusText);

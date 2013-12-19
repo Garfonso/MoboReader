@@ -438,7 +438,7 @@ return;joEvent.remove(document.body,"mousemove",this.mousemove);joEvent.remove(d
 return;joEvent.stop(e);joEvent.preventDefault(e);var point=this.getMouse(e);var x=Math.floor(point.x);var t=this.thumb.offsetWidth;joDOM.removeCSSClass(this.container,"live");x=x-t;var w=this.container.offsetWidth-t;if((x<t&&this.snap)||x<0)
 x=0;else if(x>w)
 x=w;this.setValue((x/w)*this.range+this.min);},getMouse:function(e){return{x:(this.horizontal)?e.screenX:0,y:(this.vertical)?e.screenY:0};},draw:function(){if(!this.container)
-return;this.initValue(this.getValue());}});joImage=function(data){joControl.apply(this,arguments);};joImage.extend(joControl,{tagName:"img",createContainer:function(){var o=joDOM.create(this.tagName);if(!o)
+return;this.initValue(this.getValue());}});joImage=function(data){joControl.apply(this,arguments);this.loadEvent = new joSubject(this);this.errorEvent=new joSubject(this)};joImage.extend(joControl,{tagName:"img",createContainer:function(){var o=joDOM.create(this.tagName);if(!o)
 return;joEvent.on(o,"load",this.loadEvent.fire,this);joEvent.on(o,"error",this.errorEvent.fire,this);if(this.data)
 o.src=data;return o;},getImageData:function(){},setData:function(data){this.data=data;if(data)
 this.container.src=data;}});function joCanvas(w,h){this.canvas=joDOM.create("canvas");if(this.canvas)

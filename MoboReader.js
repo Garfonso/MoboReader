@@ -28,33 +28,39 @@ var App = {
 
         //initialize stuff:
         jo.load();
+        //LocalStorageWrapper.clear();
         PocketApi.init();
+        ArticleStorage.init();
 
         //list for unread articles.
         this.unreadList = new ArticleList();
-        this.unreadList.setDefault("<p><strong>No articles loaded, yet</strong></p>");
-        this.unreadList.setReadOnly(true);
-        this.unreadList.selectEvent.subscribe(this.articleSelected.bind(this));
 
         // create our view card, notice we're nesting widgets inline
         this.unreadCard = new joCard(new joFlexcol([
-            this.unreadList
+            this.title = new joTitle("Unread articles"),
+            new joDivider(),
+            new joContainer(new joScroller(this.unreadList)),
+//            new joDivider(),
+            this.toolbar = new joToolbar(new joFlexrow([
+                this.refreshButton = new joButton("Refresh"),
+                //new joImage("images/refresh-icon.png").setStyle("mrIcon"),
+                ""
+            ]))
         ]));
-        this.unreadCard.setTitle("Unread articles");
 
         // setup our stack and screen
         this.screen = new joScreen(new joFlexcol([
-            this.navbar = new joNavbar(),
             this.stack = new joStackScroller(),
-            this.toolbar = new joToolbar("Bottom toolbar, yeah.")
         ]));
 
-        this.navbar.setStack(this.stack);
+        //this.navbar.setStack(this.stack);
 
         // put the card on our view stack
         this.stack.push(this.unreadCard);
 
-        PocketApi.needAuthEvent.subscribe(this.needAuthCB.bind(this));
+        //attache event listeners:
+        this.refreshButton.selectEvent.subscribe(this.refreshClicked.bind(this));
+        this.unreadList.selectEvent.subscribe(this.articleSelected.bind(this));
     },
 
     articleSelected: function (id) {
@@ -63,31 +69,10 @@ var App = {
         log("unread selected:", id);
     },
 
-    //==================== authorization: ==============================
-    needAuthCB: function () {
+    refreshClicked: function (e) {
         "use strict";
-        log("Need Auth callback.");
 
-        App.screen.showPopup(joCache.get("authDialog")); //.show();
+        App.toolbar.refresh();
+        joDefer(PocketApi.startSync, PocketApi, 10)
     }
-
 };
-
-joCache.set("authDialog", function () {
-    "use strict";
-    /*jslint newcap: true */
-
-    var authDialog = //new NonHidableShim([
-        new joDialog(new joFlexcol([
-            new joTitle("Authorization required"),
-            new joDivider(),
-            new joLabel("MoboReader needs to be connected to your account. Press button below to open getpocket.com, login and give access to this app."),
-            new joDivider(),
-            new joButton("Start authorization")
-        ]));
-    //joDialog.setStyle("height: 90%;");
-    //]);
-    authDialog.lastParent = App.stack;
-
-    return authDialog;
-});
