@@ -20,6 +20,11 @@
     joToolbar
 */
 
+//use joGesture.backEvent to get from article to unread. Make use of joGesture.forwardEvent somewhere?
+//see if we can get functionality similar to by swipe to delete in Mojo. Maybe even different stuff on left/right? Or multiple buttons?
+//handle link clicks: http://joapp.com/forums/index.php?p=/discussion/75/links-in-johtml-dont-work See if that works. :) => see also joHTML docu/code.
+//try var x = new joButton('<img src="go.png">'); someday...or learn CSS and use background property...
+
 var App = {
     /* kind of constructor */
     init: function () {
@@ -39,8 +44,10 @@ var App = {
         this.unreadCard = new joCard(new joFlexcol([
             this.title = new joTitle("Unread articles"),
             new joDivider(),
-            new joContainer(new joScroller(this.unreadList)),
-//            new joDivider(),
+            //new joContainer(new joFlexcol(new joScroller(new joContainer(
+            this.unreadList, //joScroller still not working for me, even with hacks.
+            //)))),
+            new joDivider(),
             this.toolbar = new joToolbar(new joFlexrow([
                 this.refreshButton = new joButton("Refresh"),
                 //new joImage("images/refresh-icon.png").setStyle("mrIcon"),

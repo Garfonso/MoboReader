@@ -5,6 +5,7 @@ var ArticleList = function () {
     "use strict";
     joList.apply(this, arguments);
 
+    log("Ähm??");
     this.setDefault(new joLabel("No articles in list. Please press refresh."));
     this.setReadOnly(true);
 };
