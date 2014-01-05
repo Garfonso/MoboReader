@@ -1,5 +1,5 @@
 /*jslint sloppy: true */
-/*global localStorage, console */
+/*global localStorage, log */
 //credits: http://forums.enyojs.com/discussion/100/enyo-2-0-localstorage-support
 
 var LocalStorageWrapper = {

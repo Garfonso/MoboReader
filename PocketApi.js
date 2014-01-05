@@ -50,7 +50,6 @@ var PocketApi = {
         };
     },
 
-    //TODO: rework LocalStorageWrapper! Or at least copy it here... urgs?
     init: function () {
         "use strict";
         debug("initializing PocketApi");
@@ -98,7 +97,7 @@ var PocketApi = {
             consumer_key: this.consumerKey,
             access_token: this.accessToken,
             since: this.lastSync,
-            detailType: "simple",
+            detailType: "complete",
             contentType: "article",
             sort: "oldest"
         };

@@ -1,3 +1,12 @@
+/*jslint newcap: true */
+/*global
+    debug,
+    joDefer,
+    joSubject,
+    log,
+    LocalStorageWrapper,
+    PocketApi
+*/
 
 var ArticleStorage = {
     articles: [],
@@ -6,12 +15,14 @@ var ArticleStorage = {
     downloadContentDone: "", //fired when download of article content is done. Will fire for every article and contain article as contentId
 
     init: function () {
+        "use strict";
+        /*jslint newcap: true */
         this.loadDoneEvent = new joSubject(this);
         this.downloadContentDone = new joSubject(this);
 
         PocketApi.syncDoneEvent.subscribe(this.newArticlesMeta, this);
 
-        var meta = LocalStorageWrapper.get("articles-meta");
+        var meta = LocalStorageWrapper.get("articles-meta"), i;
         if (meta) {
             this.articles = meta.articles;
 
@@ -19,33 +30,41 @@ var ArticleStorage = {
         }
 
         if (!meta) {
-          console.log("Creating dummy articles.");
-          var i;
-          for (i = 0; i < 30; i += 1) {
-            this.articles.push({
-              title: "Dummy " + i
-            });
-          }
+            log("Creating dummy articles.");
+            for (i = 0; i < 30; i += 1) {
+                this.articles.push({
+                    title: "Dummy " + i
+                });
+            }
         }
 
         joDefer(this.loadDoneEvent.fire, this.loadDoneEvent);
     },
 
     getArticle: function (i) {
+        "use strict";
         if (i >= 0 && i < this.articles.length) {
             return this.articles[i];
         }
     },
 
     getArticleContent: function (article) {
+        "use strict";
         return LocalStorageWrapper.get("content" + article.contentId);
     },
 
     getCount: function () {
+        "use strict";
         return this.articles.length;
     },
 
+    getArticleList: function () {
+        "use strict";
+        return this.articles;
+    },
+
     deleteArticle: function (i) {
+        "use strict";
         if (typeof i === "object") {
             i = this.getArticleIndexById(i.id);
         }
@@ -62,6 +81,7 @@ var ArticleStorage = {
     },
 
     getArticleIndexById: function (id) {
+        "use strict";
         var i;
         for (i = 0; i < this.articles.length; i += 1) {
             if (this.articles[i].id === id) {
@@ -71,6 +91,7 @@ var ArticleStorage = {
     },
 
     removeDuplicates: function () {
+        "use strict";
         var i, j, a1, a2, found = false;
 
         debug("Checking", this.articles.length, "articles for duplicates.");
@@ -87,7 +108,7 @@ var ArticleStorage = {
             }
 
             if (!found) {
-            debug("this one is good.");
+                debug("this one is good.");
             }
         }
 
@@ -96,6 +117,7 @@ var ArticleStorage = {
     },
 
     newArticlesMeta: function (input) {
+        "use strict";
         var i, toDownload = [], index, article;
         //reset found flag in articles:
         for (i = 0; i < this.articles.length; i += 1) {
@@ -112,6 +134,7 @@ var ArticleStorage = {
                 this.deleteArticle(index);
             } else if (index >= 0 && index < this.articles.length) {
                 debug("Already present... won't add.");
+                this.articles[index] = article; //overwrite stored data with data from server.
                 this.articles[index].found = true;
             } else {
                 debug("do add.");
@@ -141,6 +164,7 @@ var ArticleStorage = {
     },
 
     downloadArticleContent: function (index, newArticles) {
+        "use strict";
         log("Need to implement this!");
         //trigger download with pocket api, wait for callback, trigger download of next article.
         var article = newArticles[index];
@@ -155,8 +179,9 @@ var ArticleStorage = {
     },
 
     save: function () {
+        "use strict";
         LocalStorageWrapper.set("articles-meta", {
-            articles: this.articles,
+            articles: this.articles
         });
     }
 };

@@ -3,17 +3,24 @@
     log,
     PocketApi,
     ArticleList,
+    ArticleStorage,
+    ArticleView,
     jo,
     joButton,
     joCache,
     joCard,
+    joContainer,
+    joCSSRule,
+    joDefer,
     joDialog,
     joDivider,
     joFlexcol,
+    joFlexrow,
     joHTML,
     joLabel,
     joNavbar,
     joScreen,
+    joScroller,
     joStack,
     joStackScroller,
     joTitle,
@@ -41,24 +48,25 @@ var App = {
         this.unreadList = new ArticleList();
 
         // create our view card, notice we're nesting widgets inline
-        this.unreadCard = new joCard(new joFlexcol([
+        this.unreadCard = new joCard([
             this.title = new joTitle("Unread articles"),
-            new joDivider(),
-            //new joContainer(new joFlexcol(new joScroller(new joContainer(
-            this.unreadList, //joScroller still not working for me, even with hacks.
-            //)))),
-            new joDivider(),
+            new joScroller([
+                this.unreadList
+            ]).setStyle("unread_scroller"),
             this.toolbar = new joToolbar(new joFlexrow([
-                this.refreshButton = new joButton("Refresh"),
-                //new joImage("images/refresh-icon.png").setStyle("mrIcon"),
-                ""
+                this.refreshButton = new joButton('<img src="images/refresh-icon.png" class="buttonIcon">')
             ]))
-        ]));
+        ]);
+
+        joDefer(function () {
+            var style1 = new joCSSRule('jocard > joscroller > *:last-child:after { content: ""; display: block; height: ' + (App.toolbar.container.offsetHeight) + 'px; top:' + App.title.container.offsetWidth + 'px }'),
+                style2 = new joCSSRule('.unread_scroller { top:' + App.title.container.offsetHeight + 'px ! important; }');
+		}, this);
 
         // setup our stack and screen
-        this.screen = new joScreen(new joFlexcol([
-            this.stack = new joStackScroller(),
-        ]));
+        this.screen = new joScreen(new joFlexcol(
+            this.stack = new joStack()
+        ));
 
         //this.navbar.setStack(this.stack);
 
@@ -74,12 +82,19 @@ var App = {
         "use strict";
         //TODO: select article view of right article here!
         log("unread selected:", id);
+        joDefer(App.unreadList.deselect, App.unreadList, 400);
+
+        var article = App.unreadList.getData()[id];
+        joDefer(function createArticleView() {
+            var av = new ArticleView(article);
+            App.stack.push(av.getCard());
+        });
     },
 
     refreshClicked: function (e) {
         "use strict";
 
         App.toolbar.refresh();
-        joDefer(PocketApi.startSync, PocketApi, 10)
+        joDefer(PocketApi.startSync, PocketApi, 10);
     }
 };
