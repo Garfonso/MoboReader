@@ -44,3 +44,11 @@ jolistitem > table > tbody > tr {
 .hostcell {
     width: 90%;
 }
+
+johtml > div {
+    width: 100%;
+}
+
+div > img {
+    width: 100%;
+}

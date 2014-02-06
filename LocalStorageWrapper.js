@@ -22,7 +22,11 @@ var LocalStorageWrapper = {
         }
 
         if (typeof result === "string") {
-            return JSON.parse(result);
+            try {
+                return JSON.parse(result);
+            } catch (e) {
+                return result;
+            }
         } else if (typeof result === "object" && result !== null) {
             log("OBJECT: ", result);
             throw "ERROR [Storage.get]: getItem returned an object. Should be a string.";

@@ -21,6 +21,7 @@ var ArticleStorage = {
         this.downloadContentDone = new joSubject(this);
 
         PocketApi.syncDoneEvent.subscribe(this.newArticlesMeta, this);
+        PocketApi.articleContentDownloaded.subscribe(this.articleContentDownloaded, this);
 
         var meta = LocalStorageWrapper.get("articles-meta"), i;
         if (meta) {
@@ -51,6 +52,13 @@ var ArticleStorage = {
     getArticleContent: function (article) {
         "use strict";
         return LocalStorageWrapper.get("content" + article.contentId);
+    },
+    storeArticleContent: function (article, body) {
+        "use strict";
+        if (!article.contentId) {
+            article.contentId = article.host + Date.now();
+        }
+        LocalStorageWrapper.set("content" + article.contentId, body);
     },
 
     getCount: function () {
@@ -139,13 +147,13 @@ var ArticleStorage = {
             } else {
                 debug("do add.");
                 article.found = true;
+
                 this.articles.push(article);
             }
         }
 
         //clean up articles not present on server anymore:
         for (i = this.articles.length - 1; i >= 0; i -= 1) {
-            debug("Checking ", i);
             if (!this.articles[i].found) {
                 debug("Deleting", i);
                 this.deleteArticle(i);
@@ -160,22 +168,39 @@ var ArticleStorage = {
                 toDownload.push(this.articles[i]);
             }
         }
-        this.downloadArticleContent(0, toDownload);
+        //kind of a hack.. but I'm a bit lazy.
+        this.toDownload = toDownload;
+        this.toDownloadIndex = 0;
+        this.downloadArticleContent();
     },
 
-    downloadArticleContent: function (index, newArticles) {
+    downloadArticleContent: function () {
         "use strict";
-        log("Need to implement this!");
+        log("Downloading content of article " + this.toDownloadIndex);
         //trigger download with pocket api, wait for callback, trigger download of next article.
-        var article = newArticles[index];
+        var article = this.toDownload[this.toDownloadIndex];
         if (!article) {
             debug("Download done.");
+            delete this.toDownload;
+            delete this.toDownloadIndex;
             return;
         } else {
             debug("Downloading", article);
-            this.downloadContentDone.fire({article: article});
-            this.downloadArticleContent(index + 1, newArticles);
+            PocketApi.getArticleContent(article);
+            this.toDownloadIndex += 1;
         }
+    },
+    articleContentDownloaded: function (response) {
+        "use strict";
+        if (response.success) {
+            //store content for article.
+            this.storeArticleContent(response.article, response.body);
+            this.downloadContentDone.fire({article: response.article});
+            this.save();
+        } else {
+            log("Download of content for " + response.article.url + " failed.");
+        }
+        this.downloadArticleContent();
     },
 
     save: function () {

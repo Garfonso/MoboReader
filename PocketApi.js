@@ -20,6 +20,8 @@ var PocketApi = {
     authStartedEvent: new joSubject(this), //emitted when auth has started successful, UI should display a message and button.
                                            //should call continueAuth when user finished sign in.
     authDoneEvent: new joSubject(this), //emitted when auth comes back, check success member of data if success or not.
+    
+    articleContentDownloaded: new joSubject(this), //emitted when article content download did finish.
 
 
     //TODO: add timeout mechanism, maybe also retry.
@@ -29,7 +31,8 @@ var PocketApi = {
         if (typeof data !== "string") {
             data = JSON.stringify(data);
         }
-        request.open("POST", url, true);
+        
+        request.open(data ? "POST" : "GET", url, true);
         request.setRequestHeader("Content-type", "application/json; charset=UTF8");
         request.setRequestHeader("X-Accept", "application/json");
         request.send(data);
@@ -126,7 +129,7 @@ var PocketApi = {
                         fav: article.favorite === "1",
                         doDelete: article.status !== "0", //2 => delete, 1 => archive.
                         images: article.images,
-                        body: article.excerpt
+                        excerpt: article.excerpt
                     });
                 }
             }
@@ -147,6 +150,52 @@ var PocketApi = {
         "use strict";
         log("Got falsy response!");
         this.syncDoneEvent.fire({});
+    },
+
+    //article content!
+    getArticleContent: function (article) {
+        "use strict";
+        /*var data = {
+            consumer_key: this.consumerKey,
+            access_token: this.accessToken,
+            url: encodeURIComponent(article.url),
+            images: 0,
+            videos: 0,
+            refresh: 0,
+            output: "json"
+        };
+        debug("Data: ", data);*/
+        
+        var url = "https://text.readitlater.com/v3beta/text?consumer_key=" + this.consumerKey + "&access_token=" + this.accessToken +
+                    "&images=1&videos=0&refresh=0&url=" + encodeURIComponent(article.url) + "&output=json";
+        debug("Url: " + url);
+        
+        this.ajaxCall(url, "", this.gotContent.bind(this, article), this.falsyContentResult.bind(this, article));
+    },
+    gotContent: function (article, responseObj) {
+        "use strict";
+        
+        log("Got article: ", responseObj);
+        
+        article.url = responseObj.resolvedUrl || article.url;
+        article.host = responseObj.host || article.host;
+        article.title = responseObj.title || article.title;
+        
+        if (responseObj.responseCode !== 200) {
+            log("Response code false, expect errors with article...");
+        }
+        var success = responseObj.article !== undefined && responseObj.article !== "" && responseObj.article !== null;
+        
+        article.excerpt = responseObj.excerpt || article.excerpt;
+        article.images = responseObj.images || article.images;
+        
+        this.articleContentDownloaded.fire({success: success, article: article, body: responseObj.article});
+    },
+    falsyContentResult: function (article, error) {
+        "use strict";
+        log("Could not download ", article);
+        log("Error: ", error);
+        this.articleContentDownloaded.fire({success: false, article: article});
     },
 
     /**
@@ -195,9 +244,10 @@ var PocketApi = {
 
         this.authDoneEvent.fire({success: true});
     },
-    falsyAuthResult: function () {
+    falsyAuthResult: function (error) {
         "use strict";
         log("Got falsy auth response!");
+        log(error);
         this.authDoneEvent.fire({success: false});
     }
 };

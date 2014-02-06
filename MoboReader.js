@@ -32,6 +32,10 @@
 //handle link clicks: http://joapp.com/forums/index.php?p=/discussion/75/links-in-johtml-dont-work See if that works. :) => see also joHTML docu/code.
 //try var x = new joButton('<img src="go.png">'); someday...or learn CSS and use background property...
 
+//Spinner mit CSS: http://joapp.com/forums/index.php?p=/discussion/46/spinner-jobusy
+
+//update bei mousedown: http://joapp.com/forums/index.php?p=/discussion/112/jomenu-with-a-toolbar (kein Code, nur Kommentar)
+
 var App = {
     /* kind of constructor */
     init: function () {
