@@ -38,7 +38,7 @@ ArticleList.extend(joList, {
         parts.push('></td><td class="textcell">');
         parts.push('<h2>' + data.title + '</h2>');
         parts.push('</td></tr><tr><td class="hostcell">');
-        parts.push('Test-Host.de');
+        parts.push(data.host || "");
         parts.push('</td></tr></tbody></table>');
         element.innerHTML = parts.join('');
         return element;
