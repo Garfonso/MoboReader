@@ -23,7 +23,7 @@
                 /**
 @public
 */
-                prefix: "enyo-app",
+                prefix: "moboreader-app",
 
                 /**
 @private

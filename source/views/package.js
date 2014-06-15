@@ -1,3 +1,6 @@
 enyo.depends(
-	"views.js"
+    "AuthDialog.js",
+    "ArticleListItem.js",
+    "ArticleView.js",
+    "views.js"
 );

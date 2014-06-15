@@ -1,4 +1,4 @@
 {
     "sloppy": true,
-    "predef": ["enyo"]
+    "predef": ["enyo", "moboreader"]
 }

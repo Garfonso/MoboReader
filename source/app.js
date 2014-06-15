@@ -11,5 +11,5 @@ enyo.kind({
 });
 
 enyo.ready(function () {
-    new moboreader.Application({name: "moboreader"});
+    new moboreader.Application({name: "app"});
 });
