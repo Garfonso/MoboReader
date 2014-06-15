@@ -6,6 +6,9 @@ enyo.kind({
         api: "",
         collection: ""
     },
+    events: {
+        onBack: ""
+    },
     components: [
         {
             kind: "onyx.Toolbar",
@@ -65,16 +68,25 @@ enyo.kind({
         {from: ".articleModel.resolved_title", to: ".$.articleTitle.content"},
         {from: ".articleModel.content", to: ".$.articleContent.content"}
     ],
-    articleModelChanged: function () {
+    articleModelChanged: function (oldValue) {
+        this.log("oldValue: ", oldValue);
+        if (oldValue && this.oldListener) {
+            this.log("Removing old destroy listener.");
+            oldValue.removeListener("destroy", this.oldListener);
+        }
+
         if (!this.articleModel.get("content") && this.api) {
             this.log("Downloading article content.");
             this.api.getArticleContent(this.articleModel);
         }
+
+        this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
     },
     refreshTap: function () {
         this.api.getArticleContent(this.articleModel);
     },
     archiveTap: function () {
+        this.doBack();
         this.api.articleAction(this.articleModel, "archive", this.collection);
     },
     favoriteTap: function () {
@@ -85,6 +97,7 @@ enyo.kind({
         }
     },
     deleteTap: function () {
+        this.doBack();
         this.api.articleAction(this.articleModel, "delete", this.collection);
     },
 

@@ -59,6 +59,11 @@ enyo.kind({
                                     kind: "onyx.Button",
                                     content: "Add",
                                     ontap: "addArticle"
+                                },
+                                {
+                                    kind: "onyx.Button",
+                                    content: "Force Refresh",
+                                    ontap: "forceRefreshTap"
                                 }
                             ]
                         }
@@ -68,7 +73,7 @@ enyo.kind({
                     name: "ArticleViewPanel",
                     classes: "enyo-fill enyo-fit",
                     components: [
-                        {kind: "moboreader.ArticleView", name: "articleView", classes: "enyo-fill enyo-fit"}
+                        {kind: "moboreader.ArticleView", name: "articleView", classes: "enyo-fill enyo-fit", onBack: "handleBackGesture"}
                     ]
                 }
             ]
@@ -126,16 +131,13 @@ enyo.kind({
     },
     endIndicateActivity: function () {
         this.$.activitySpinner.hide();
-        this.log("Destroy, save collection.");
-        this.log(enyo.store.sources[this.$.articleCollection.defaultSource]);
         enyo.store.sources[this.$.articleCollection.defaultSource].commit(this.$.articleCollection, {
             success: function () {console.log("Collection stored.");}
         });
 
         this.$.articleCollection.records.forEach(function (rec) {
-            console.log("Blub?");
             rec.commit({
-                success: function () {console.log("Model stored.");}
+                success: function () { }
             });
         });
     },
@@ -143,10 +145,11 @@ enyo.kind({
     refreshTap: function () {
         this.$.api.downloadArticles(this.$.articleCollection);
     },
+    forceRefreshTap: function () {
+        this.$.api.downloadArticles(this.$.articleCollection, true);
+    },
 
     articleSelected: function (inSender, inEvent) {
-        this.log("Incomming event: ", inEvent);
-        this.log("Selected Model: ", this.$.articleList.selected());
         var model = this.$.articleList.selected();
         if (model) {
             this.$.articleView.setArticleModel(model);

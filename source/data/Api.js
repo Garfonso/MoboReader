@@ -54,6 +54,7 @@ enyo.kind({
                 this.startAuth();
             }.bind(this), 1000);
         } else {
+            this.log("Adding change listener to model");
             this.authModel.addListener("change", this.bindSafely("storeModel"));
         }
     },
@@ -149,7 +150,7 @@ enyo.kind({
     /*****************************************************************************************
      ******************* Article Sync ********************************************************
      *****************************************************************************************/
-    downloadArticles: function (collection) {
+    downloadArticles: function (collection, slow) {
         var req, data;
 
         this.doStartActivity();
@@ -157,7 +158,7 @@ enyo.kind({
         data = {
             consumer_key: this.consumerKey,
             access_token: this.authModel.get("accessToken"),
-            since: this.authModel.get("lastSync"),
+            since: slow ? 0 : this.authModel.get("lastSync"),
             detailType: "complete",
             contentType: "article",
             sort: "oldest"
@@ -243,46 +244,87 @@ enyo.kind({
         this.doStartActivity();
 
         actionObj = {
-            consumer_key: this.consumerKey,
-            access_token: this.authModel.get("accessToken"),
             action: action,
             item_id: articleModel.get("item_id"),
-            time: Math.round(Date.now() / 1000),
-            output: "json"
+            time: Math.round(Date.now() / 1000)
         };
-        actions.push(actionObj);
-        articleModel.set("action", action);
+        this.addNoDuplicates(actions, actionObj);
+        this.log("Action: ", actionObj);
 
         req = new moboreader.Ajax({
             url: "https://getpocket.com/v3/send",
             method: "POST",
-            postBody: actions
+            postBody: {
+                consumer_key: this.consumerKey,
+                access_token: this.authModel.get("accessToken"),
+                output: "json",
+                actions: actions
+            }
         });
         req.go();
 
         req.response(this.bindSafely("actionSuccess", collection));
         req.error(this.bindSafely("actionFailed", actionObj));
     },
+    addNoDuplicates: function (actions, action) {
+        var i;
+        //check if this action is already happening:
+        for (i = actions.length - 1; i >= 0; i -= 1) {
+            if (actions[i].item_id === action.item_id &&
+                actions[i].action === action.action) {
+                //keep the newer one.
+                actions.splice(i, 1);
+            }
+        }
+        actions.push(action);
+    },
+    buildRemoveArray: function (collection, objs) {
+        var arr = [];
+        collection.records.forEach(function (rec) {
+            objs.forEach(function (obj) {
+                if (obj.item_id === rec.attributes.item_id) {
+                    rec.destroy({
+                        success: function () { console.log("Destruction of " + obj.item_id + " success."); }
+                    });
+                    arr.push(rec);
+                }
+            });
+        });
+        return arr;
+    },
     actionSuccess: function (collection, inSender, inResponse) {
+        var actions = this.authModel.get("unsyncedActivities"), i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
-        if (inResponse.action_results) {
-            var actions = this.authModel.get("unsyncedActivities"), i, successfulActions = [];
+        if (inResponse.status === 1) {
+            //all actions succeeded!
+            remActions = this.buildRemoveArray(collection, actions);
+            this.log("Removing: ", remActions);
+            collection.remove(remActions);
+            this.authModel.set("unsyncedActivities", []);
+            this.storeModel();
+        } else if (inResponse.action_results) {
             for (i = actions.length - 1; i >= 0; i -= 1) {
                 if (inResponse.action_results[i]) {
                     successfulActions.push(actions[i]);
                     actions.splice(i, 1);
                 }
             }
+            this.storeModel();
             if (successfulActions.length > 0) {
-                collection.remove(successfulActions); //has item_id ;)
+                remActions = this.buildRemoveArray(collection, successfulActions);
+                this.log("Removing (partly): ", remActions);
+                collection.remove(remActions); //has item_id ;)
             }
         }
-
-        this.doArticlesDeleted();
+        this.doEndActivity();
     },
     actionFailed: function (action, inSender, inResponse) {
+        this.log("Article Action failed: ", inResponse);
         var actions = this.authModel.get("unsyncedActivities");
-        actions.push(action);
+
+        this.addNoDuplicates(actions, action);
+        this.storeModel();
+        this.doEndActivity();
     },
 
     //general failure.
