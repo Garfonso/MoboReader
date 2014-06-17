@@ -75,6 +75,7 @@ enyo.kind({
                 {
                     name: "ArticleViewPanel",
                     classes: "enyo-fill enyo-fit",
+                    onBack: "handleBackGesture",
                     components: [
                         {kind: "moboreader.ArticleView", name: "articleView", classes: "enyo-fill enyo-fit", onBack: "handleBackGesture"}
                     ]
@@ -83,10 +84,6 @@ enyo.kind({
         },
 
         //non ui stuff:
-        {
-            kind: "enyo.Signals",
-            onbackbutton: "handleBackGesture"
-        },
         {
             name: "api",
             kind: "moboreader.Api",
@@ -117,6 +114,8 @@ enyo.kind({
         this.$.articleCollection.fetch({strategy: "merge"});
         this.$.articleView.setApi(this.$.api);
         this.$.articleView.setCollection(this.$.articleCollection);
+
+        this.$.authDialog.setApi(this.$.api);
     },
 
     showAuthDialog: function () {

@@ -18,6 +18,7 @@ enyo.kind({
         },
         {
             kind: "enyo.Scroller",
+            name: "scroller",
             touch: true,
             fit: true,
             classes: "enyo-fill",
@@ -55,6 +56,12 @@ enyo.kind({
                 },
                 {
                     kind: "onyx.Button",
+                    name: "copyButton",
+                    content: "Copy URL",
+                    ontap: "copyTap"
+                },
+                {
+                    kind: "onyx.Button",
                     content: "Refresh",
                     ontap: "refreshTap"
                 },
@@ -67,7 +74,12 @@ enyo.kind({
         },
         {
             name: "spritzDialog",
-            kind: "SpritzDialog"
+            kind: "SpritzDialog",
+            onPartDone: "scrollToPart"
+        },
+        {
+            kind: "enyo.Signals",
+            onbackbutton: "handleBackGesture"
         }
     ],
     bindings: [
@@ -81,7 +93,20 @@ enyo.kind({
             return val ? "Re-Add" : "Archive";
         } }
     ],
+    handleBackGesture: function (inSender, inEvent) {
+        this.log("Incomming back gesture!!");
+        if (this.$.spritzDialog.running) {
+            this.$.spritzDialog.stopSpritz();
+        } else if (this.$.spritzDialog.showing) {
+            this.$.spritzDialog.hide();
+        } else {
+            this.doBack();
+        }
+
+        inEvent.preventDefault();
+    },
     articleModelChanged: function (oldValue) {
+        this.$.spritzDialog.hide();
         this.log("oldValue: ", oldValue);
         if (oldValue && this.oldListener) {
             oldValue.removeListener("destroy", this.oldListener);
@@ -108,9 +133,16 @@ enyo.kind({
         this.doBack();
         this.articleModel.doDelete(this.api, this.collection);
     },
+    copyTap: function () {
+
+    },
 
     spritzTap: function () {
-        this.$.spritzDialog.doShow();
+        this.$.spritzDialog.prepareSpritz(this.$.articleContent.node.children[0].children);
+    },
+    scrollToPart: function (inSender, inEvent) {
+        this.log("Trying to scroll to ", inEvent.part, " = ", inEvent.node);
+        this.$.scroller.scrollToNode(inEvent.node, false);
     },
 
     openUrl: function () {

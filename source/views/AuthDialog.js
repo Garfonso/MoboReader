@@ -8,6 +8,9 @@ enyo.kind({
     floating: true,
     centered: true,
     showTransitions: true,
+    published: {
+        api: ""
+    },
     components: [
         {
             kind: "enyo.Scroller",
@@ -24,6 +27,13 @@ enyo.kind({
                 {
                     style: "display: block; margin: 10px auto;",
                     kind: "onyx.Button",
+                    content: "Manual finish authorization",
+                    name: "finishBtn",
+                    ontap: "doFinish"
+                },
+                {
+                    style: "display: block; margin: 10px auto;",
+                    kind: "onyx.Button",
                     content: "Retry",
                     name: "retryBtn",
                     ontap: "doRetry"
@@ -34,16 +44,20 @@ enyo.kind({
     doShow: function () {
         this.show();
         this.$.retryBtn.hide();
+        this.$.finishBtn.hide();
         this.$.message.setContent("Trying to login...");
+
+        setTimeout(function () {
+            this.$.finishBtn.show();
+        }.bind(this), 5000);
     },
     resultOk: function (username) {
         this.$.message.setContent("Successfully logged in as " + username);
         setTimeout(function () { this.hide(); }.bind(this), 2000);
     },
-    resultFail: function (api) {
+    resultFail: function () {
         this.$.message.setContent("Failed to log in. Please try again later.");
         this.$.retryBtn.show();
-        this.api = api;
     },
     doRetry: function () {
         if (this.api) {
@@ -53,5 +67,8 @@ enyo.kind({
             this.$.retryBtn.hide();
             this.$.message.setContent("Retry failed. Please restart app.");
         }
+    },
+    doFinish: function () {
+        this.api.finishAuth();
     }
 });

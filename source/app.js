@@ -11,5 +11,8 @@ enyo.kind({
 });
 
 enyo.ready(function () {
+    if (window.PalmSystem) {
+        window.PalmSystem.stageReady();
+    }
     new moboreader.Application({name: "app"});
 });

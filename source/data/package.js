@@ -3,5 +3,6 @@ enyo.depends(
     "ArticleModel.js",
     "ArticleCollection.js",
     "Api.js",
+    "Spritz.js",
     "data.js"
 );

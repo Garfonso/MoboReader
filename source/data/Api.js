@@ -235,7 +235,13 @@ enyo.kind({
     },
     gotArticleContent: function (articleModel, inSender, inResponse) {
         this.log("Got content: ", inResponse);
-        articleModel.set("content", inResponse.article);
+
+        //remove links from images:
+        var content = inResponse.article;
+        content = content.replace(/<a href=[^<]+?><div/gim, "<div");
+        content = content.replace(/div><\/a>/gim, "div>");
+
+        articleModel.set("content", content);
         articleModel.commit();
         this.setActive(false);
     },

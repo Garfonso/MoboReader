@@ -9,12 +9,15 @@ enyo.kind({
     showTransitions: true,
     style: "background-color: transparent; height: 100%; width: 100%; border: 0px; border-radius: 0px; margin: 0; position: fixed; top: 0; bottom: 0; left: 0; right: 0; padding: 0px;",
 
+    events: {
+        onPartDone: ""
+    },
     published: {
-        running: false,
-        childIndex: 0
+        running: ""
     },
     bindings: [
-        {from: ".running", to: ".$.scrim.showing"}
+        {from: ".$.spritz.running", to: ".$.scrim.showing"},
+        {from: ".$.spritz.running", to: ".running"}
     ],
     wpm: 300,
     minWpm: 300,
@@ -72,25 +75,75 @@ enyo.kind({
                 },
                 {
                     name: "wpmDisplay",
-                    style: "text-align: center; color: gray",
+                    style: "text-align: center; color: gray; background-color: white; padding: 10px;",
                     content: "",
                     showing: false
                 }
             ]
+        },
+        {
+            kind: "Spritz",
+            onDone: "spritzPartDone"
         }
     ],
-    doShow: function () {
+    parts: [],
+    currentPart: 0,
+
+    prepareParts: function (contents) {
+        var text, i, elem;
+        for (i = 0; i < contents.length; i += 1) {
+            elem = contents[i];
+            text = elem.textContent || "";
+            text = text.trim();
+            if (elem.tagName.charAt(0) === "H") {
+                text += ".";
+            } else if (elem.tagName === "IMG") {
+                text = "Bild.";
+            } else if (elem.tagName === "TABLE") {
+                text = "Tabelle.";
+            } else if (elem.childElementCount > 0) {
+                this.prepareParts(elem.children);
+            }
+
+            text = text.replace(/\s+/g, ' '); // Shrink long whitespaces.
+            text = text.replace(/\./g, '. '); // Make sure punctuation is apprpriately spaced.
+            text = text.replace(/\?/g, '? ');
+            text = text.replace(/\!/g, '! ');
+            if (text !== "") {
+                this.parts.push({text: text, node: elem});
+            }
+        }
+    },
+
+    prepareSpritz: function (contents) {
         this.show();
+        this.log("Contents: ", contents);
+        this.parts = [];
+
+        this.prepareParts(contents);
+
+        this.log("Generated parts: ", this.parts);
+
+        this.currentPart = -1;
+    },
+    stopSpritz: function () {
+        this.$.spritz.stopSpritz();
+        this.hide();
     },
     onTap: function (inSender, inEvent) {
-        if (this.running) {
+        if (this.$.spritz.running) {
             this.pause();
         } else {
+            if (inEvent.clientY > this.node.clientHeight - 58) {
+                this.hide();
+                return;
+            }
+
             var ratio = inEvent.clientX / this.node.clientWidth;
             this.wpm = (this.maxWpm - this.minWpm) * ratio + this.minWpm;
-            this.log("WPM: ", this.wpm, " from ratio ", ratio);
 
             this.showWPM(this.wpm);
+            this.$.spritz.setWpm(this.wpm);
             this.resume();
         }
     },
@@ -103,9 +156,29 @@ enyo.kind({
     },
 
     pause: function () {
-        this.running = false;
+        this.$.spritz.stopSpritz();
     },
     resume: function () {
-        this.running = true;
+        if (this.currentPart < 0) {
+            this.spritzPartDone();
+        } else {
+            this.$.spritz.startSpritz();
+        }
+    },
+
+    spritzPartDone: function () {
+        this.currentPart += 1;
+        if (this.currentPart < this.parts.length) {
+            var part = this.parts[this.currentPart].text;
+            if (part === "") {
+                this.spritzPartDone();
+            } else {
+                this.doPartDone({part: this.currentPart, node: this.parts[this.currentPart].node});
+                this.$.spritz.spritzify(part, this.wpm);
+                this.$.spritz.startSpritz();
+            }
+        } else {
+            this.hide();
+        }
     }
 });
