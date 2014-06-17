@@ -15,7 +15,7 @@ enyo.kind({
         }
     ],
     bindings: [
-        {from: ".model.resolved_title", to: ".$.articleTitle.content"},
+        {from: ".model.title", to: ".$.articleTitle.content"},
         {from: ".model.image_src", to: ".$.articleImage.src"}
     ]
 });

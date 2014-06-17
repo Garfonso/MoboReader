@@ -48,6 +48,7 @@ enyo.kind({
     doRetry: function () {
         if (this.api) {
             this.api.startAuth();
+            this.$.retryBtn.hide();
         } else {
             this.$.retryBtn.hide();
             this.$.message.setContent("Retry failed. Please restart app.");

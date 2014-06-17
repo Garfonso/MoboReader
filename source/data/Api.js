@@ -22,7 +22,8 @@ enyo.kind({
 enyo.kind({
     name: "moboreader.Api",
     published: {
-        authModel: ""
+        authModel: "",
+        active: ""
     },
 
     authToken: false, //only used during authentication
@@ -41,7 +42,7 @@ enyo.kind({
     create: function () {
         this.inherited(arguments);
 
-        this.authModel = new moboreader.AuthModel({id: 1});
+        this.authModel = new moboreader.AuthModel({id: "authModel"});
         this.authModel.fetch({
             success: this.bindSafely("modelFetched"),
             fail: this.bindSafely("modelFetched")
@@ -153,6 +154,7 @@ enyo.kind({
     downloadArticles: function (collection, slow) {
         var req, data;
 
+        this.setActive(true);
         this.doStartActivity();
 
         data = {
@@ -201,8 +203,9 @@ enyo.kind({
         }
 
         collection.merge(articles);
+        collection.storeWithChilds();
         this.authModel.set("lastSync", inResponse.since || 0);
-        this.doEndActivity();
+        this.setActive(false);
     },
 
     /*****************************************************************************************
@@ -211,14 +214,15 @@ enyo.kind({
     getArticleContent: function (articleModel) {
         var req, data;
 
-        this.doStartActivity();
+        this.log("Refreshing: ", articleModel.get("content") === undefined ? 0 : 1);
 
+        this.setActive(true);
         data = {
             consumer_key: this.consumerKey,
             access_token: this.authModel.get("accessToken"),
             images: 1,
-            videos: 0,
-            refresh: 0,
+            videos: 1,
+            refresh: articleModel.get("content") === undefined ? 0 : 1,
             url: articleModel.get("resolved_url"),
             output: "json"
         };
@@ -230,19 +234,39 @@ enyo.kind({
         req.error(this.bindSafely("downloadFailed"));
     },
     gotArticleContent: function (articleModel, inSender, inResponse) {
+        this.log("Got content: ", inResponse);
         articleModel.set("content", inResponse.article);
         articleModel.commit();
-        this.doEndActivity();
+        this.setActive(false);
     },
 
     /*****************************************************************************************
      ******************* Article Actions *****************************************************
      *****************************************************************************************/
+    addArticle: function (url, collection) {
+        var req, actions = this.authModel.get("unsyncedActivities");
+
+        this.setActive(true);
+        req = new moboreader.Ajax({
+            url: "https://getpocket.com/v3/add",
+            method: "POST",
+            postBody: {
+                consumer_key: this.consumerKey,
+                access_token: this.authModel.get("accessToken"),
+                output: "json",
+                url: url
+            }
+        });
+        req.go();
+        this.addNoDuplicates(actions, {idem_id: "add", action: "add"});
+
+        req.response(this.bindSafely("actionSuccess", collection));
+        req.error(this.bindSafely("actionFailed", {}));
+    },
     articleAction: function (articleModel, action, collection) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
 
-        this.doStartActivity();
-
+        this.setActive(true);
         actionObj = {
             action: action,
             item_id: articleModel.get("item_id"),
@@ -278,30 +302,96 @@ enyo.kind({
         }
         actions.push(action);
     },
-    buildRemoveArray: function (collection, objs) {
-        var arr = [];
+    getRecFromCollection: function (id, collection) {
+        var result;
         collection.records.forEach(function (rec) {
-            objs.forEach(function (obj) {
-                if (obj.item_id === rec.attributes.item_id) {
+            if (!rec.attributes) {
+                console.log("Got element with 0 attributes: ", rec);
+                return;
+            }
+            if (rec.attributes.item_id === id) {
+                if (result) {
+                    console.log("DUPLICATE! ", rec, " === ", result);
+                }
+                result = rec;
+            }
+        });
+
+        if (!result) {
+            console.log("No item found for ", id);
+        }
+
+        return result || { set: function () {} };
+    },
+    processActions: function (collection, objs, results) {
+        var arr = [];
+        if (!results) {
+            results = [];
+        }
+
+        objs.forEach(function (obj, index) {
+            var result = results[index], rec;
+            //handle add.
+            if (obj.action === "add" && !obj.item_id) {
+                result = results;
+            }
+            if (!result) {
+                console.log(obj.action + " of " + obj.item_id + " failed. Will retry later.");
+                return;
+            }
+
+            if (obj.action !== "add") {
+                rec = this.getRecFromCollection(obj.item_id, collection);
+            }
+
+            switch (obj.action) {
+                case "add":
+                    //try to add. Not sure that really works. Add call wants item id??
+                    collection.add(result);
+                    break;
+                case "readd":
+                    this.log("Adding back: " + JSON.stringify(result));
+                    collection.add(result);
+                    break;
+                case "favorite":
+                    rec.set("favorite", 1);
+                    break;
+                case "unfavorite":
+                    rec.set("favorite", 0);
+                    break;
+                case "archive":
+                    rec.set("status", "1");
+                    rec.set("archived", true);
                     rec.destroy({
                         success: function () { console.log("Destruction of " + obj.item_id + " success."); }
                     });
                     arr.push(rec);
-                }
-            });
-        });
+                    break;
+                case "delete":
+                    rec.set("status", "2");
+                    rec.set("archived", true);
+                    rec.destroy({
+                        success: function () { console.log("Destruction of " + obj.item_id + " success."); }
+                    });
+                    arr.push(rec);
+                break;
+                default:
+                    this.log("Action ", obj.action, " not understood??");
+                    break;
+            }
+        }.bind(this));
         return arr;
     },
     actionSuccess: function (collection, inSender, inResponse) {
         var actions = this.authModel.get("unsyncedActivities"), i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
+
+        remActions = this.processActions(collection, actions, inResponse.action_results || inResponse.item);
+
         if (inResponse.status === 1) {
             //all actions succeeded!
-            remActions = this.buildRemoveArray(collection, actions);
-            this.log("Removing: ", remActions);
-            collection.remove(remActions);
             this.authModel.set("unsyncedActivities", []);
-            this.storeModel();
+            collection.storeWithChilds();
         } else if (inResponse.action_results) {
             for (i = actions.length - 1; i >= 0; i -= 1) {
                 if (inResponse.action_results[i]) {
@@ -309,14 +399,18 @@ enyo.kind({
                     actions.splice(i, 1);
                 }
             }
-            this.storeModel();
             if (successfulActions.length > 0) {
-                remActions = this.buildRemoveArray(collection, successfulActions);
-                this.log("Removing (partly): ", remActions);
-                collection.remove(remActions); //has item_id ;)
+                remActions = this.processActions(collection, successfulActions);
+                collection.storeWithChilds();
             }
         }
-        this.doEndActivity();
+
+        this.storeModel();
+        if (remActions && remActions.length > 0) {
+            this.log("Removing: ", remActions);
+            collection.remove(remActions);
+        }
+        this.setActive(false);
     },
     actionFailed: function (action, inSender, inResponse) {
         this.log("Article Action failed: ", inResponse);
@@ -324,12 +418,12 @@ enyo.kind({
 
         this.addNoDuplicates(actions, action);
         this.storeModel();
-        this.doEndActivity();
+        this.setActive(false);
     },
 
     //general failure.
     downloadFailed: function (inSender, inResponse) {
         this.log("Failed to download: ", inResponse);
-        this.doEndActivity();
+        this.setActive(false);
     }
 });

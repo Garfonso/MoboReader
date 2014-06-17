@@ -13,7 +13,8 @@ enyo.kind({
         {
             kind: "onyx.Toolbar",
             name: "articleTitle",
-            style: "text-align: center"
+            style: "text-align: center",
+            ontap: "openUrl"
         },
         {
             kind: "enyo.Scroller",
@@ -25,8 +26,7 @@ enyo.kind({
                     name: "articleContent",
                     allowHtml: true,
                     fit: true,
-                    classes: "enyo-fill enyo-fit ",
-                    style: "width: 90%; height: 100%; max-width: 600px; margin: 0 auto;"
+                    classes: "enyo-fill enyo-fit article-container"
                 }
             ]
         },
@@ -43,11 +43,13 @@ enyo.kind({
                 },
                 {
                     kind: "onyx.Button",
+                    name: "archiveButton",
                     content: "Archive",
                     ontap: "archiveTap"
                 },
                 {
                     kind: "onyx.Button",
+                    name: "favButton",
                     content: "Favorite",
                     ontap: "favoriteTap"
                 },
@@ -62,16 +64,26 @@ enyo.kind({
                     ontap: "deleteTap"
                 }
             ]
+        },
+        {
+            name: "spritzDialog",
+            kind: "SpritzDialog"
         }
     ],
     bindings: [
-        {from: ".articleModel.resolved_title", to: ".$.articleTitle.content"},
-        {from: ".articleModel.content", to: ".$.articleContent.content"}
+        {from: ".articleModel.title", to: ".$.articleTitle.content"},
+        {from: ".articleModel.content", to: ".$.articleContent.content"},
+
+        {from: ".articleModel.favorite", to: ".$.favButton.content", transform: function (val) {
+            return val ? "Unfavorite" : "Favorite";
+        } },
+        {from: ".articleModel.archived", to: ".$.archiveButton.content", transform: function (val) {
+            return val ? "Re-Add" : "Archive";
+        } }
     ],
     articleModelChanged: function (oldValue) {
         this.log("oldValue: ", oldValue);
         if (oldValue && this.oldListener) {
-            this.log("Removing old destroy listener.");
             oldValue.removeListener("destroy", this.oldListener);
         }
 
@@ -87,22 +99,22 @@ enyo.kind({
     },
     archiveTap: function () {
         this.doBack();
-        this.api.articleAction(this.articleModel, "archive", this.collection);
+        this.articleModel.doArchive(this.api, this.collection);
     },
     favoriteTap: function () {
-        if (this.articleModel.get("favorite") === "0") {
-            this.api.articleAction(this.articleModel, "favorite", this.collection);
-        } else {
-            this.api.articleAction(this.articleModel, "unfavorite", this.collection);
-        }
+        this.articleModel.doFavorite(this.api, this.collection);
     },
     deleteTap: function () {
         this.doBack();
-        this.api.articleAction(this.articleModel, "delete", this.collection);
+        this.articleModel.doDelete(this.api, this.collection);
     },
 
     spritzTap: function () {
-        //need to implement!!
+        this.$.spritzDialog.doShow();
+    },
+
+    openUrl: function () {
+        window.open(this.articleModel.get("url"));
     }
 });
 

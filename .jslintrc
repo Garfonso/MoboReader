@@ -1,4 +1,5 @@
 {
     "sloppy": true,
+    "browser": true,
     "predef": ["enyo", "moboreader"]
 }

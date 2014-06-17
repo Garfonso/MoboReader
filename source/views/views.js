@@ -8,6 +8,9 @@ enyo.kind({
     name: "moboreader.MainView",
     kind: "FittableRows",
     fit: true,
+    bindings: [
+        {from: ".$.api.active", to: ".$.activitySpinner.showing"}
+    ],
     components: [
         {
             kind: "onyx.Spinner",
@@ -58,7 +61,7 @@ enyo.kind({
                                 {
                                     kind: "onyx.Button",
                                     content: "Add",
-                                    ontap: "addArticle"
+                                    ontap: "showAddDialog"
                                 },
                                 {
                                     kind: "onyx.Button",
@@ -89,14 +92,16 @@ enyo.kind({
             kind: "moboreader.Api",
             onNeedAuth: "showAuthDialog",
             onAuthorized: "hideAuthDialog",
-            onAuthFailed: "hideAuthDialog",
-
-            onStartActivity: "indicateActivity",
-            onEndActivity: "endIndicateActivity"
+            onAuthFailed: "hideAuthDialog"
         },
         {
             name: "authDialog",
             kind: "moboreader.AuthDialog"
+        },
+        {
+            name: "addDialog",
+            kind: "moboreader.AddDialog",
+            onAdd: "addArticle"
         },
         {
             name: "articleCollection",
@@ -126,26 +131,18 @@ enyo.kind({
         }
     },
 
-    indicateActivity: function () {
-        this.$.activitySpinner.show();
+    showAddDialog: function () {
+        this.$.addDialog.doShow();
     },
-    endIndicateActivity: function () {
-        this.$.activitySpinner.hide();
-        enyo.store.sources[this.$.articleCollection.defaultSource].commit(this.$.articleCollection, {
-            success: function () {console.log("Collection stored.");}
-        });
-
-        this.$.articleCollection.records.forEach(function (rec) {
-            rec.commit({
-                success: function () { }
-            });
-        });
+    addArticle: function (inSendder, inEvent) {
+        this.$.api.addArticle(inEvent.url, this.$.articleCollection);
     },
 
     refreshTap: function () {
         this.$.api.downloadArticles(this.$.articleCollection);
     },
     forceRefreshTap: function () {
+        this.$.articleCollection.whipe();
         this.$.api.downloadArticles(this.$.articleCollection, true);
     },
 
