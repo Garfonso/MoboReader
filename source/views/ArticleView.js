@@ -4,7 +4,9 @@ enyo.kind({
     published: {
         articleModel: "",
         api: "",
-        collection: ""
+        collection: "",
+        content: "",
+        currentWord: ""
     },
     events: {
         onBack: ""
@@ -13,7 +15,7 @@ enyo.kind({
         {
             kind: "onyx.Toolbar",
             name: "articleTitle",
-            style: "text-align: center",
+            style: "text-align: center; white-space: normal;",
             ontap: "openUrl"
         },
         {
@@ -21,6 +23,7 @@ enyo.kind({
             name: "scroller",
             touch: true,
             fit: true,
+            horizontal: "hidden",
             classes: "enyo-fill",
             components: [
                 {
@@ -39,6 +42,7 @@ enyo.kind({
                 },
                 {
                     kind: "onyx.Button",
+                    name: "spritzBtn",
                     content: "Spritz",
                     ontap: "spritzTap"
                 },
@@ -75,23 +79,36 @@ enyo.kind({
         {
             name: "spritzDialog",
             kind: "SpritzDialog",
-            onPartDone: "scrollToPart"
+            onScrollTo: "scrollTo"
         },
         {
             kind: "enyo.Signals",
             onbackbutton: "handleBackGesture"
+        },
+        {
+            kind: "moboreader.LinkPopup",
+            name: "linkPopup"
         }
     ],
     bindings: [
         {from: ".articleModel.title", to: ".$.articleTitle.content"},
         {from: ".articleModel.content", to: ".$.articleContent.content"},
+        {from: ".$.articleContent.content", to: ".content"},
+        {from: "^moboreader.Prefs.useSpritz", to: ".$.spritzBtn.showing"},
 
         {from: ".articleModel.favorite", to: ".$.favButton.content", transform: function (val) {
             return val ? "Unfavorite" : "Favorite";
         } },
         {from: ".articleModel.archived", to: ".$.archiveButton.content", transform: function (val) {
             return val ? "Re-Add" : "Archive";
-        } }
+        } },
+
+        {from: "^.moboreader.Prefs.fontSize", to: ".$.articleContent.style", transform: function (val) {
+            this.log("Incomming: ", val);
+            return "font-size: " + val + "px;";
+        }},
+
+        {from: "^.moboreader.Spritz.wordCompleted", to: ".currentWord" }
     ],
     handleBackGesture: function (inSender, inEvent) {
         this.log("Incomming back gesture!!");
@@ -119,6 +136,72 @@ enyo.kind({
 
         this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
     },
+    processChildren: function (node) {
+        var i,
+            text,
+            children = node.children,
+            child,
+            scroller;
+
+        for (i = 0; i < children.length; i += 1) {
+            child = children[i];
+            this.processChildren(child);
+        }
+
+        if (node.scrollWidth > node.clientWidth) {
+            console.log("Need scroller!");
+            console.log("Processing node ", node);
+            console.log("Width: ", node.scrollWidth, " > ", node.clientWidth, ": ", node.scrollWidth > node.clientWidth);
+
+            scroller = new enyo.Scroller({
+                touch: true,
+                horizontal: "scroll",
+                vertical: "hidden",
+                thumb: false,
+                classes: "enyo-fill",
+                components: [
+                    {allowHtml: true, content: node.innerHTML}
+                ]
+            });
+            scroller.renderInto(node);
+
+            //child.style.overflowWrap = "break-word";
+            node.style.backgroundColor = "rgb(220, 220, 220)";
+
+            console.log("Scroll width now is: ", node.scrollWidth);
+        }
+
+        if (node.tagName === "A") {
+            node.onclick = this.linkClick.bind(this);
+        }
+
+        //maybe add . to end of headline.
+        if (node.tagName.indexOf("H") === 0) {
+            text = node.textContent.trim();
+            if (text !== "" &&
+                text.charAt(text.length - 1) !== "." &&
+                text.charAt(text.length - 1) !== "?" &&
+                text.charAt(text.length - 1) !== "!") {
+                text += ".";
+            }
+        }
+    },
+    contentChanged: function () {
+        this.log("ArticleContent changed.");
+
+        setTimeout(function () {
+            this.processChildren(this.$.articleContent.node);
+        }.bind(this), 100);
+    },
+    linkClick: function (event) {
+        this.log("Link clicked: ", event);
+        var url = event.target.href;
+        this.$.linkPopup.setUrl(url);
+        this.$.linkPopup.showAtEvent(event);
+
+        event.preventDefault();
+    },
+
     refreshTap: function () {
         this.api.getArticleContent(this.articleModel);
     },
@@ -138,11 +221,20 @@ enyo.kind({
     },
 
     spritzTap: function () {
-        this.$.spritzDialog.prepareSpritz(this.$.articleContent.node.children[0].children);
+        this.$.spritzDialog.prepareSpritz(this.articleModel);
     },
-    scrollToPart: function (inSender, inEvent) {
-        this.log("Trying to scroll to ", inEvent.part, " = ", inEvent.node);
-        this.$.scroller.scrollToNode(inEvent.node, false);
+    currentWordChanged: function () {
+        this.log("Current Word: ", this.currentWord, " model: ", this.articleModel, " spritz: ", this.articleModel.spritzOk);
+        if (this.articleModel && this.articleModel.spritzOk) {
+            var ratio = this.currentWord / this.articleModel.get("spritzModel").getWordCount();
+            this.log("Ratio: ", ratio);
+            this.log("Scroll Val: ", this.$.scroller.getScrollBounds().maxTop * ratio);
+            this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);
+        }
+    },
+    scrollTo: function (inSender, inEvent) {
+        this.log("Incomming scroll event: ", inEvent);
+        this.$.scroller.scrollTo(0, this.$.scroller.scrollTop - inEvent.dy);
     },
 
     openUrl: function () {

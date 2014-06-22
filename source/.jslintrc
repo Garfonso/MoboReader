@@ -2,5 +2,5 @@
     "sloppy": true,
     "browser": true,
     "devel": true,
-    "predef": ["enyo", "moboreader"]
+    "predef": ["enyo", "moboreader", "SPRITZ", "SpritzClient"]
 }

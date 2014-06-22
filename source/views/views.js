@@ -8,8 +8,19 @@ enyo.kind({
     name: "moboreader.MainView",
     kind: "FittableRows",
     fit: true,
+    published: {
+        pocketDL: 0,
+        spritzDL: 0
+    },
+    computed: {
+        activity: ["pocketDL", "spritzDL", {cached: true}]
+    },
+    activity: function () { return this.pocketDL || this.spritzDL; },
     bindings: [
-        {from: ".$.api.active", to: ".$.activitySpinner.showing"}
+        {from: ".$.api.active", to: ".pocketDL" },
+        {from: "^.moboreader.Spritz.numDownloading", to: ".spritzDL"},
+        {from: ".activity", to: ".$.activitySpinner.showing"},
+        {from: ".$.articleCollection.length", to: ".$.articleCount.content" }
     ],
     components: [
         {
@@ -31,8 +42,22 @@ enyo.kind({
                     components: [
                         {
                             kind: "onyx.Toolbar",
-                            style: "text-align: center",
+                            style: "text-align: center;",
                             components: [
+                                {
+                                    style: "text-align: center; margin: auto; float: left;",
+                                    components: [
+                                        {
+                                            style: "font-size: 14px;",
+                                            name: "articleCount",
+                                            content: "0"
+                                        },
+                                        {
+                                            style: "font-size: 10px;",
+                                            content: "Articles"
+                                        }
+                                    ]
+                                },
                                 {content: "Mobo Reader"}
                             ]
                         },
@@ -45,7 +70,7 @@ enyo.kind({
                                 horizontal: "hidden",
                                 touch: true
                             },
-                            fixedChildSize: 30, //fill with something useful
+                            fixedChildSize: 50,
                             components: [
                                 {kind: "moboreader.ArticleListItem" }
                             ]
@@ -67,6 +92,11 @@ enyo.kind({
                                     kind: "onyx.Button",
                                     content: "Force Refresh",
                                     ontap: "forceRefreshTap"
+                                },
+                                {
+                                    kind: "onyx.Button",
+                                    content: "Settings",
+                                    ontap: "settingsTap"
                                 }
                             ]
                         }
@@ -101,14 +131,21 @@ enyo.kind({
             onAdd: "addArticle"
         },
         {
+            name: "settingsDialog",
+            kind: "moboreader.SettingsDialog"
+        },
+        {
             name: "articleCollection",
             kind: "moboreader.ArticleCollection",
             url: "pocket-unread-list"
+        },
+        {
+            kind: "Signals",
+            onAddArticle: "addArticle"
         }
     ],
     create: function () {
         this.inherited(arguments);
-        this.$.articleCollection.fetch();
         this.$.articleList.set("collection", this.$.articleCollection);
         //this.$.articleCollection.destroyAllLocal();
         this.$.articleCollection.fetch({strategy: "merge"});
@@ -144,8 +181,12 @@ enyo.kind({
         this.$.articleCollection.whipe();
         this.$.api.downloadArticles(this.$.articleCollection, true);
     },
+    settingsTap: function () {
+        this.$.settingsDialog.show();
+    },
 
     articleSelected: function (inSender, inEvent) {
+        this.lastIndex = inEvent.index;
         var model = this.$.articleList.selected();
         if (model) {
             this.$.articleView.setArticleModel(model);
@@ -154,6 +195,12 @@ enyo.kind({
         }
     },
     handleBackGesture: function () {
+        if (this.lastIndex) {
+            if (this.lastIndex >= this.$.articleCollection.length) {
+                this.lastIndex = this.$.articleCollection.length -1;
+            }
+            this.$.articleList.scrollToIndex(this.lastIndex);
+        }
         this.$.MainPanels.setIndex(0);
     }
 });

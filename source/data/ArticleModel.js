@@ -11,6 +11,8 @@ enyo.kind({
 
         if (data.image) {
             data.image_src = data.image.src;
+        } else {
+            data.image_src = "assets/empty.png";
         }
 
         if (data.favorite) {
@@ -28,13 +30,30 @@ enyo.kind({
         data.title = data.title || data.resolved_title || data.given_title || data.normal_title || "No title";
         data.url = data.url || data.resolved_url || data.given_url || data.normal_url;
 
+        if (!data.host) {
+            var start = data.url.indexOf("//") + 2;
+            var end = data.url.indexOf("/", start);
+            data.host = data.url.substring(start, end);
+            if (data.host.indexOf("www.") === 0) {
+                data.host = data.host.substr(4);
+            }
+        }
+
+        if (data.time_added) {
+            data.time_added = parseInt(data.time_added, 10);
+        }
+
+        data.greyout = data.status !== "0";
+
         return data;
     },
 
     doArchive: function (api, collection) {
         if (this.get("status") && this.get("status") === "0") {
+            this.set("greyout", true);
             api.articleAction(this, "archive", collection);
         } else {
+            this.set("greyout", false);
             api.articleAction(this, "readd", collection);
         }
     },
@@ -49,6 +68,7 @@ enyo.kind({
     },
 
     doDelete: function (api, collection) {
+        this.set("greyout", true);
         api.articleAction(this, "delete", collection);
     }
 });

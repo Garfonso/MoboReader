@@ -2,7 +2,7 @@ enyo.kind({
     name: "SpritzDialog",
     kind: "onyx.Popup",
     scrim: false,
-    modal: true,
+    modal: false,
     autoDismiss: false,
     floating: true,
     centered: true,
@@ -10,175 +10,148 @@ enyo.kind({
     style: "background-color: transparent; height: 100%; width: 100%; border: 0px; border-radius: 0px; margin: 0; position: fixed; top: 0; bottom: 0; left: 0; right: 0; padding: 0px;",
 
     events: {
-        onPartDone: ""
+        onScrollTo: ""
     },
     published: {
-        running: ""
+        running: "",
+        downloading: -1
     },
     bindings: [
-        {from: ".$.spritz.running", to: ".$.scrim.showing"},
-        {from: ".$.spritz.running", to: ".running"}
+        {from: "^moboreader.Spritz.dlActivity", to: ".downloading"},
+        {from: "^moboreader.Spritz.running", to: ".$.scrim.showing"}
     ],
     wpm: 300,
     minWpm: 300,
     maxWpm: 800,
 
     handlers: {
-        ontap: "onTap"
+        //ontap: "onTap"
     },
     components: [
         {
-            kind: "onyx.Scrim",
             name: "scrim",
-            classes: "spritz-scrim"
+            style: "z-index: -1; background-color: darkgrey; width: 100%; padding: 0px; position: absolute; top: 0; bottom: 0; left: 0; right: 0;",
+            ontap: "onTap",
+            ondragstart: "dragStart",
+            ondrag: "drag",
+            ondragfinish: "dragEnd"
         },
         {
-            kind: "onyx.Scrim",
-            name: "scrimOpacity",
-            classes: "spritz-scrim",
-            showing: true,
-            style: "opacity: 0.4"
+            name: "transpScrim",
+            style: "z-index: -2; background-color: darkgrey; width: 100%; padding: 0px; position: absolute; top: 0; bottom: 0; left: 0; right: 0; opacity: 0.5;",
+            ontap: "onTap",
+            ondragstart: "dragStart",
+            ondrag: "drag",
+            ondragfinish: "dragEnd"
         },
         {
-            //let spritz read it's wpm from an invisible input.
-            tag: "input",
-            id: "spritz_selector",
-            value: "",
-            style: "display: none;"
+            name: "downloadingSpritzData",
+            style: "background-color: #4c4c4c; text-align: center; font-size: 18px; padding: 30px 0px; position: absolute; top: 30%; width: 100%;",
+            content: "Downloading spritz data..."
         },
         {
-            //have invisible button that pauses/resumes spritz
-            tag: "button",
-            type: "button",
-            id: "spritz_toggle",
-            style: "width: 0px; height: 0px; position: fixed; top: -10px;"
+            id: "spritzer",
+            classes: "spritz-container",
+            name: "spritzer"
         },
         {
-            tag: "div",
-            id: "spritz_container",
-            components: [
-                {
-                    tag: "div",
-                    id: "guide_top",
-                    allowHtml: true,
-                    content: "――――――――――<span id=\"notch\">&#1092;</span>―――――――――――"
-                },
-                {
-                    tag: "div",
-                    id: "spritz_result",
-                    content: "empty"
-                },
-                {
-                    tag: "div",
-                    id: "guide_bottom",
-                    content: "――――――――――――――――――――――"
-                },
-                {
-                    name: "wpmDisplay",
-                    style: "text-align: center; color: gray; background-color: white; padding: 10px;",
-                    content: "",
-                    showing: false
-                }
-            ]
-        },
-        {
-            kind: "Spritz",
-            onDone: "spritzPartDone"
+            name: "wpmDisplay",
+            style: "text-align: center; color: black; padding: 10px; width: 100%; position: absolute; top: 30%",
+            content: "",
+            showing: false,
+            ontap: "onTap"
         }
     ],
-    parts: [],
-    currentPart: 0,
 
-    prepareParts: function (contents) {
-        var text, i, elem;
-        for (i = 0; i < contents.length; i += 1) {
-            elem = contents[i];
-            text = elem.textContent || "";
-            text = text.trim();
-            if (elem.tagName.charAt(0) === "H") {
-                text += ".";
-            } else if (elem.tagName === "IMG") {
-                text = "Bild.";
-            } else if (elem.tagName === "TABLE") {
-                text = "Tabelle.";
-            } else if (elem.childElementCount > 0) {
-                this.prepareParts(elem.children);
-            }
+    prepareSpritz: function (articleModel) {
+        this.show();
 
-            text = text.replace(/\s+/g, ' '); // Shrink long whitespaces.
-            text = text.replace(/\./g, '. '); // Make sure punctuation is apprpriately spaced.
-            text = text.replace(/\?/g, '? ');
-            text = text.replace(/\!/g, '! ');
-            if (text !== "") {
-                this.parts.push({text: text, node: elem});
-            }
+        this.articleModel = articleModel;
+        this.dlId = moboreader.Spritz.start(this.articleModel);
+
+        if (this.dlId < 0) {
+            this.$.downloadingSpritzData.hide();
+            this.$.spritzer.show();
+            moboreader.Spritz.pause();
+        } else {
+            this.needDownload = true;
+            this.$.downloadingSpritzData.show();
+            this.$.spritzer.hide();
+        }
+    },
+    downloadingChanged: function () {
+        //this.log("Download done: ", this.downloading);
+        if (this.downloading === this.dlId && this.dlId >= 0) {
+            this.$.downloadingSpritzData.hide();
+            this.$.spritzer.show();
+            this.dlId = moboreader.Spritz.start(this.articleModel);
+            moboreader.Spritz.pause();
         }
     },
 
-    prepareSpritz: function (contents) {
-        this.show();
-        this.log("Contents: ", contents);
-        this.parts = [];
-
-        this.prepareParts(contents);
-
-        this.log("Generated parts: ", this.parts);
-
-        this.currentPart = -1;
-    },
     stopSpritz: function () {
-        this.$.spritz.stopSpritz();
+        moboreader.Spritz.stop();
         this.hide();
     },
     onTap: function (inSender, inEvent) {
-        if (this.$.spritz.running) {
-            this.pause();
+        if (this.dragging) {
+            this.log("Dragging, ignore tap.");
+            return;
+        }
+
+        if (moboreader.Spritz.isComplete()) {
+            this.hide();
+            return;
+        }
+
+        if (moboreader.Spritz.isRunning()) {
+            moboreader.Spritz.pause();
+            this.$.wpmDisplay.hide();
         } else {
             if (inEvent.clientY > this.node.clientHeight - 58) {
                 this.hide();
                 return;
             }
-
-            var ratio = inEvent.clientX / this.node.clientWidth;
-            this.wpm = (this.maxWpm - this.minWpm) * ratio + this.minWpm;
-
-            this.showWPM(this.wpm);
-            this.$.spritz.setWpm(this.wpm);
-            this.resume();
+            this.calcWPM(inEvent.clientX);
+            moboreader.Spritz.resume();
         }
+        this.setRunning(moboreader.Spritz.isRunning());
     },
-    showWPM: function (wpm) {
-        this.$.wpmDisplay.setContent("Words per minute: " + Math.round(wpm));
+    calcWPM: function (clientX) {
+        var ratio = clientX / this.node.clientWidth;
+        this.wpm = (this.maxWpm - this.minWpm) * ratio + this.minWpm;
+
+        var realWpm = moboreader.Spritz.setWpm(this.wpm);
+        this.showWPM(Math.round(this.wpm), realWpm);
+    },
+    showWPM: function (wpm, realWpm) {
+        this.$.wpmDisplay.setContent("Words per minute: " + realWpm + (wpm !== realWpm ? " (Login to go faster)" : ""));
         this.$.wpmDisplay.show();
+        //setTimeout(function () {
+        //    this.$.wpmDisplay.hide();
+        //}.bind(this), 750);
+    },
+
+
+    drag: function (inSender, inEvent) {
+        this.log("Dragging: ", inEvent);
+
+        this.dragging = true;
+        this.doScrollTo({dy: inEvent.dy});
+        this.calcWPM(inEvent.clientX);
+    },
+    dragStart: function (inSender, inEvent) {
+        this.log("Drag Start: ", inEvent);
+        this.dragStart = {x: inEvent.clientX, y: inEvent.clientY};
+        this.dragging = true;
+    },
+    dragEnd: function (inSender, inEvent) {
+        this.log("Drag end: ", inEvent);
+
+        this.doScrollTo({dy: inEvent.dy});
+        this.calcWPM(inEvent.clientX);
         setTimeout(function () {
-            this.$.wpmDisplay.hide();
+            this.dragging = false;
         }.bind(this), 500);
-    },
-
-    pause: function () {
-        this.$.spritz.stopSpritz();
-    },
-    resume: function () {
-        if (this.currentPart < 0) {
-            this.spritzPartDone();
-        } else {
-            this.$.spritz.startSpritz();
-        }
-    },
-
-    spritzPartDone: function () {
-        this.currentPart += 1;
-        if (this.currentPart < this.parts.length) {
-            var part = this.parts[this.currentPart].text;
-            if (part === "") {
-                this.spritzPartDone();
-            } else {
-                this.doPartDone({part: this.currentPart, node: this.parts[this.currentPart].node});
-                this.$.spritz.spritzify(part, this.wpm);
-                this.$.spritz.startSpritz();
-            }
-        } else {
-            this.hide();
-        }
     }
 });

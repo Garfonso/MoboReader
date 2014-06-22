@@ -1,190 +1,284 @@
+/*global SpritzLoginDialog, $ */
+
 enyo.kind({
-// taken from spritz.js
-// A JavaScript Speed Reader
-// rich@gun.io
-// https://github.com/Miserlou/OpenSpritz
-// some modifications by Achim Königs. ;)
-
-    name: "Spritz",
-
+    name: "SpritzLoginDialog",
+    kind: "onyx.Popup",
+    style: "text-align: center; width: 80%; z-index: 130",
+    scrim: true,
+    modal: true,
+    autoDismiss: true,
+    floating: true,
+    centered: true,
+    showTransitions: true,
+    components: [
+        {
+            kind: "enyo.Scroller",
+            classe: "enyo-fill",
+            components: [
+                {
+                    name: "message",
+                    content: "Loging in to spritz. Please log in to spritz in new window and copy result and paste it below."
+                },
+                {
+                    kind: "onyx.InputDecorator",
+                    style: "display: block; width: 90%; margin: 10px auto;",
+                    components: [
+                        {
+                            classes: "enyo-fill",
+                            name: "resultEntry",
+                            kind: "onyx.Input",
+                            placeholder: "Paste result here"
+                        }
+                    ]
+                },
+                {
+                    style: "display: block; margin: 10px auto;",
+                    kind: "onyx.Button",
+                    content: "Finish Auth",
+                    name: "finishBtn",
+                    ontap: "doFinish"
+                },
+                {
+                    style: "display: block; margin: 10px auto;",
+                    kind: "onyx.Button",
+                    content: "Retry",
+                    name: "retryBtn",
+                    ontap: "doRetry"
+                }
+            ]
+        }
+    ],
     published: {
-        running: "",
-        currentWord: "",
-        wpm: "",
-        all_words: []
+        loginResult: false
     },
-    events: {
-        onDone: ""
-    },
-    spritz_timers: [],
-    ms_per_word: 60000/500,
-
-    // The meat!
-    spritzify: function (input, wpm) {
-
-        this.setWpm(wpm);
-
-        // Split on any spaces.
-        this.all_words = input.split(/\s+/);
-
-        // The reader won't stop if the selection starts or ends with spaces
-        if (this.all_words[0] === "") {
-            this.all_words = this.all_words.slice(1, this.all_words.length);
-        }
-
-        if (this.all_words[this.all_words.length - 1] === "") {
-            this.all_words = this.all_words.slice(0, this.all_words.length - 1);
-        }
-
-        // Preprocess words
-        var temp_words = this.all_words.slice(0); // copy Array
-        var t = 0;
-
-        for (var i=0; i<this.all_words.length; i++){
-
-            if(this.all_words[i].indexOf('.') != -1){
-                temp_words[t] = this.all_words[i].replace('.', '&#8226;');
-            }
-
-            // Double up on long words and words with commas.
-            if((this.all_words[i].indexOf(',') != -1 ||
-                this.all_words[i].indexOf(':') != -1 ||
-                this.all_words[i].indexOf('-') != -1 ||
-                this.all_words[i].indexOf('(') != -1||
-                this.all_words[i].length > 8) && this.all_words[i].indexOf('.') == -1) {
-                temp_words.splice(t+1, 0, this.all_words[i]);
-                temp_words.splice(t+1, 0, this.all_words[i]);
-                t++;
-                t++;
-            }
-
-            // Add an additional space after punctuation.
-            if(this.all_words[i].indexOf('.') != -1 ||
-               this.all_words[i].indexOf('!') != -1 ||
-               this.all_words[i].indexOf('?') != -1 ||
-               this.all_words[i].indexOf(':') != -1 ||
-               this.all_words[i].indexOf(';') != -1 ||
-               this.all_words[i].indexOf(')') != -1){
-                temp_words.splice(t+1, 0, " ");
-                temp_words.splice(t+1, 0, " ");
-                temp_words.splice(t+1, 0, " ");
-                t++;
-                t++;
-                t++;
-            }
-
-            t++;
-
-        }
-
-        this.all_words = temp_words.slice(0);
-        this.log("Now haing: ", this.all_words.length, " words.");
-
-        this.currentWord = 0;
-        this.spritz_timers = [];
-    },
-
-    updateValues: function (i) {
-        var p = this.pivot(this.all_words[i]);
-        document.getElementById("spritz_result").innerHTML = p;
-        this.currentWord = i;
-    },
-
-    startSpritz: function (override) {
-
-        if (!override) {
-            this.setRunning(true);
-        }
-
-        this.spritz_timers.push(setInterval(function() {
-            this.updateValues(this.currentWord);
-            this.currentWord++;
-            if(this.currentWord >= this.all_words.length) {
-                this.currentWord = 0;
-                this.stopSpritz();
-                this.doDone();
-            }
-        }.bind(this), this.ms_per_word));
-    },
-
-    stopSpritz: function (override) {
-        for(var i = 0; i < this.spritz_timers.length; i++) {
-            clearTimeout(this.spritz_timers[i]);
-        }
-        if (!override) {
-            this.setRunning(false);
+    doFinish: function () {
+        var auth = this.$.resultEntry.getValue();
+        if (auth) {
+            this.loginResult = auth;
+            SpritzClient.setAuthResponse(auth);
+            moboreader.Spritz.init();
+            this.hide();
         }
     },
-
-
-    // Find the red-character of the current word.
-    pivot: function (word){
-        var length = word.length;
-
-        var bestLetter = 1;
-        switch (length) {
-            case 1:
-                bestLetter = 1; // first
-                break;
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                bestLetter = 2; // second
-                break;
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-                bestLetter = 3; // third
-                break;
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-                bestLetter = 4; // fourth
-                break;
-            default:
-                bestLetter = 5; // fifth
-        }
-
-        word = decodeEntities(word);
-        var start = '.'.repeat((11-bestLetter)) + word.slice(0, bestLetter-1).replace('.', '&#8226;');
-        var middle = word.slice(bestLetter-1,bestLetter).replace('.', '&#8226;');
-        var end = word.slice(bestLetter, length).replace('.', '&#8226;') + '.'.repeat((11-(word.length-bestLetter)));
-
-        var result;
-        result = "<span class='spritz_start'>" + start;
-        result = result + "</span><span class='spritz_pivot'>";
-        result = result + middle;
-        result = result + "</span><span class='spritz_end'>";
-        result = result + end;
-        result = result + "</span>";
-
-        result = result.replace(/\./g, "<span class='invisible'>.</span>");
-
-        return result;
-    },
-
-    wpmChanged: function () {
-        this.ms_per_word = 60000/this.wpm;
-        this.log("Now ", this.ms_per_word, "ms per word.");
+    doRetry: function () {
+        SpritzClient.userLogin();
     }
 });
 
-// Let strings repeat themselves,
-// because JavaScript isn't as awesome as Python.
-String.prototype.repeat = function( num ){
-    if(num < 1){
-        return new Array( Math.abs(num) + 1 ).join( this );
-    }
-    return new Array( num + 1 ).join( this );
-};
+enyo.singleton({
+    name: "moboreader.Spritz",
 
-function decodeEntities(s){
-    var str, temp= document.createElement('p');
-    temp.innerHTML= s;
-    str= temp.textContent || temp.innerText;
-    temp=null;
-    return str;
-}
+    published: {
+        wordCompleted: 0,
+        totalWords: 0,
+        running: false,
+        dlActivity: 0,
+        numDownloading: 0,
+        available: false
+    },
+    bindings: [
+        { from: "^.moboreader.Prefs.useSpritz", to: ".available" }
+    ],
+    dlCounter: 0,
+    initialized: false,
+
+    availableChanged: function () {
+        this.log("Need to activate Spritz: ", moboreader.Prefs.useSpritz);
+        if (moboreader.Prefs.useSpritz) {
+            if (window.$ === undefined && !this.loadingJQuery) {
+                //load jquery
+                this.loadScript("jquery-2.1.0.min.js");
+                this.loadingJQuery = true;
+            }
+            if (window.SpritzClient === undefined && !this.loadingSpritz) {
+                if (window.$) {
+                    //load spritz
+                    this.loadScript("spritz.1.2.min.js");
+                    this.loadingSpritz = true;
+                } else {
+                    this.log("Delaying spritz loading until jquery is ready.");
+                    setTimeout(this.availableChanged.bind(this), 100);
+                }
+            }
+        }
+    },
+
+    login: function (popupWindow) {
+        if (popupWindow) {
+            SpritzClient.userLogin();
+        }
+        var dialog = new SpritzLoginDialog();
+        dialog.show();
+    },
+
+    loadScript: function (name) {
+        this.log("Loading ", name);
+        var head = document.getElementsByTagName("head")[0],
+            script = document.createElement("script");
+        script.type = "text/javascript";
+        script.charset = "utf-8";
+        script.src = "assets/" + name;
+        head.appendChild(script);
+    },
+
+    init: function () {
+        var node = $("#spritzer"),
+            options = {
+                defaultSpeed: 500,
+                speedItems: [250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900,  950, 1000],
+                redicleWidth: node.width() - 10
+            };
+
+        if (this.initialized) {
+            this.spritzController.detach();
+            delete this.spritzController;
+        }
+
+        this.spritzController = new SPRITZ.spritzinc.SpritzerController(options);
+        this.spritzController.attach(node);
+        this.spritzController.setProgressReporter(this.bindSafely("receiveProgress"));
+
+        this.initialized = true;
+
+        //if (!SpritzClient.isUserLoggedIn()) {
+            //this.login();
+        var btn = document.getElementsByClassName("spritzer-login-btn")[0];
+        if (btn) {
+            btn.addEventListener("click", function () { this.login(false); }.bind(this));
+        }
+        //}
+
+        setInterval(function () {
+            this.setRunning(this.isRunning());
+        }.bind(this), 100);
+    },
+
+    receiveProgress: function (completed, total) {
+        this.setWordCompleted(completed);
+        this.setTotalWords(total);
+    },
+
+    start: function (articleModel, restart) {
+        var spritzModel;
+
+        if (!this.initialized) {
+            this.init();
+        }
+
+        if (articleModel.spritzOk) {
+            spritzModel = articleModel.get("spritzModel");
+        } else if (articleModel.attributes.spritzModelPersist) {
+            articleModel.set("spritzModel", this.restoreSpritzModel(articleModel.attributes.spritzModelPersist));
+            articleModel.spritzOk = true;
+            spritzModel = articleModel.get("spritzModel");
+            spritzModel.reset();
+        } else {
+            this.log("Need to download spritz model from ", articleModel.attributes.url);
+            return this.downloadSpritzModel(articleModel);
+        }
+
+        if (restart) {
+            spritzModel.reset();
+        }
+        this.spritzController.startSpritzing(spritzModel);
+
+        return -1;
+    },
+    stop: function () {
+        this.spritzController.stopSpritzing();
+    },
+
+    pause: function () {
+        this.spritzController.pauseSpritzing();
+    },
+    resume: function () {
+        this.spritzController.resumeSpritzing();
+    },
+
+    setWpm: function (wpm) {
+        if (!this.spritzController.setSpeed(wpm)) {
+            this.spritzController.setSpeed(this.spritzController.maxUnregisteredSpeed);
+        }
+        return this.spritzController.getSpeed();
+    },
+
+    isRunning: function () {
+        return this.spritzController.spritzPanel.isRunning();
+    },
+    isComplete: function () {
+        return this.spritzController.spritzPanel.isCompleted();
+    },
+
+    downloadSpritzModel: function (articleModel) {
+        this.dlCounter += 1;
+        this.setNumDownloading(this.numDownloading + 1);
+
+        if (!articleModel.attributes.content) {
+            SpritzClient.fetchContents(articleModel.get("url"),
+                                       this.bindSafely("fetchSuccess", articleModel, this.dlCounter),
+                                       this.bindSafely("fetchError", articleModel, this.dlCounter));
+        } else {
+            var locale = articleModel.attributes.content,
+                start = locale.indexOf("lang=\"") + 6,
+                end = locale.indexOf("\"", start),
+                tmpNode = document.createElement("div"),
+                text = "";
+
+            if (start >= 0 && end >= 0 && end > start) {
+                locale = locale.substring(start, end);
+                this.log("Extracted locale: ", locale);
+            } else {
+                locale = "en";
+                this.log("Could not extract locale.");
+            }
+
+            //now get rid of HTML:
+            tmpNode.innerHTML = articleModel.attributes.content;
+            text = tmpNode.innerText;
+
+            SpritzClient.spritzify(text, locale,
+                                   this.bindSafely("fetchSuccess", articleModel, this.dlCounter),
+                                   this.bindSafely("fetchError", articleModel, this.dlCounter));
+        }
+
+        return this.dlCounter;
+    },
+    fetchSuccess: function (articleModel, dlId, result) {
+        this.log("Got spritzData: ", result);
+        articleModel.set("spritzModel", result);
+        articleModel.spritzOk = true;
+        articleModel.set("spritzModelPersist", this.storeSpritzModel(result));
+        articleModel.commit();
+
+        this.setDlActivity(dlId);
+        this.setNumDownloading(this.numDownloading - 1);
+    },
+    fetchError: function (articleModel, dlId) {
+        this.log("Error fetching: ", articleModel.get("url"));
+        this.setDlActivity(dlId);
+        this.setNumDownloading(this.numDownloading - 1);
+    },
+
+    storeSpritzModel: function (spritzModel) {
+        var obj = {
+            contentVersion: spritzModel.getContentVersionId(),
+            words: spritzModel.getWords(),
+            duration: spritzModel.getDuration(),
+            locale: spritzModel.getLocale(),
+            version: spritzModel.getVersion(),
+            wordCount: spritzModel.getWordCount()
+        };
+
+        this.log("Created object: ", obj, " from ", spritzModel);
+
+        return obj;
+    },
+    restoreSpritzModel: function (obj) {
+        var words = [];
+        obj.words.forEach(function (word, index) {
+            words[index] = new SPRITZ.model.TimedWord(word.word, word.orp, word.multiplier, word.position, word.flags);
+        });
+
+        return new SPRITZ.model.SpritzText(obj.contentVersion, words, obj.duration, obj.locale, obj.version, obj.wordCount);
+    }
+});
