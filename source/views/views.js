@@ -147,8 +147,10 @@ enyo.kind({
     create: function () {
         this.inherited(arguments);
         this.$.articleList.set("collection", this.$.articleCollection);
-        //this.$.articleCollection.destroyAllLocal();
-        this.$.articleCollection.fetch({strategy: "merge"});
+
+        setTimeout(function () {
+            this.$.articleCollection.fetch({strategy: "merge"});
+        }.bind(this), 500);
         this.$.articleView.setApi(this.$.api);
         this.$.articleView.setCollection(this.$.articleCollection);
 
@@ -186,7 +188,7 @@ enyo.kind({
     },
 
     articleSelected: function (inSender, inEvent) {
-        this.lastIndex = inEvent.index;
+        this.lastIndex = inEvent.index + 4;
         var model = this.$.articleList.selected();
         if (model) {
             this.$.articleView.setArticleModel(model);
@@ -195,13 +197,16 @@ enyo.kind({
         }
     },
     handleBackGesture: function () {
+        this.$.MainPanels.setIndex(0);
         if (this.lastIndex) {
+            this.log("Scrolling to ", this.lastIndex);
             if (this.lastIndex >= this.$.articleCollection.length) {
                 this.lastIndex = this.$.articleCollection.length -1;
             }
             this.$.articleList.scrollToIndex(this.lastIndex);
+        } else {
+            this.log("Lastindex not set ", this.lastIndex);
         }
-        this.$.MainPanels.setIndex(0);
     }
 });
 

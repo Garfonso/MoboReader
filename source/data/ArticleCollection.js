@@ -10,28 +10,32 @@ enyo.kind({
         {from: "^.moboreader.Prefs.sortOrder", to: ".sortOrder"}
     ],
 
+    success: function () {
+
+    },
+
     sortOrderChanged: function () {
         this.resortCollection();
     },
 
     resortCollection: function () {
         this.log("Sorting for", this.sortOrder);
-        var recs = this.records.slice(), i, field, desc = false;
+        var recs = this.records.slice(), i, field, desc = false, msg;
         this.log("Sorting: ", recs.length);
         switch (this.sortOrder) {
-            case "newest":
-                field = "time_added";
-                desc = true;
-                break;
-            case "oldest":
-                field = "time_added";
-                break;
-            case "title":
-                field = "title";
-                break;
-            case "url":
-                field = "url";
-                break;
+        case "newest":
+            field = "time_added";
+            desc = true;
+            break;
+        case "oldest":
+            field = "time_added";
+            break;
+        case "title":
+            field = "title";
+            break;
+        case "url":
+            field = "url";
+            break;
         }
 
         recs.sort(function (r1, r2) {
@@ -46,7 +50,7 @@ enyo.kind({
             return desc ? 1 : -1;
         });
 
-        var msg = "Old order: ";
+        msg = "Old order: ";
         for (i = 0; i < this.records.length; i += 1) {
             msg += "\n    " + this.records[i].get("time_added") + " => " + this.records[i].get("title");
         }
@@ -76,14 +80,14 @@ enyo.kind({
             if (!rec.attributes) {
                 if (rec && rec.destroy) {
                     rec.destroy({
-                        success: function () { }
+                        success: this.success.bind(this)
                     });
                 }
                 this.log("Got rec without attributes: ", i, JSON.stringify(rec));
                 this.remove(rec);
             } else {
                 rec.commit({
-                    success: function () { }
+                    success: this.success.bind(this)
                 });
             }
         }
@@ -95,6 +99,33 @@ enyo.kind({
         enyo.store.sources[this.defaultSource].commit(this, {
             success: function () {console.log("Collection stored."); }
         });
+
+        this.cleanUpLocalStorace();
+    },
+
+    idInCollection: function (id) {
+        var i;
+        for (i = 0; i < this.records.length; i += 1) {
+            if (this.records[i].attributes && this.records[i].attributes.item_id === id) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    cleanUpLocalStorace: function () {
+        var keys = Object.keys(localStorage), i, index;
+        for (i = 0; i < keys.length; i += 1) {
+            index = keys[i].indexOf("moboreader-app-");
+
+            if (keys[i].indexOf("spritz.telemetry") === 0 ||
+                (index === 0) &&
+                 keys[i] !== "moboreader-app-authModel" &&
+                 keys[i] !== "moboreader-app-pocket-unread-list" &&
+                !this.idInCollection(keys[i].substr(index + "moboreader-app-".length))) {
+                localStorage.removeItem(keys[i]);
+            }
+        }
     },
 
     whipe: function () {
@@ -117,7 +148,8 @@ enyo.kind({
     },
 
     updateArticleContent: function (api) {
-        var i;
+        //records are sorted!
+        var i, rec;
         for (i = this.records.length - 1; i >= 0; i -= 1) {
             if (this.records[i] === undefined) {
                 this.log("record ", i, " was undefined!!");
@@ -125,22 +157,41 @@ enyo.kind({
             }
         }
 
-        this.records.forEach(function (rec, index) {
-           if (!rec.attributes) {
+        for (i = this.records.length -1; i >= 0; i -= 1) {
+            rec = this.records[i];
+            if (!rec.attributes) {
                 if (rec && rec.destroy) {
                     rec.destroy({
-                        success: function () { }
+                        success: this.success.bind(this)
                     });
                 }
-                this.log("Got rec without attributes: ", rec, index);
+                this.log("Got rec without attributes: ", rec, i);
                 this.remove(rec);
-            } else {
+            }
+        }
+
+        for (i = 0; i < this.records.length; i += 1) {
+            rec = this.records[i];
+            if (i < moboreader.Prefs.maxDownloadedArticles) {
                 if (!rec.get("content")) {
+                    this.log("Downloading content for ", rec.attributes.title);
                     api.getArticleContent(rec);
                 } else if (moboreader.Prefs.downloadSpritzOnUpdate && !rec.get("spritzModelPersist")) {
+                    this.log("Downloading spritz for ", rec.attributes.title);
                     moboreader.Spritz.downloadSpritzModel(rec);
+                } else {
+                    this.log(rec.attributes.title, " already complete.");
                 }
+            } else {
+                this.log("Deleting content for ", rec.attributes.title);
+
+                //delete data.
+                rec.set("content", undefined);
+                rec.set("spritzModel", undefined);
+                rec.set("spritzModelPersist", undefined);
+                rec.spritzOk = false;
+                rec.commit();
             }
-        }.bind(this));
+        }
     }
 });

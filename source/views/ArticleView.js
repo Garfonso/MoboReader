@@ -6,7 +6,8 @@ enyo.kind({
         api: "",
         collection: "",
         content: "",
-        currentWord: ""
+        currentWord: "",
+        lastScrollWord: 0
     },
     events: {
         onBack: ""
@@ -124,9 +125,12 @@ enyo.kind({
     },
     articleModelChanged: function (oldValue) {
         this.$.spritzDialog.hide();
-        this.log("oldValue: ", oldValue);
-        if (oldValue && this.oldListener) {
-            oldValue.removeListener("destroy", this.oldListener);
+        if (oldValue) {
+            if (this.oldListener) {
+                oldValue.removeListener("destroy", this.oldListener);
+            }
+            oldValue.set("scrollPos", this.$.scroller.scrollTop);
+            oldValue.commit();
         }
 
         if (!this.articleModel.get("content") && this.api) {
@@ -134,6 +138,7 @@ enyo.kind({
             this.api.getArticleContent(this.articleModel);
         }
 
+        setTimeout(function() {this.$.scroller.scrollTo(0, this.articleModel.get("scrollPos") || 0);}.bind(this), 400);
         this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
     },
     processChildren: function (node) {
@@ -225,11 +230,12 @@ enyo.kind({
     },
     currentWordChanged: function () {
         this.log("Current Word: ", this.currentWord, " model: ", this.articleModel, " spritz: ", this.articleModel.spritzOk);
-        if (this.articleModel && this.articleModel.spritzOk) {
+        if (this.articleModel && this.articleModel.spritzOk && this.currentWord - this.lastScrollWord > 20) {
             var ratio = this.currentWord / this.articleModel.get("spritzModel").getWordCount();
             this.log("Ratio: ", ratio);
             this.log("Scroll Val: ", this.$.scroller.getScrollBounds().maxTop * ratio);
             this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);
+            this.lastScrollWord = this.currentWord;
         }
     },
     scrollTo: function (inSender, inEvent) {

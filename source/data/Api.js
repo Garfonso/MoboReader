@@ -161,7 +161,14 @@ enyo.kind({
             this.authModel.set("lastSync", 0);
         }
         this.added = 0;
-        this.downloadArticlesInner(collection, slow);
+
+        if (this.authModel.get("unsyncedActivities").length) {
+            this.articleAction(false, false, collection, function () {
+                this.downloadArticlesInner(collection, slow);
+            }.bind(this));
+        } else {
+            this.downloadArticlesInner(collection, slow);
+        }
     },
     downloadArticlesInner: function (collection) {
         var req, data;
@@ -175,9 +182,9 @@ enyo.kind({
             since: this.authModel.get("lastSync"),
             detailType: "complete",
             //contentType: "article",
-            sort: moboreader.Prefs.sortOrder || "newest",
-            count: 10,
-            offset: this.authModel.get("offset")
+            sort: moboreader.Prefs.sortOrder || "newest"
+            //count: 10,
+            //offset: this.authModel.get("offset")
         };
         this.authModel.set("offset", this.authModel.get("offset") + 10);
 
@@ -223,22 +230,19 @@ enyo.kind({
             }
 
             this.log("Now have", articles.length, "new items.");
-            if (articles.length && collection.length < moboreader.Prefs.maxArticles) {
+            //if (articles.length) {
                 oldLength = collection.length;
                 collection.merge(articles);
                 this.added += collection.length - oldLength;
 
-                this.downloadArticlesInner(collection);
-            } else if (this.authModel.get("lastSync") !== 0 && collection.length < moboreader.Prefs.maxArticles) {
-                this.authModel.set("lastSync", 0); //get some more articles.
-                this.downloadArticlesInner(collection);
-            } else {
+                //this.downloadArticlesInner(collection);
+            //} else {
                 collection.storeWithChilds(this.added > 0); //tell if we added articles => then a sort will happen.
                 this.authModel.set("lastSync", inResponse.since || 0);
 
                 collection.updateArticleContent(this);
 
-            }
+            //}
         }
 
         this.setActive(this.active - 1);
@@ -275,6 +279,9 @@ enyo.kind({
         content = content.replace(/<a href=[^<]+?><div/gim, "<div");
         content = content.replace(/div><\/a>/gim, "div>");
 
+        //add . to end of headings:
+        content = content.replace(/([^.?!])<\s*?\/(h\d|strong)\s*?>/gim, "$1<span style=\"display:none;\">.</span></$2>");
+
         articleModel.set("content", content);
         articleModel.set("host", inResponse.host);
         articleModel.commit();
@@ -309,17 +316,19 @@ enyo.kind({
         req.response(this.bindSafely("actionSuccess", collection));
         req.error(this.bindSafely("actionFailed", {}));
     },
-    articleAction: function (articleModel, action, collection) {
+    articleAction: function (articleModel, action, collection, callback) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
 
         this.setActive(this.active + 1);
-        actionObj = {
-            action: action,
-            item_id: articleModel.get("item_id"),
-            time: Math.round(Date.now() / 1000)
-        };
-        this.addNoDuplicates(actions, actionObj);
-        this.log("Action: ", actionObj);
+        if (articleModel && action) {
+            actionObj = {
+                action: action,
+                item_id: articleModel.get("item_id"),
+                time: Math.round(Date.now() / 1000)
+            };
+            this.addNoDuplicates(actions, actionObj);
+        }
+        this.log("Action: ", actionObj, " actions: ", actions);
 
         req = new moboreader.Ajax({
             url: "https://getpocket.com/v3/send",
@@ -333,8 +342,8 @@ enyo.kind({
         });
         req.go();
 
-        req.response(this.bindSafely("actionSuccess", collection));
-        req.error(this.bindSafely("actionFailed", actionObj));
+        req.response(this.bindSafely("actionSuccess", collection, callback));
+        req.error(this.bindSafely("actionFailed", actionObj, callback));
     },
     addNoDuplicates: function (actions, action) {
         var i;
@@ -428,7 +437,7 @@ enyo.kind({
         }.bind(this));
         return arr;
     },
-    actionSuccess: function (collection, inSender, inResponse) {
+    actionSuccess: function (collection, callback, inSender, inResponse) {
         var actions = this.authModel.get("unsyncedActivities"), i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
 
@@ -456,14 +465,26 @@ enyo.kind({
         }
         collection.storeWithChilds();
         this.setActive(this.active - 1);
-    },
-    actionFailed: function (action, inSender, inResponse) {
-        this.log("Article Action failed: ", inResponse);
-        var actions = this.authModel.get("unsyncedActivities");
 
-        this.addNoDuplicates(actions, action);
-        this.storeModel();
+        if (callback) {
+            callback();
+        }
+    },
+    actionFailed: function (action, callback, inSender, inResponse) {
+        this.log("Article Action failed: ", inResponse);
+
+        if (action) {
+            var actions = this.authModel.get("unsyncedActivities");
+
+            this.addNoDuplicates(actions, action);
+            this.log("Now have undone actions: ", this.authModel.get("unsyncedActivities"));
+            this.storeModel();
+        }
         this.setActive(this.active - 1);
+
+        if (callback) {
+            callback();
+        }
     },
 
     //general failure.

@@ -2,7 +2,7 @@ enyo.singleton({
     name: "moboreader.Prefs",
     published: {
         //pocket optins
-        maxArticles: 50,
+        maxDownloadedArticles: 10,
         sortOrder: "newest", //other options: oldest, title, site === url.
 
         //display options:
@@ -14,8 +14,8 @@ enyo.singleton({
         minWPM: 200,
         maxWPM: 1000
     },
-    maxArticlesChanged: function () {
-        enyo.setCookie("maxArticles", this.maxArticles);
+    maxDownloadedArticlesChanged: function () {
+        enyo.setCookie("maxDownloadedArticles", this.maxDownloadedArticles);
     },
     sortOrderChanged: function () {
         enyo.setCookie("sortOrder", this.sortOrder);
@@ -41,7 +41,7 @@ enyo.singleton({
         this.inherited(arguments);
 
         //load stuff
-        this.setMaxArticles(parseInt(enyo.getCookie("maxArticles"), 10) || this.maxArticles);
+        this.setMaxDownloadedArticles(parseInt(enyo.getCookie("maxDownloadedArticles"), 10) || this.maxDownloadedArticles);
         this.setSortOrder(enyo.getCookie("sortOrder") || this.sortOrder);
 
         this.setFontSize(enyo.getCookie("fontSize") || this.fontSize);

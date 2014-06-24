@@ -9,7 +9,7 @@ enyo.kind({
     centered: true,
     showTransitions: true,
     bindings: [
-        { from: "^.moboreader.Prefs.maxArticles", to: ".$.maxEntries.inVal", oneWay: false},
+        { from: "^.moboreader.Prefs.maxDownloadedArticles", to: ".$.maxEntries.inVal", oneWay: false},
         {from: "^.moboreader.Prefs.sortOrder", to: ".$.sortOrder.inVal", oneWay: false  },
 
         {from: "^.moboreader.Prefs.fontSize", to: ".$.fontSize.inVal", oneWay: false  },
@@ -32,8 +32,8 @@ enyo.kind({
                         {
                             kind: "PickerWithHintAndBinding",
                             name: "maxEntries",
-                            hint: "Max entries",
-                            pickerComponents: [50, 75, 100, 150, 200, 250]
+                            hint: "Max downloaded entries",
+                            pickerComponents: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
                         },
                         {
                             kind: "PickerWithHintAndBinding",

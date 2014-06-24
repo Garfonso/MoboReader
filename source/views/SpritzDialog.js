@@ -32,17 +32,17 @@ enyo.kind({
             name: "scrim",
             style: "z-index: -1; background-color: darkgrey; width: 100%; padding: 0px; position: absolute; top: 0; bottom: 0; left: 0; right: 0;",
             ontap: "onTap",
-            ondragstart: "dragStart",
-            ondrag: "drag",
-            ondragfinish: "dragEnd"
+            //ondragstart: "dragStart",
+            //ondrag: "drag",
+            //ondragfinish: "dragEnd"
         },
         {
             name: "transpScrim",
             style: "z-index: -2; background-color: darkgrey; width: 100%; padding: 0px; position: absolute; top: 0; bottom: 0; left: 0; right: 0; opacity: 0.5;",
             ontap: "onTap",
-            ondragstart: "dragStart",
-            ondrag: "drag",
-            ondragfinish: "dragEnd"
+            //ondragstart: "dragStart",
+            //ondrag: "drag",
+            //ondragfinish: "dragEnd"
         },
         {
             name: "downloadingSpritzData",
