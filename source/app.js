@@ -13,6 +13,9 @@ enyo.kind({
 enyo.ready(function () {
     if (window.PalmSystem) {
         window.PalmSystem.stageReady();
+        if (window.PalmSystem.allowResizeOnPositiveSpaceChange) {
+            window.PalmSystem.allowResizeOnPositiveSpaceChange(false); //deactivate keyboard resizing our app.
+        }
     }
     new moboreader.Application({name: "app"});
 });

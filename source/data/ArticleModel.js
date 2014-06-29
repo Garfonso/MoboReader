@@ -1,3 +1,49 @@
+var parseArticle = function (data) {
+    if (!data) { //is called also for commit, data seems empty then.
+        return data;
+    }
+
+    if (data.image) {
+        data.image_src = data.image.src;
+    } else {
+        data.image_src = "assets/empty.png";
+    }
+
+    if (data.favorite) {
+        data.favorite = parseInt(data.favorite, 10);
+    } else {
+        data.favorite = 0;
+    }
+    if (data.status) {
+        data.archived = data.status !== "0";
+    } else {
+        data.archived = false;
+        data.status = "0";
+    }
+
+    data.title = data.title || data.resolved_title || data.given_title || data.normal_title || "No title";
+    data.url = data.url || data.resolved_url || data.given_url || data.normal_url;
+
+    if (!data.host) {
+        var start = data.url.indexOf("//") + 2;
+        var end = data.url.indexOf("/", start);
+        data.host = data.url.substring(start, end);
+        if (data.host.indexOf("www.") === 0) {
+            data.host = data.host.substr(4);
+        }
+    }
+
+    if (data.time_added) {
+        data.time_added = parseInt(data.time_added, 10);
+    } else {
+        data.time_added = Math.round(Date.now() / 1000);
+    }
+
+    data.greyout = data.status !== "0";
+
+    return data;
+};
+
 enyo.kind({
     name: "moboreader.ArticleModel",
     kind: "enyo.Model",
@@ -5,47 +51,7 @@ enyo.kind({
     defaultSource: "local",
 
     parse: function (data) {
-        if (!data) { //is called also for commit, data seems empty then.
-            return data;
-        }
-
-        if (data.image) {
-            data.image_src = data.image.src;
-        } else {
-            data.image_src = "assets/empty.png";
-        }
-
-        if (data.favorite) {
-            data.favorite = parseInt(data.favorite, 10);
-        } else {
-            data.favorite = 0;
-        }
-        if (data.status) {
-            data.archived = data.status !== "0";
-        } else {
-            data.archived = false;
-            data.status = "0";
-        }
-
-        data.title = data.title || data.resolved_title || data.given_title || data.normal_title || "No title";
-        data.url = data.url || data.resolved_url || data.given_url || data.normal_url;
-
-        if (!data.host) {
-            var start = data.url.indexOf("//") + 2;
-            var end = data.url.indexOf("/", start);
-            data.host = data.url.substring(start, end);
-            if (data.host.indexOf("www.") === 0) {
-                data.host = data.host.substr(4);
-            }
-        }
-
-        if (data.time_added) {
-            data.time_added = parseInt(data.time_added, 10);
-        }
-
-        data.greyout = data.status !== "0";
-
-        return data;
+        return parseArticle(data);
     },
 
     doArchive: function (api, collection) {

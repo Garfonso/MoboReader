@@ -18,25 +18,32 @@ enyo.kind({
         this.resortCollection();
     },
 
+    getSortKey: function () {
+        var field, desc;
+        switch (this.sortOrder) {
+            case "newest":
+                field = "time_added";
+                desc = true;
+                break;
+            case "oldest":
+                field = "time_added";
+                break;
+            case "title":
+                field = "title";
+                break;
+            case "url":
+                field = "url";
+                break;
+        }
+
+        return {field: field, desc: desc };
+    },
+
     resortCollection: function () {
         this.log("Sorting for", this.sortOrder);
-        var recs = this.records.slice(), i, field, desc = false, msg;
+        var recs = this.records.slice(), i, key = this.getSortKey(), field = key.field, desc = key.desc, msg;
         this.log("Sorting: ", recs.length);
-        switch (this.sortOrder) {
-        case "newest":
-            field = "time_added";
-            desc = true;
-            break;
-        case "oldest":
-            field = "time_added";
-            break;
-        case "title":
-            field = "title";
-            break;
-        case "url":
-            field = "url";
-            break;
-        }
+
 
         recs.sort(function (r1, r2) {
             console.log("Blub: ", r1, " blub2: ", r2);
@@ -187,11 +194,40 @@ enyo.kind({
 
                 //delete data.
                 rec.set("content", undefined);
-                rec.set("spritzModel", undefined);
+                rec.spritzModel = undefined;
                 rec.set("spritzModelPersist", undefined);
                 rec.spritzOk = false;
                 rec.commit();
             }
         }
+    },
+
+    addRightIndex: function (hash) {
+        var i, key = this.getSortKey(), field = key.field, desc = key.desc, rec;
+        hash = parseArticle(hash);
+
+        for (i = 0; i < this.records.length; i += 1) {
+            this.log("i: ", i);
+            rec = this.records[i];
+            if (!rec.attributes) {
+                this.log("rec empty?", rec);
+                continue;
+            }
+
+            if (desc) {
+                if (rec.attributes[field] < hash[field]) {
+                    this.log(rec.attributes[field], " < ", hash[field], " => add at ", i);
+                    this.add(hash, i);
+                    return;
+                }
+            } else {
+                if (rec.attributes[field] > hash[field]) {
+                    this.log(rec.attributes[field], " > ", hash[field], " => add at ", i);
+                    this.add(hash, i);
+                    return;
+                }
+            }
+        }
+        this.add(hash);
     }
 });

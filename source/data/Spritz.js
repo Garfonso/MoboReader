@@ -165,12 +165,12 @@ enyo.singleton({
             this.init();
         }
 
-        if (articleModel.spritzOk) {
-            spritzModel = articleModel.get("spritzModel");
+        if (articleModel.spritzOk && articleModel.spritzModel) {
+            spritzModel = articleModel.spritzModel;
         } else if (articleModel.attributes.spritzModelPersist) {
-            articleModel.set("spritzModel", this.restoreSpritzModel(articleModel.attributes.spritzModelPersist));
+            articleModel.spritzModel = this.restoreSpritzModel(articleModel.attributes.spritzModelPersist);
             articleModel.spritzOk = true;
-            spritzModel = articleModel.get("spritzModel");
+            spritzModel = articleModel.spritzModel;
             spritzModel.reset();
         } else {
             this.log("Need to download spritz model from ", articleModel.attributes.url);
@@ -245,10 +245,14 @@ enyo.singleton({
     },
     fetchSuccess: function (articleModel, dlId, result) {
         this.log("Got spritzData: ", result);
-        articleModel.set("spritzModel", result);
-        articleModel.spritzOk = true;
-        articleModel.set("spritzModelPersist", this.storeSpritzModel(result));
-        articleModel.commit();
+        if (!articleModel.attributes || !articleModel.previous) {
+            this.log("Article was already destroyed.");
+        } else {
+            articleModel.spritzModel = result;
+            articleModel.spritzOk = true;
+            articleModel.set("spritzModelPersist", this.storeSpritzModel(result));
+            articleModel.commit();
+        }
 
         this.setDlActivity(dlId);
         this.setNumDownloading(this.numDownloading - 1);

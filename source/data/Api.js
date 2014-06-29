@@ -282,12 +282,16 @@ enyo.kind({
         //add . to end of headings:
         content = content.replace(/([^.?!])<\s*?\/(h\d|strong)\s*?>/gim, "$1<span style=\"display:none;\">.</span></$2>");
 
-        articleModel.set("content", content);
-        articleModel.set("host", inResponse.host);
-        articleModel.commit();
+        if (!articleModel.attributes || !articleModel.previous) {
+            this.log("Article was already destroyed.");
+        } else {
+            articleModel.set("content", content);
+            articleModel.set("host", inResponse.host);
+            articleModel.commit();
 
-        if (moboreader.Prefs.downloadSpritzOnUpdate) {
-            moboreader.Spritz.downloadSpritzModel(articleModel);
+            if (moboreader.Prefs.downloadSpritzOnUpdate) {
+                moboreader.Spritz.downloadSpritzModel(articleModel);
+            }
         }
 
         this.setActive(this.active - 1);
@@ -313,8 +317,8 @@ enyo.kind({
         req.go();
         this.addNoDuplicates(actions, {idem_id: "add", action: "add"});
 
-        req.response(this.bindSafely("actionSuccess", collection));
-        req.error(this.bindSafely("actionFailed", {}));
+        req.response(this.bindSafely("actionSuccess", collection, null));
+        req.error(this.bindSafely("actionFailed", {}, null));
     },
     articleAction: function (articleModel, action, collection, callback) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
@@ -402,11 +406,11 @@ enyo.kind({
             switch (obj.action) {
                 case "add":
                     //try to add. Not sure that really works. Add call wants item id??
-                    collection.add(result);
+                    collection.addRightIndex(result);
                     break;
                 case "readd":
                     this.log("Adding back: " + JSON.stringify(result));
-                    collection.add(result);
+                    collection.addRightIndex(result);
                     break;
                 case "favorite":
                     rec.set("favorite", 1);

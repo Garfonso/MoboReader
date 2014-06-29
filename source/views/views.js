@@ -146,14 +146,14 @@ enyo.kind({
     ],
     create: function () {
         this.inherited(arguments);
-        this.$.articleList.set("collection", this.$.articleCollection);
 
+        //somehow this is necessary on a Veer???
         setTimeout(function () {
+            this.$.articleList.set("collection", this.$.articleCollection);
             this.$.articleCollection.fetch({strategy: "merge"});
+            this.$.articleView.setApi(this.$.api);
+            this.$.articleView.setCollection(this.$.articleCollection);
         }.bind(this), 500);
-        this.$.articleView.setApi(this.$.api);
-        this.$.articleView.setCollection(this.$.articleCollection);
-
         this.$.authDialog.setApi(this.$.api);
     },
 

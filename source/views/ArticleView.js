@@ -129,9 +129,13 @@ enyo.kind({
             if (this.oldListener) {
                 oldValue.removeListener("destroy", this.oldListener);
             }
-            oldValue.set("scrollPos", this.$.scroller.scrollTop);
-            oldValue.commit();
+            if (oldValue.attributes && oldValue.previous) {
+                oldValue.set("scrollPos", this.$.scroller.scrollTop);
+                oldValue.commit();
+            }
         }
+
+        this.lastScrollWord = 0;
 
         if (!this.articleModel.get("content") && this.api) {
             this.log("Downloading article content.");
@@ -231,7 +235,7 @@ enyo.kind({
     currentWordChanged: function () {
         this.log("Current Word: ", this.currentWord, " model: ", this.articleModel, " spritz: ", this.articleModel.spritzOk);
         if (this.articleModel && this.articleModel.spritzOk && this.currentWord - this.lastScrollWord > 20) {
-            var ratio = this.currentWord / this.articleModel.get("spritzModel").getWordCount();
+            var ratio = this.currentWord / this.articleModel.spritzModel.getWordCount();
             this.log("Ratio: ", ratio);
             this.log("Scroll Val: ", this.$.scroller.getScrollBounds().maxTop * ratio);
             this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);

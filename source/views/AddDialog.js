@@ -29,6 +29,13 @@ enyo.kind({
                     ]
                 },
                 {
+                    style: "margin: 10px 5px; width: 100px;",
+                    kind: "onyx.Button",
+                    content: "Paste",
+                    name: "pasteBtn",
+                    ontap: "pasteTapped"
+                },
+                {
                     classes: "onyx-affirmative",
                     style: "margin: 10px 5px; width: 100px;",
                     kind: "onyx.Button",
@@ -57,5 +64,14 @@ enyo.kind({
             this.doAdd({url: url });
         }
         this.hide();
+    },
+    pasteTapped: function () {
+        this.$.urlEntry.focus();
+        if (window.PalmSystem) {
+            window.PalmSystem.paste();
+        } else {
+            document.execCommand("paste");
+        }
+        this.$.urlEntry.blur();
     }
 });
