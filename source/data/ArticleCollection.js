@@ -1,4 +1,4 @@
-/*global parseArticle */
+/*global parseArticle, ArticleContentHandler */
 
 enyo.kind({
     name: "moboreader.ArticleCollection",
@@ -43,30 +43,23 @@ enyo.kind({
     },
 
     resortCollection: function () {
-        this.log("Sorting for", this.sortOrder);
-        var recs = this.records.slice(), i, key = this.getSortKey(), field = key.field, desc = key.desc, msg;
-        this.log("Sorting: ", recs.length);
-
+        var recs = this.records.slice(), key = this.getSortKey(), field = key.field, desc = key.desc;
         recs.sort(function (r1, r2) {
-            if (r1.get(field) === r2.get(field)) {
+            if (!r1 || !r2) {
                 return 0;
             }
-            if (r1.get(field) > r2.get(field)) {
+            var v1, v2;
+            v1 = r1.attributes ? r1.attributes[field] : r1[field];
+            v2 = r2.attributes ? r2.attributes[field] : r2[field];
+
+            if (v1 === v2) {
+                return 0;
+            }
+            if (v1 > v2) {
                 return desc ? -1 : 1;
             }
             return desc ? 1 : -1;
         });
-
-        msg = "Old order: ";
-        for (i = 0; i < this.records.length; i += 1) {
-            msg += "\n    " + this.records[i].get("time_added") + " => " + this.records[i].get("title");
-        }
-        this.log(msg);
-        msg = "New order: ";
-        for (i = 0; i < recs.length; i += 1) {
-            msg += "\n    " + recs[i].get("time_added") + " => " + recs[i].get("title");
-        }
-        this.log(msg);
 
         //clear and add sorted recs.
         this.removeAll();
@@ -74,12 +67,20 @@ enyo.kind({
     },
 
     storeWithChilds: function (added) {
-        var i;
+        var i, rec;
         for (i = this.records.length - 1; i >= 0; i -= 1) {
-            if (this.records[i] === undefined) {
-                this.log("record ", i, " was undefined!!");
-                this.records.splice(i, 1);
+            rec = this.at(i);
+            if (!rec) {
+                console.error("record " + i + " was undefined!!");
+                continue;
             }
+            if (!rec.commit) {
+                console.error("record " + JSON.stringify(rec) + " had no commit method!");
+                continue;
+            }
+            rec.commit({
+                success: this.success.bind(this)
+            });
         }
 
         if (added) {
@@ -121,7 +122,6 @@ enyo.kind({
     whipe: function () {
         this.destroyAll();
 
-        //this only works with local storage!!
         if (typeof enyo.store.sources[this.defaultSource].storage === "function") {
             var models = enyo.store.sources[this.defaultSource].storage().models, key;
             for (key in models) {
@@ -138,46 +138,30 @@ enyo.kind({
     },
 
     updateArticleContent: function (api) {
-        //records are sorted!
-        var i, rec, attributes;
-        for (i = this.records.length - 1; i >= 0; i -= 1) {
-            if (this.records[i] === undefined) {
-                this.error("record ", i, " was undefined!!");
-                this.records.splice(i, 1);
-            }
-        }
-
+        var i, rec;
         for (i = 0; i < this.records.length; i += 1) {
-            rec = this.records[i];
-            if (rec.attributes) {
-                attributes = rec.attributes;
-            } else {
-                attributes = rec;
-            }
-
-            if (i < moboreader.Prefs.maxDownloadedArticles) {
-                if (!attributes.content) {
-                    this.log("Downloading content for ", attributes.title);
-                    api.getArticleContent(rec);
-                } else if (moboreader.Prefs.downloadSpritzOnUpdate && !attributes.spritzModelPersist) {
-                    this.log("Downloading spritz for ", attributes.title);
-                    moboreader.Spritz.downloadSpritzModel(rec);
+            rec = this.at(i);
+            if (rec) {
+                if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
+                    ArticleContentHandler.checkAndDownload(rec, api);
+                    /*if (!rec.get("content")) {
+                        this.log("Downloading content for ", rec.attributes.title);
+                        api.getArticleContent(rec);
+                    } else if (moboreader.Prefs.downloadSpritzOnUpdate && !rec.get("spritzModelPersist")) {
+                        this.log("Downloading spritz for ", rec.attributes.title);
+                        moboreader.Spritz.downloadSpritzModel(rec);
+                    } else {
+                        this.log(rec.attributes.title, " already complete.");
+                    }*/
                 } else {
-                    this.log(attributes.title, " already complete.");
-                }
-            } else {
-                this.log("Deleting content for ", attributes.title);
+                    if (rec.attributes) {
+                        this.log("Deleting content for ", rec.attributes.title);
 
-                if (rec.set) {
-                    //delete data.
-                    rec.set("content", undefined);
-                    rec.spritzModel = undefined;
-                    rec.set("spritzModelPersist", undefined);
-                    rec.spritzOk = false;
-                    rec.commit();
-                } else {
-                    delete attributes.content;
-                    delete attributes.spritzModelPersist;
+                        //delete data.
+                        delete rec.spritzModel;
+                        delete rec.spritzModelPersist;
+                        rec.spritzOk = false;
+                    }
                 }
             }
         }
@@ -189,11 +173,16 @@ enyo.kind({
 
         for (i = 0; i < this.records.length; i += 1) {
             this.log("i: ", i);
-            rec = this.records[i];
+            rec = this.at(i);
             if (rec.attributes) {
                 attributes = rec.attributes;
             } else {
                 attributes = rec;
+            }
+
+            if (attributes) {
+                this.error("rec empty? " + JSON.stringify(rec));
+                continue;
             }
 
             if (desc) {

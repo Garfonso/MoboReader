@@ -1,0 +1,41 @@
+{
+    "id": "info.mobo.moboreader.storage",
+    "description": "Article storage for MoboReader",
+    "engine": "node",
+    "activityTimeout": 30,
+    "services": [
+        {
+            "name": "info.mobo.moboreader.storage",
+            "description": "Article storage for MoboReader",
+            "globalized": false,
+            "assistant": "ServiceAssistant",
+            "commands": [
+                {
+                    "name": "storeArticleContent",
+                    "assistant": "StoreArticleContentAssistant",
+                    "public": true
+                },
+                {
+                    "name": "getArticleContent",
+                    "assistant": "GetArticleContentAssistant",
+                    "public": true
+                },
+                {
+                    "name": "articleContentExists",
+                    "assistant": "ArticleContentExistsAssistant",
+                    "public": true
+                },
+                {
+                    "name": "deleteArticleContent",
+                    "assistant": "DeleteArticleContentAssistant",
+                    "public": true
+                },
+                {
+                    "name": "wipeStorage",
+                    "assistant": "WipeStorageAssistant",
+                    "public": true
+                }
+            ]
+        }
+    ]
+}

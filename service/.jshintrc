@@ -1,0 +1,6 @@
+{
+    "globals": {
+        "log": false,
+        "debug": false
+    }
+}

@@ -1,8 +1,4 @@
-/**
-    For simple applications, you might define all of your views in this file.
-    For more complex applications, you might choose to separate these kind definitions
-    into multiple files under this folder.
-*/
+/*global ArticleContentHandler */
 
 enyo.kind({
     name: "moboreader.MainView",
@@ -11,17 +7,19 @@ enyo.kind({
     published: {
         pocketDL: 0,
         spritzDL: 0,
-        articleCollection: ""
+        articleCollection: "",
+        dbActivities: 0
     },
     computed: {
-        activity: ["pocketDL", "spritzDL", {cached: true}]
+        activity: ["pocketDL", "spritzDL", "dbActivities", {cached: true}]
     },
-    activity: function () { return this.pocketDL || this.spritzDL; },
+    activity: function () { return this.pocketDL || this.spritzDL || this.dbActivities; },
     bindings: [
         {from: ".$.api.active", to: ".pocketDL" },
         {from: "^.moboreader.Spritz.numDownloading", to: ".spritzDL"},
         {from: ".activity", to: ".$.activitySpinner.showing"},
-        {from: ".articleCollection.length", to: ".$.articleCount.content" }
+        {from: ".articleCollection.length", to: ".$.articleCount.content" },
+        {from: ".$.ArticleContentHandler.dbActivities", to: ".dbActivities" }
     ],
     components: [
         {
@@ -135,43 +133,58 @@ enyo.kind({
             name: "settingsDialog",
             kind: "moboreader.SettingsDialog"
         },
-        /*{
-            name: "articleCollection",
-            kind: "moboreader.ArticleCollection",
-            url: "pocket-unread-list"
-        },*/
         {
             kind: "Signals",
-            onAddArticle: "addArticle"
+            onAddArticle: "addArticle",
+            onrelaunch: "addArticle",
+            onactivate: "startRefreshTimer",
+            ondeactivate: "stopRefreshTimer",
+            onArticleOpReturned: "continueWipe"
         }
     ],
     create: function () {
         this.inherited(arguments);
 
-        this.$.articleView.setApi(this.$.api);
-        this.$.authDialog.setApi(this.$.api);
+        function fetchResult() {
+            //do this after fetch to prevent empty list in UI.
+            this.$.articleView.setCollection(this.articleCollection);
+            this.$.articleList.set("collection", this.articleCollection);
 
-        //somehow this is necessary on a Veer???
-        console.log("Starting check timeout...");
-        this.initCollection();
-    },
-    initCollection: function () {
-        if (!this.articleCollection) {
-            this.articleCollection = new moboreader.ArticleCollection({url: "pocket-unread-list"});
-            this.articleCollection.set("url", "pocket-unread-list");
+            if (window.PalmSystem) {
+                window.PalmSystem.stageReady();
+                if (window.PalmSystem.allowResizeOnPositiveSpaceChange) {
+                    window.PalmSystem.allowResizeOnPositiveSpaceChange(false); //deactivate keyboard resizing our app.
+                }
+                console.error("Launch Params: " + JSON.stringify(webos.launchParams()));
+                if (webos.launchParams().url) {
+                    console.error("Adding article: " + webos.launchParams().url);
+                    this.$.api.addArticle(webos.launchParams().url, this.articleCollection);
+                }
+            }
         }
 
-        console.log("Collection ok: ", this.articleCollection !== undefined);
-        if (this.articleCollection !== undefined) {
-            this.$.articleList.set("collection", this.articleCollection);
-            this.articleCollection.fetch({strategy: "merge"});
-            this.$.articleView.setCollection(this.articleCollection);
+        this.articleCollection = new moboreader.ArticleCollection({url: "pocket-unread-list"});
+        this.articleCollection.set("url", "pocket-unread-list");
+        this.articleCollection.fetch({strategy: "merge", success: fetchResult.bind(this), fail: fetchResult.bind(this)});
+        this.$.articleView.setApi(this.$.api);
+        this.$.authDialog.setApi(this.$.api);
+    },
+    startRefreshTimer: function () {
+        if (this.invervalId) {
+            clearInterval(this.invervalId);
+        }
+        this.intervalId = setInterval(this.bindSafely("refreshTimerCalled"), 300000); //refresh all 5 min if active.
+    },
+    refreshTimerCalled: function () {
+        if (!this.$.authDialog.showing && !this.getActivty()) {
+            this.refreshTap();
         } else {
-            console.error("Article collection not initialized???");
-            /*setTimeout(function () {
-                console.error("Hallo???");
-                this.initCollection();
-            }.bind(this), 500);*/
+            console.error("Are not authed (" + this.$.authDialog.showing + ") or are active (" + this.getActivty() + ")");
+        }
+    },
+    stopRefreshTimer: function () {
+        if (this.invervalId) {
+            clearInterval(this.invervalId);
         }
     },
 
@@ -199,7 +212,12 @@ enyo.kind({
     },
     forceRefreshTap: function () {
         this.articleCollection.whipe();
-        this.$.api.downloadArticles(this.articleCollection, true);
+        this.dbOpId = ArticleContentHandler.wipe();
+    },
+    continueWipe: function (inSender, inEvent) {
+        if (inEvent.activityId === this.dbOpId) {
+            this.$.api.downloadArticles(this.articleCollection, true);
+        }
     },
     settingsTap: function () {
         this.$.settingsDialog.show();
@@ -227,4 +245,3 @@ enyo.kind({
         }
     }
 });
-

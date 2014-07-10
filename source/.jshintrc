@@ -6,7 +6,8 @@
         "myapp": false,
         "moboreader": false,
         "SPRITZ": false,
-        "SpritzClient": false
+        "SpritzClient": false,
+        "webos": false
     },
     "es3": true,
     "evil": false,

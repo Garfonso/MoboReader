@@ -1,0 +1,35 @@
+[
+    {
+        "library": {
+            "name": "foundations",
+            "version": "1.0"
+        }
+    },
+    {
+        "source": "config.js"
+    },
+    {
+        "source": "prologue.js"
+    },
+    {
+        "source": "utils.js"
+    },
+    {
+        "source": "ServiceAssistant.js"
+    },
+    {
+        "source": "StoreArticleContentAssistant.js"
+    },
+    {
+        "source": "GetArticleContentAssistant.js"
+    },
+    {
+        "source": "ArticleContentExistsAssistant.js"
+    },
+    {
+        "source": "DeleteArticleContentAssistant.js"
+    },
+    {
+        "source": "WipeStorageAssistant.js"
+    }
+]

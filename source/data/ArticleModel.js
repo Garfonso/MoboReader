@@ -1,3 +1,5 @@
+/*global ArticleContentHandler*/
+
 var parseArticle = function (data) {
     if (!data) { //is called also for commit, data seems empty then.
         return data;
@@ -23,11 +25,19 @@ var parseArticle = function (data) {
 
     data.title = data.title || data.resolved_title || data.given_title || data.normal_title || "No title";
     data.url = data.url || data.resolved_url || data.given_url || data.normal_url;
+    if (!data.url) {
+        data.url = "No url";
+        console.error("Had article without url: " + JSON.stringify(data));
+    }
 
     if (!data.host) {
         var start = data.url.indexOf("//") + 2;
         var end = data.url.indexOf("/", start);
         data.host = data.url.substring(start, end);
+        if (!data.host) {
+            console.error("Could not extract host from: " + data.url);
+            data.host = "No host";
+        }
         if (data.host.indexOf("www.") === 0) {
             data.host = data.host.substr(4);
         }
@@ -81,5 +91,10 @@ enyo.kind({
         this.set("greyout", true);
         api.articleAction(this, "delete", collection);
         this.commit();
+    },
+
+    destroy: function () {
+        ArticleContentHandler.deleteContent(this);
+        this.inherited(arguments);
     }
 });

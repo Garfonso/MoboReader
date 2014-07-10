@@ -1,3 +1,5 @@
+/*global ArticleContentHandler */
+
 enyo.kind({
     name: "moboreader.ArticleView",
     kind: "FittableRows",
@@ -85,7 +87,9 @@ enyo.kind({
         },
         {
             kind: "enyo.Signals",
-            onbackbutton: "handleBackGesture"
+            onbackbutton: "handleBackGesture",
+            onArticleDownloaded: "contentReceived",
+            onArticleOpReturned: "dbOp"
         },
         {
             kind: "moboreader.LinkPopup",
@@ -94,8 +98,6 @@ enyo.kind({
     ],
     bindings: [
         {from: ".articleModel.title", to: ".$.articleTitle.content"},
-        {from: ".articleModel.content", to: ".$.articleContent.content"},
-        {from: ".$.articleContent.content", to: ".content"},
         {from: "^moboreader.Prefs.useSpritz", to: ".$.spritzBtn.showing"},
 
         {from: ".articleModel.favorite", to: ".$.favButton.content", transform: function (val) {
@@ -106,7 +108,6 @@ enyo.kind({
         } },
 
         {from: "^.moboreader.Prefs.fontSize", to: ".$.articleContent.style", transform: function (val) {
-            this.log("Incomming: ", val);
             return "font-size: " + val + "px;";
         }},
 
@@ -135,16 +136,27 @@ enyo.kind({
                 oldValue.set("scrollPos", this.$.scroller.scrollTop);
                 oldValue.commit();
             }
+
+            //keep memory footprint small:
+            delete oldValue.webContent;
+            delete oldValue.spritzModelPersist;
         }
 
         this.lastScrollWord = 0;
-        if (!this.articleModel.get("content") && this.api) {
-            this.log("Downloading article content.");
-            this.api.getArticleContent(this.articleModel);
-        }
+        this.$.articleContent.setContent("Asking db for content...");
 
-        setTimeout(function() {this.$.scroller.scrollTo(0, this.articleModel.get("scrollPos") || 0);}.bind(this), 400);
+        enyo.Signals.send("onStartDBActivity", {});
+        this.articleOpId = ArticleContentHandler.getContent(this.articleModel);
+
+        setTimeout(function() {
+            //this.$.scroller.scrollTo(0, this.articleModel.get("scrollPos") || 0);
+            this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 0);
+        }.bind(this), 200);
         this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
+    },
+    downloadContent: function () {
+        this.log("Downloading article content.");
+        this.api.getArticleContent(this.articleModel);
     },
     processChildren: function (node) {
         var i,
@@ -199,9 +211,23 @@ enyo.kind({
             }
         }
     },
-    contentChanged: function () {
-        this.log("ArticleContent changed.");
+    dbOp: function (inSender, inEvent) { //filter events here.
+        if (inEvent.activityId === this.articleOpId) {
+            if (inEvent.success && inEvent.content && inEvent.content.web) {
+                this.contentReceived(inSender, inEvent);
+            } else {
+                this.$.articleContent.setContent("Need to download content...");
+                this.downloadContent();
+            }
+        }
+    },
+    contentReceived: function (inSender, inEvent) {
+        this.log("ArticleContent changed: ", inEvent);
 
+        this.articleModel.spritzModelPersist = inEvent.content.spritz;
+        if (inEvent.content.web) {
+            this.$.articleContent.setContent(inEvent.content.web);
+        }
         setTimeout(function () {
             this.processChildren(this.$.articleContent.node);
         }.bind(this), 100);
@@ -253,6 +279,10 @@ enyo.kind({
 
     openUrl: function () {
         window.open(this.articleModel.get("url"));
+    },
+
+    endDBActivity: function () {
+        enyo.Signals.send("onEndDBActivity", {});
     }
 });
 

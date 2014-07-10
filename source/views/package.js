@@ -6,6 +6,6 @@ enyo.depends(
     "LinkPopup.js",
     "PickerWithHintAndBinding.js",
     "SettingsDialog.js",
-    "Spritzdialog.js",
+    "SpritzDialog.js",
     "views.js"
 );

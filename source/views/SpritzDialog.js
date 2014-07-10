@@ -13,12 +13,11 @@ enyo.kind({
         onScrollTo: ""
     },
     published: {
-        running: "",
-        downloading: -1
+        running: ""
     },
     bindings: [
-        {from: "^moboreader.Spritz.dlActivity", to: ".downloading"},
-        {from: "^moboreader.Spritz.running", to: ".$.scrim.showing"}
+        {from: "^moboreader.Spritz.running", to: ".$.scrim.showing"},
+        {from: "^moboreader.Spritz.running", to: ".running"}
     ],
     wpm: 300,
     minWpm: 300,
@@ -47,7 +46,17 @@ enyo.kind({
         {
             name: "downloadingSpritzData",
             style: "background-color: #4c4c4c; text-align: center; font-size: 18px; padding: 30px 0px; position: absolute; top: 30%; width: 100%;",
-            content: "Downloading spritz data..."
+            components: [
+                {content: "Downloading spritz data..."},
+                {
+                    kind: "onyx.Button",
+                    name: "retryBtn",
+                    showing: false,
+                    style: "margin: 20px auto 0px auto;",
+                    content: "Retry",
+                    ontap: "startDL"
+                }
+            ]
         },
         {
             id: "spritzer",
@@ -60,37 +69,53 @@ enyo.kind({
             content: "",
             showing: true,
             ontap: "onTap"
+        },
+        {
+            kind: "Signals",
+            onSpritzDL: "downloadingDone"
         }
     ],
 
     prepareSpritz: function (articleModel) {
         this.show();
 
-        this.articleModel = articleModel;
+        if (articleModel !== this.articleModel) {
+            this.articleModel = articleModel;
+            this.startDL();
+        }
+    },
+    startDL: function () {
+        this.$.spritzer.show(); //this is important to not destroy canvas.
         this.dlId = moboreader.Spritz.start(this.articleModel);
+        this.log("DlId: ", this.dlId);
+        this.$.retryBtn.hide();
 
         if (this.dlId < 0) {
             this.$.downloadingSpritzData.hide();
             this.$.spritzer.show();
-            moboreader.Spritz.pause();
+            this.$.wpmDisplay.show();
+            this.dlId = moboreader.Spritz.start(this.articleModel);
+            this.setWPM(this.wpm);
         } else {
-            this.needDownload = true;
             this.$.downloadingSpritzData.show();
             this.$.spritzer.hide();
+            this.$.wpmDisplay.hide();
         }
     },
-    downloadingChanged: function () {
-        //this.log("Download done: ", this.downloading);
-        if (this.downloading === this.dlId && this.dlId >= 0) {
-            this.$.downloadingSpritzData.hide();
-            this.$.spritzer.show();
-            this.dlId = moboreader.Spritz.start(this.articleModel);
-            moboreader.Spritz.pause();
+    downloadingDone: function (inSender, inEvent) {
+        if (inEvent.id === this.dlId) {
+            if (inEvent.success) {
+                this.$.downloadingSpritzData.hide();
+                this.$.spritzer.show();
+                this.dlId = moboreader.Spritz.start(this.articleModel);
+            } else {
+                this.$.retryBtn.show();
+            }
         }
     },
 
     stopSpritz: function () {
-        moboreader.Spritz.stop();
+        moboreader.Spritz.pause();
         this.hide();
     },
     onTap: function (inSender, inEvent) {
@@ -106,7 +131,6 @@ enyo.kind({
 
         if (moboreader.Spritz.isRunning()) {
             moboreader.Spritz.pause();
-            this.$.wpmDisplay.hide();
         } else {
             if (inEvent.clientY > this.node.clientHeight - 58) {
                 this.hide();
@@ -115,23 +139,21 @@ enyo.kind({
             this.calcWPM(inEvent.clientX);
             moboreader.Spritz.resume();
         }
-        this.setRunning(moboreader.Spritz.isRunning());
     },
     calcWPM: function (clientX) {
         var ratio = clientX / this.node.clientWidth;
         this.wpm = (this.maxWpm - this.minWpm) * ratio + this.minWpm;
 
+        this.setWPM(this.wpm);
+    },
+    setWPM: function (wpm) {
+        this.wpm = wpm;
         var realWpm = moboreader.Spritz.setWpm(this.wpm);
         this.showWPM(Math.round(this.wpm), realWpm);
     },
     showWPM: function (wpm, realWpm) {
         this.$.wpmDisplay.setContent("Words per minute: " + realWpm + (wpm !== realWpm ? " (Login to go faster)" : ""));
-        this.$.wpmDisplay.show();
-        //setTimeout(function () {
-        //    this.$.wpmDisplay.hide();
-        //}.bind(this), 750);
     },
-
 
     drag: function (inSender, inEvent) {
         this.log("Dragging: ", inEvent);

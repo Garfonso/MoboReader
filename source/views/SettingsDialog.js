@@ -99,8 +99,5 @@ enyo.kind({
                 }
             ]
         }
-    ],
-    prepareSettingsAndShow: function () {
-
-    }
+    ]
 });

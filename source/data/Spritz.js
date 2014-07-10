@@ -1,4 +1,4 @@
-/*global SpritzLoginDialog, $ */
+/*global SpritzLoginDialog, $, ArticleContentHandler */
 
 enyo.kind({
     name: "SpritzLoginDialog",
@@ -72,7 +72,6 @@ enyo.singleton({
         wordCompleted: 0,
         totalWords: 0,
         running: false,
-        dlActivity: 0,
         numDownloading: 0,
         available: false
     },
@@ -167,20 +166,25 @@ enyo.singleton({
 
         if (articleModel.spritzOk && articleModel.spritzModel) {
             spritzModel = articleModel.spritzModel;
-        } else if (articleModel.attributes.spritzModelPersist) {
-            articleModel.spritzModel = this.restoreSpritzModel(articleModel.attributes.spritzModelPersist);
+        } else if (articleModel.spritzModelPersist) {
+            articleModel.spritzModel = this.restoreSpritzModel(articleModel.spritzModelPersist);
             articleModel.spritzOk = true;
             spritzModel = articleModel.spritzModel;
             spritzModel.reset();
         } else {
             this.log("Need to download spritz model from ", articleModel.attributes.url);
-            return this.downloadSpritzModel(articleModel);
+            if (articleModel.spritzDownloading >= 0) {
+                return articleModel.spritzDownloading;
+            } else {
+                return this.downloadSpritzModel(articleModel);
+            }
         }
 
         if (restart) {
             spritzModel.reset();
         }
         this.spritzController.startSpritzing(spritzModel);
+        this.pause();
 
         return -1;
     },
@@ -209,14 +213,18 @@ enyo.singleton({
         return this.spritzController.spritzPanel.isCompleted();
     },
 
-    downloadSpritzModel: function (articleModel) {
+    downloadSpritzModel: function (articleModel, webContent) {
+        if (!webContent) {
+            webContent = null;
+        }
         this.dlCounter += 1;
         this.setNumDownloading(this.numDownloading + 1);
+        articleModel.spritzDownloading = this.dlCounter;
 
         if (!articleModel.attributes.content) {
             SpritzClient.fetchContents(articleModel.get("url"),
-                                       this.bindSafely("fetchSuccess", articleModel, this.dlCounter),
-                                       this.bindSafely("fetchError", articleModel, this.dlCounter));
+                                       this.bindSafely("fetchSuccess", articleModel, this.dlCounter, webContent),
+                                       this.bindSafely("fetchError", articleModel, this.dlCounter, webContent));
         } else {
             var locale = articleModel.attributes.content,
                 start = locale.indexOf("lang=\"") + 6,
@@ -237,30 +245,43 @@ enyo.singleton({
             text = tmpNode.innerText;
 
             SpritzClient.spritzify(text, locale,
-                                   this.bindSafely("fetchSuccess", articleModel, this.dlCounter),
-                                   this.bindSafely("fetchError", articleModel, this.dlCounter));
+                                   this.bindSafely("fetchSuccess", articleModel, this.dlCounter, webContent),
+                                   this.bindSafely("fetchError", articleModel, this.dlCounter, webContent));
         }
 
         return this.dlCounter;
     },
-    fetchSuccess: function (articleModel, dlId, result) {
+    fetchSuccess: function (articleModel, dlId, webContent, result) {
         this.log("Got spritzData: ", result);
         if (!articleModel.attributes || !articleModel.previous) {
             this.log("Article was already destroyed.");
         } else {
             articleModel.spritzModel = result;
             articleModel.spritzOk = true;
-            articleModel.set("spritzModelPersist", this.storeSpritzModel(result));
-            articleModel.commit();
         }
+        delete articleModel.spritzDownloading;
 
-        this.setDlActivity(dlId);
+        var spritzPersist = this.storeSpritzModel(result);
+
+        enyo.Signals.send("onArticleDownloaded", {
+            id: articleModel.get(articleModel.primaryKey),
+            content: {
+                web: webContent,
+                spritz: spritzPersist
+            },
+            fromWeb: true
+        });
+
+        ArticleContentHandler.storeArticle(articleModel, webContent, spritzPersist);
+
+        enyo.Signals.send("onSpritzDL", {id: dlId, success: true});
         this.setNumDownloading(this.numDownloading - 1);
     },
     fetchError: function (articleModel, dlId) {
-        this.error("Error fetching: ", articleModel.get("url"));
-        this.setDlActivity(dlId);
+        this.log("Error fetching: ", articleModel.get("url"));
+        enyo.Signals.send("onSpritzDL", {id: dlId, success: false});
         this.setNumDownloading(this.numDownloading - 1);
+        delete articleModel.spritzDownloading;
     },
 
     storeSpritzModel: function (spritzModel) {

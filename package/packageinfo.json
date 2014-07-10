@@ -1,0 +1,12 @@
+{
+    "id": "info.mobo.moboreader",
+    "package_format_version": 2,
+    "loc_name": "MoboReader",
+    "version": "0.0.3",
+    "vendor": "Mobo Mobile Apps",
+    "vendorurl": "mobo.info",
+    "app": "info.mobo.moboreader",
+    "services": [
+        "info.mobo.moboreader.storage"
+    ]
+}
