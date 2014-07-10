@@ -16,6 +16,12 @@ enyo.ready(function () {
         if (window.PalmSystem.allowResizeOnPositiveSpaceChange) {
             window.PalmSystem.allowResizeOnPositiveSpaceChange(false); //deactivate keyboard resizing our app.
         }
+        var key;
+        for (key in window.PalmSystem) {
+            //if (window.PalmSystem.hasOwnProperty(key)) {
+                console.error("window.PalmSystem." + key + " = " + window.PalmSystem[key]);
+            //}
+        }
     }
     new moboreader.Application({name: "app"});
 });

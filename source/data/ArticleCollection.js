@@ -1,8 +1,11 @@
+/*global parseArticle */
+
 enyo.kind({
     name: "moboreader.ArticleCollection",
     kind: "enyo.Collection",
     model: "moboreader.ArticleModel",
     defaultSource: "local",
+    instanceAllRecords: true,
     published: {
         sortOrder: "newest"
     },
@@ -44,10 +47,7 @@ enyo.kind({
         var recs = this.records.slice(), i, key = this.getSortKey(), field = key.field, desc = key.desc, msg;
         this.log("Sorting: ", recs.length);
 
-
         recs.sort(function (r1, r2) {
-            console.log("Blub: ", r1, " blub2: ", r2);
-
             if (r1.get(field) === r2.get(field)) {
                 return 0;
             }
@@ -74,28 +74,11 @@ enyo.kind({
     },
 
     storeWithChilds: function (added) {
-        var i, rec;
+        var i;
         for (i = this.records.length - 1; i >= 0; i -= 1) {
             if (this.records[i] === undefined) {
                 this.log("record ", i, " was undefined!!");
                 this.records.splice(i, 1);
-            }
-        }
-
-        for (i = this.records.length - 1; i >= 0; i -= 1) {
-            rec = this.records[i];
-            if (!rec.attributes) {
-                if (rec && rec.destroy) {
-                    rec.destroy({
-                        success: this.success.bind(this)
-                    });
-                }
-                this.log("Got rec without attributes: ", i, JSON.stringify(rec));
-                this.remove(rec);
-            } else {
-                rec.commit({
-                    success: this.success.bind(this)
-                });
             }
         }
 
@@ -156,73 +139,72 @@ enyo.kind({
 
     updateArticleContent: function (api) {
         //records are sorted!
-        var i, rec;
+        var i, rec, attributes;
         for (i = this.records.length - 1; i >= 0; i -= 1) {
             if (this.records[i] === undefined) {
-                this.log("record ", i, " was undefined!!");
+                this.error("record ", i, " was undefined!!");
                 this.records.splice(i, 1);
-            }
-        }
-
-        for (i = this.records.length -1; i >= 0; i -= 1) {
-            rec = this.records[i];
-            if (!rec.attributes) {
-                if (rec && rec.destroy) {
-                    rec.destroy({
-                        success: this.success.bind(this)
-                    });
-                }
-                this.log("Got rec without attributes: ", rec, i);
-                this.remove(rec);
             }
         }
 
         for (i = 0; i < this.records.length; i += 1) {
             rec = this.records[i];
+            if (rec.attributes) {
+                attributes = rec.attributes;
+            } else {
+                attributes = rec;
+            }
+
             if (i < moboreader.Prefs.maxDownloadedArticles) {
-                if (!rec.get("content")) {
-                    this.log("Downloading content for ", rec.attributes.title);
+                if (!attributes.content) {
+                    this.log("Downloading content for ", attributes.title);
                     api.getArticleContent(rec);
-                } else if (moboreader.Prefs.downloadSpritzOnUpdate && !rec.get("spritzModelPersist")) {
-                    this.log("Downloading spritz for ", rec.attributes.title);
+                } else if (moboreader.Prefs.downloadSpritzOnUpdate && !attributes.spritzModelPersist) {
+                    this.log("Downloading spritz for ", attributes.title);
                     moboreader.Spritz.downloadSpritzModel(rec);
                 } else {
-                    this.log(rec.attributes.title, " already complete.");
+                    this.log(attributes.title, " already complete.");
                 }
             } else {
-                this.log("Deleting content for ", rec.attributes.title);
+                this.log("Deleting content for ", attributes.title);
 
-                //delete data.
-                rec.set("content", undefined);
-                rec.spritzModel = undefined;
-                rec.set("spritzModelPersist", undefined);
-                rec.spritzOk = false;
-                rec.commit();
+                if (rec.set) {
+                    //delete data.
+                    rec.set("content", undefined);
+                    rec.spritzModel = undefined;
+                    rec.set("spritzModelPersist", undefined);
+                    rec.spritzOk = false;
+                    rec.commit();
+                } else {
+                    delete attributes.content;
+                    delete attributes.spritzModelPersist;
+                }
             }
         }
     },
 
     addRightIndex: function (hash) {
-        var i, key = this.getSortKey(), field = key.field, desc = key.desc, rec;
+        var i, key = this.getSortKey(), field = key.field, desc = key.desc, rec, attributes;
         hash = parseArticle(hash);
 
         for (i = 0; i < this.records.length; i += 1) {
             this.log("i: ", i);
             rec = this.records[i];
-            if (!rec.attributes) {
-                this.log("rec empty?", rec);
-                continue;
+            if (rec.attributes) {
+                attributes = rec.attributes;
+            } else {
+                attributes = rec;
             }
 
             if (desc) {
-                if (rec.attributes[field] < hash[field]) {
-                    this.log(rec.attributes[field], " < ", hash[field], " => add at ", i);
+                if (attributes[field] < hash[field]) {
+                    this.log(attributes[field], " < ", hash[field], " => add at ", i);
                     this.add(hash, i);
                     return;
                 }
             } else {
-                if (rec.attributes[field] > hash[field]) {
-                    this.log(rec.attributes[field], " > ", hash[field], " => add at ", i);
+                if (attributes[field] > hash[field]) {
+                    this.log(attributes[field], " > ", hash[field], " => add at ", i);
                     this.add(hash, i);
                     return;
                 }

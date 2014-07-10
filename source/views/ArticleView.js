@@ -23,6 +23,7 @@ enyo.kind({
             kind: "enyo.Scroller",
             name: "scroller",
             touch: true,
+            thumb: true,
             fit: true,
             horizontal: "hidden",
             classes: "enyo-fill",
@@ -112,10 +113,11 @@ enyo.kind({
         {from: "^.moboreader.Spritz.wordCompleted", to: ".currentWord" }
     ],
     handleBackGesture: function (inSender, inEvent) {
-        this.log("Incomming back gesture!!");
-        if (this.$.spritzDialog.running) {
-            this.$.spritzDialog.stopSpritz();
-        } else if (this.$.spritzDialog.showing) {
+        this.log("Incomming back gesture!! showing: ", this.$.spritzDialog.showing, " running: ", this.$.spritzDialog.running);
+        if (this.$.spritzDialog.showing) {
+            if (this.$.spritzDialog.running) {
+                this.$.spritzDialog.stopSpritz();
+            }
             this.$.spritzDialog.hide();
         } else {
             this.doBack();
@@ -136,7 +138,6 @@ enyo.kind({
         }
 
         this.lastScrollWord = 0;
-
         if (!this.articleModel.get("content") && this.api) {
             this.log("Downloading article content.");
             this.api.getArticleContent(this.articleModel);
@@ -167,11 +168,14 @@ enyo.kind({
                 horizontal: "scroll",
                 vertical: "hidden",
                 thumb: false,
+                preventDragPropagation: false,
+                preventScrollPropagation: false,
                 classes: "enyo-fill",
                 components: [
                     {allowHtml: true, content: node.innerHTML}
                 ]
             });
+            scroller.$.strategy.preventDragPropagation = false;
             scroller.renderInto(node);
 
             //child.style.overflowWrap = "break-word";

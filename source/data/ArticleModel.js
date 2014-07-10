@@ -57,11 +57,14 @@ enyo.kind({
     doArchive: function (api, collection) {
         if (this.get("status") && this.get("status") === "0") {
             this.set("greyout", true);
+            this.set("archived", true);
             api.articleAction(this, "archive", collection);
         } else {
             this.set("greyout", false);
+            this.set("archived", false);
             api.articleAction(this, "readd", collection);
         }
+        this.commit();
     },
 
     doFavorite: function (api, collection) {
@@ -71,10 +74,12 @@ enyo.kind({
         } else {
             api.articleAction(this, "unfavorite", collection);
         }
+        this.commit();
     },
 
     doDelete: function (api, collection) {
         this.set("greyout", true);
         api.articleAction(this, "delete", collection);
+        this.commit();
     }
 });

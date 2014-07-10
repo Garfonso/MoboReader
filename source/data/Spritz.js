@@ -229,7 +229,7 @@ enyo.singleton({
                 this.log("Extracted locale: ", locale);
             } else {
                 locale = "en";
-                this.log("Could not extract locale.");
+                this.error("Could not extract locale.");
             }
 
             //now get rid of HTML:
@@ -258,7 +258,7 @@ enyo.singleton({
         this.setNumDownloading(this.numDownloading - 1);
     },
     fetchError: function (articleModel, dlId) {
-        this.log("Error fetching: ", articleModel.get("url"));
+        this.error("Error fetching: ", articleModel.get("url"));
         this.setDlActivity(dlId);
         this.setNumDownloading(this.numDownloading - 1);
     },

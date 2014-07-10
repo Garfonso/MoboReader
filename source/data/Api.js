@@ -45,6 +45,7 @@ enyo.kind({
         this.inherited(arguments);
 
         this.authModel = new moboreader.AuthModel({id: "authModel"});
+
         this.authModel.fetch({
             success: this.bindSafely("modelFetched"),
             fail: this.bindSafely("modelFetched")
@@ -148,7 +149,7 @@ enyo.kind({
         this.doAuthorized({"username": inResponse.username});
     },
     authError: function (inSender, inResponse) {
-        this.log("Auth error!! ", inResponse);
+        this.log("Auth error!! " + JSON.stringify(inResponse));
         this.doAuthFailed({error: true});
     },
 
@@ -182,9 +183,9 @@ enyo.kind({
             since: this.authModel.get("lastSync"),
             detailType: "complete",
             //contentType: "article",
-            sort: moboreader.Prefs.sortOrder || "newest"
-            //count: 10,
-            //offset: this.authModel.get("offset")
+            sort: moboreader.Prefs.sortOrder || "newest",
+            count: 10,
+            offset: this.authModel.get("offset")
         };
         this.authModel.set("offset", this.authModel.get("offset") + 10);
 
@@ -200,7 +201,7 @@ enyo.kind({
         req.error(this.bindSafely("downloadFailed"));
     },
     gotArticles: function (collection, inSender, inResponse) {
-        var articles = [], key, list = inResponse.list, article, rec, oldLength;
+        var articles = [], key, list = inResponse.list, article, rec, oldLength, listLength = 0;
 
         this.log("Got response: ", inResponse);
 
@@ -208,6 +209,7 @@ enyo.kind({
             this.log("Got list of new items...");
             for (key in list) {
                 if (list.hasOwnProperty(key)) {
+                    listLength += 1;
                     this.log("processing: " + key);
                     article = list[key];
 
@@ -222,6 +224,7 @@ enyo.kind({
                             rec.set("greyout", true);
                             collection.remove(rec);
                             rec.destroy({succes: this.dummy});
+                            this.added += 1;
                         }
                     } else {
                         articles.push(article);
@@ -230,19 +233,18 @@ enyo.kind({
             }
 
             this.log("Now have", articles.length, "new items.");
-            //if (articles.length) {
+            if (listLength > 0) {
                 oldLength = collection.length;
                 collection.merge(articles);
                 this.added += collection.length - oldLength;
 
-                //this.downloadArticlesInner(collection);
-            //} else {
+                this.downloadArticlesInner(collection);
+            } else {
                 collection.storeWithChilds(this.added > 0); //tell if we added articles => then a sort will happen.
                 this.authModel.set("lastSync", inResponse.since || 0);
 
                 collection.updateArticleContent(this);
-
-            //}
+            }
         }
 
         this.setActive(this.active - 1);
@@ -315,10 +317,22 @@ enyo.kind({
             }
         });
         req.go();
-        this.addNoDuplicates(actions, {idem_id: "add", action: "add"});
+        this.addNoDuplicates(actions, {idem_id: "add", action: "add", url: url});
 
         req.response(this.bindSafely("actionSuccess", collection, null));
         req.error(this.bindSafely("actionFailed", {}, null));
+    },
+    removeAdds: function (actions, collection) {
+        var i, result = [];
+        for (i = actions.length - 1; i >= 0; i -= 1) {
+            if (actions[i].action === "add") {
+                this.log("Adding ", actions[i].url, " from offline storage.");
+                this.addArticle(actions[i].url, collection);
+            } else {
+                result.push(actions[i]);
+            }
+        }
+        return result;
     },
     articleAction: function (articleModel, action, collection, callback) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
@@ -333,6 +347,7 @@ enyo.kind({
             this.addNoDuplicates(actions, actionObj);
         }
         this.log("Action: ", actionObj, " actions: ", actions);
+        actions = this.removeAdds(actions, collection);
 
         req = new moboreader.Ajax({
             url: "https://getpocket.com/v3/send",

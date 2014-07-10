@@ -58,7 +58,7 @@ enyo.kind({
             name: "wpmDisplay",
             style: "text-align: center; color: black; padding: 10px; width: 100%; position: absolute; top: 30%",
             content: "",
-            showing: false,
+            showing: true,
             ontap: "onTap"
         }
     ],

@@ -72,6 +72,5 @@ enyo.kind({
         } else {
             document.execCommand("paste");
         }
-        this.$.urlEntry.blur();
     }
 });

@@ -21,7 +21,6 @@ enyo.kind({
                 }
 
                 if (val) {
-                    this.log("No entry for value ", val, " in picker.");
                     return this.$.picker.createComponent({content: String(val), value: val});
                 }
             }
@@ -49,7 +48,6 @@ enyo.kind({
         this.pickerComponentsChanged();
     },
     pickerComponentsChanged: function () {
-        this.log("pickerComponentsChanged called.");
         this.$.picker.destroyClientControls();
         this.pickerComponents.forEach(function (val) {
             this.$.picker.createComponent({content: String(val), value: val});

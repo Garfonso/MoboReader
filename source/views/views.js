@@ -10,7 +10,8 @@ enyo.kind({
     fit: true,
     published: {
         pocketDL: 0,
-        spritzDL: 0
+        spritzDL: 0,
+        articleCollection: ""
     },
     computed: {
         activity: ["pocketDL", "spritzDL", {cached: true}]
@@ -20,7 +21,7 @@ enyo.kind({
         {from: ".$.api.active", to: ".pocketDL" },
         {from: "^.moboreader.Spritz.numDownloading", to: ".spritzDL"},
         {from: ".activity", to: ".$.activitySpinner.showing"},
-        {from: ".$.articleCollection.length", to: ".$.articleCount.content" }
+        {from: ".articleCollection.length", to: ".$.articleCount.content" }
     ],
     components: [
         {
@@ -134,11 +135,11 @@ enyo.kind({
             name: "settingsDialog",
             kind: "moboreader.SettingsDialog"
         },
-        {
+        /*{
             name: "articleCollection",
             kind: "moboreader.ArticleCollection",
             url: "pocket-unread-list"
-        },
+        },*/
         {
             kind: "Signals",
             onAddArticle: "addArticle"
@@ -147,14 +148,31 @@ enyo.kind({
     create: function () {
         this.inherited(arguments);
 
-        //somehow this is necessary on a Veer???
-        setTimeout(function () {
-            this.$.articleList.set("collection", this.$.articleCollection);
-            this.$.articleCollection.fetch({strategy: "merge"});
-            this.$.articleView.setApi(this.$.api);
-            this.$.articleView.setCollection(this.$.articleCollection);
-        }.bind(this), 500);
+        this.$.articleView.setApi(this.$.api);
         this.$.authDialog.setApi(this.$.api);
+
+        //somehow this is necessary on a Veer???
+        console.log("Starting check timeout...");
+        this.initCollection();
+    },
+    initCollection: function () {
+        if (!this.articleCollection) {
+            this.articleCollection = new moboreader.ArticleCollection({url: "pocket-unread-list"});
+            this.articleCollection.set("url", "pocket-unread-list");
+        }
+
+        console.log("Collection ok: ", this.articleCollection !== undefined);
+        if (this.articleCollection !== undefined) {
+            this.$.articleList.set("collection", this.articleCollection);
+            this.articleCollection.fetch({strategy: "merge"});
+            this.$.articleView.setCollection(this.articleCollection);
+        } else {
+            console.error("Article collection not initialized???");
+            /*setTimeout(function () {
+                console.error("Hallo???");
+                this.initCollection();
+            }.bind(this), 500);*/
+        }
     },
 
     showAuthDialog: function () {
@@ -165,7 +183,7 @@ enyo.kind({
             this.$.authDialog.resultFail(this.$.api);
         } else {
             this.$.authDialog.resultOk(inResponse.username);
-            this.$.api.downloadArticles(this.$.articleCollection);
+            this.$.api.downloadArticles(this.articleCollection);
         }
     },
 
@@ -173,15 +191,15 @@ enyo.kind({
         this.$.addDialog.doShow();
     },
     addArticle: function (inSendder, inEvent) {
-        this.$.api.addArticle(inEvent.url, this.$.articleCollection);
+        this.$.api.addArticle(inEvent.url, this.articleCollection);
     },
 
     refreshTap: function () {
-        this.$.api.downloadArticles(this.$.articleCollection);
+        this.$.api.downloadArticles(this.articleCollection);
     },
     forceRefreshTap: function () {
-        this.$.articleCollection.whipe();
-        this.$.api.downloadArticles(this.$.articleCollection, true);
+        this.articleCollection.whipe();
+        this.$.api.downloadArticles(this.articleCollection, true);
     },
     settingsTap: function () {
         this.$.settingsDialog.show();
@@ -200,8 +218,8 @@ enyo.kind({
         this.$.MainPanels.setIndex(0);
         if (this.lastIndex) {
             this.log("Scrolling to ", this.lastIndex);
-            if (this.lastIndex >= this.$.articleCollection.length) {
-                this.lastIndex = this.$.articleCollection.length -1;
+            if (this.lastIndex >= this.articleCollection.length) {
+                this.lastIndex = this.articleCollection.length -1;
             }
             this.$.articleList.scrollToIndex(this.lastIndex);
         } else {
