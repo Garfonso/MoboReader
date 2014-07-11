@@ -322,6 +322,11 @@ enyo.kind({
         articleModel.downloadingContent = false;
         this.log("Failed to download: ", inResponse);
         this.setActive(this.active - 1);
+        enyo.Signals.send("onArticleDownloaded", {
+            id: articleModel.get(articleModel.primaryKey),
+            content: {},
+            model: articleModel
+        });
     },
 
     /*****************************************************************************************

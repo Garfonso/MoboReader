@@ -280,6 +280,12 @@ enyo.singleton({
         enyo.Signals.send("onSpritzDL", {id: dlId, success: false});
         this.setNumDownloading(this.numDownloading - 1);
         delete articleModel.spritzDownloading;
+        
+        enyo.Signals.send("onArticleDownloaded", {
+            id: articleModel.get(articleModel.primaryKey),
+            content: {},
+            model: articleModel
+        });
     },
 
     storeSpritzModel: function (spritzModel) {
