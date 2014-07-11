@@ -155,8 +155,6 @@ enyo.kind({
                     }*/
                 } else {
                     if (rec.attributes) {
-                        this.log("Deleting content for ", rec.attributes.title);
-
                         //delete data.
                         delete rec.spritzModel;
                         delete rec.spritzModelPersist;
@@ -170,6 +168,11 @@ enyo.kind({
     addRightIndex: function (hash) {
         var i, key = this.getSortKey(), field = key.field, desc = key.desc, rec, attributes;
         hash = parseArticle(hash);
+
+        if(enyo.store.findLocal("moboreader.ArticleModel", hash)) {
+            console.warn("Article already present: " + hash.title, ", " + hash.url);
+            return;
+        }
 
         for (i = 0; i < this.records.length; i += 1) {
             this.log("i: ", i);

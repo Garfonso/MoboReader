@@ -83,7 +83,8 @@ enyo.kind({
         {
             name: "spritzDialog",
             kind: "SpritzDialog",
-            onScrollTo: "scrollTo"
+            onScrollTo: "scrollTo",
+            onSpritzReady: "spritzReady"
         },
         {
             kind: "enyo.Signals",
@@ -142,6 +143,7 @@ enyo.kind({
             delete oldValue.spritzModelPersist;
         }
 
+        this.$.spritzBtn.removeClass("onyx-affirmative");
         this.lastScrollWord = 0;
         this.$.articleContent.setContent("Asking db for content...");
 
@@ -281,8 +283,8 @@ enyo.kind({
         window.open(this.articleModel.get("url"));
     },
 
-    endDBActivity: function () {
-        enyo.Signals.send("onEndDBActivity", {});
+    spritzReady: function () {
+        this.$.spritzBtn.addClass("onyx-affirmative");
     }
 });
 

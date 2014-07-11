@@ -62,7 +62,6 @@ enyo.kind({
             }.bind(this), 1000);
         } else {
             this.authModel.addListener("change", this.bindSafely("storeModel"));
-
             console.error("Having " + this.authModel.attributes.unsyncedActivities.length + " unsynced activities");
         }
     },
@@ -249,11 +248,12 @@ enyo.kind({
                 collection.storeWithChilds(this.added > 0); //tell if we added articles => then a sort will happen.
                 this.authModel.set("lastSync", inResponse.since || 0);
 
-                this.setActive(this.active - 1);
                 this.refreshing = false;
                 collection.updateArticleContent(this);
             }
         }
+
+        this.setActive(this.active - 1);
     },
     downloadArticlesFailed: function (inSender, inResponse) {
         this.log("Failed to download: ", inResponse);
@@ -332,7 +332,9 @@ enyo.kind({
      ******************* Article Actions *****************************************************
      *****************************************************************************************/
     addArticle: function (url, collection) {
-        var req, actions = this.authModel.get("unsyncedActivities");
+        var req,
+            actions = this.authModel.get("unsyncedActivities"),
+            action = {action: "add", url: url, time: Math.round(Date.now() / 1000)};
 
         this.setActive(this.active + 1);
         req = new moboreader.Ajax({
@@ -346,24 +348,12 @@ enyo.kind({
             }
         });
         req.go();
-        this.addNoDuplicates(actions, {idem_id: "add", action: "add", url: url});
+        this.addNoDuplicates(actions, action);
 
-        req.response(this.bindSafely("actionSuccess", collection, null));
+        req.response(this.actionSuccess.bind(this, collection, null, [action]));
         req.error(this.bindSafely("actionFailed", {}, null));
     },
-    removeAdds: function (actions, collection) {
-        var i, result = [];
-        for (i = actions.length - 1; i >= 0; i -= 1) {
-            if (actions[i].action === "add") {
-                this.log("Adding ", actions[i].url, " from offline storage.");
-                this.addArticle(actions[i].url, collection);
-            } else {
-                result.push(actions[i]);
-            }
-        }
-        return result;
-    },
-    articleAction: function (articleModel, action, collection, callback) {
+    articleAction: function (articleModel, action, collection, callback, url) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
 
         this.setActive(this.active + 1);
@@ -376,8 +366,9 @@ enyo.kind({
             this.addNoDuplicates(actions, actionObj);
         }
         this.log("Action: ", actionObj, " actions: ", actions);
-        actions = this.removeAdds(actions, collection);
 
+        //sending adds here, too, will work.
+        //they will have invalid item_id but action "add" and url field.
         req = new moboreader.Ajax({
             url: "https://getpocket.com/v3/send",
             method: "POST",
@@ -390,20 +381,44 @@ enyo.kind({
         });
         req.go();
 
-        req.response(this.bindSafely("actionSuccess", collection, callback));
+        req.response(this.actionSuccess.bind(this, collection, callback, actions.slice())); //copy actions array here
         req.error(this.bindSafely("actionFailed", actionObj, callback));
     },
     addNoDuplicates: function (actions, action) {
-        var i;
+        var i, key = "item_id";
+        if(!action || !action.action) {
+            console.error("Action undefined.");
+            return;
+        }
+        if (action.action === "add") {
+            key = "url";
+        }
+        if (!action[key]) {
+            console.error("Need url or item_id.");
+            return;
+        }
+
         //check if this action is already happening:
         for (i = actions.length - 1; i >= 0; i -= 1) {
-            if (actions[i].item_id === action.item_id &&
+            if (actions[i][key] === action[key] &&
                 actions[i].action === action.action) {
                 //keep the newer one.
                 actions.splice(i, 1);
             }
         }
         actions.push(action);
+        this.storeModel(); //kind of a hack. But want to be sure that it is always stored.
+    },
+    removeFinishedActions: function (remActions) {
+        var actions = this.authModel.get("unsyncedActivities");
+        remActions.forEach(function(action) {
+            var index = actions.indexOf(action);
+            if (index < 0) {
+                console.warn("Action " + JSON.stringify(action) + " not found in model. Already done?");
+            } else {
+                actions.splice(index, 1);
+            }
+        });
     },
     getRecFromCollection: function (id, collection) {
         var result;
@@ -489,27 +504,24 @@ enyo.kind({
         }.bind(this));
         return arr;
     },
-    actionSuccess: function (collection, callback, inSender, inResponse) {
-        var actions = this.authModel.get("unsyncedActivities"), i, successfulActions = [], remActions;
+    actionSuccess: function (collection, callback, actions, inSender, inResponse) {
+        var i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
 
         remActions = this.processActions(collection, actions, inResponse.action_results || inResponse.item);
 
-        if (inResponse.status === 1) {
-            //all actions succeeded!
-            this.authModel.set("unsyncedActivities", []);
-        } else if (inResponse.action_results) {
+        if (inResponse.action_results) {
             for (i = actions.length - 1; i >= 0; i -= 1) {
                 if (inResponse.action_results[i]) {
                     successfulActions.push(actions[i]);
                     actions.splice(i, 1);
                 }
             }
-            if (successfulActions.length > 0) {
-                remActions = this.processActions(collection, successfulActions);
-            }
+        } else if (inResponse.status === 1) {
+            successfulActions = actions;
         }
 
+        this.removeFinishedActions(successfulActions);
         this.storeModel();
         if (remActions && remActions.length > 0) {
             this.log("Removing: ", remActions);

@@ -10,7 +10,9 @@ enyo.kind({
     style: "background-color: transparent; height: 100%; width: 100%; border: 0px; border-radius: 0px; margin: 0; position: fixed; top: 0; bottom: 0; left: 0; right: 0; padding: 0px;",
 
     events: {
-        onScrollTo: ""
+        onScrollTo: "",
+        onSpritzReady: "",
+        onSpritzDownload: ""
     },
     published: {
         running: ""
@@ -78,6 +80,9 @@ enyo.kind({
 
     prepareSpritz: function (articleModel) {
         this.show();
+        if (webos.setWindowProperties) {
+            webos.setWindowProperties({ blockScreenTimeout: true});
+        }
 
         if (articleModel !== this.articleModel) {
             this.articleModel = articleModel;
@@ -96,10 +101,12 @@ enyo.kind({
             this.$.wpmDisplay.show();
             this.dlId = moboreader.Spritz.start(this.articleModel);
             this.setWPM(this.wpm);
+            this.doSpritzReady();
         } else {
             this.$.downloadingSpritzData.show();
             this.$.spritzer.hide();
             this.$.wpmDisplay.hide();
+            this.doSpritzDownload();
         }
     },
     downloadingDone: function (inSender, inEvent) {
@@ -108,6 +115,7 @@ enyo.kind({
                 this.$.downloadingSpritzData.hide();
                 this.$.spritzer.show();
                 this.dlId = moboreader.Spritz.start(this.articleModel);
+                this.doSpritzReady();
             } else {
                 this.$.retryBtn.show();
             }
@@ -117,6 +125,10 @@ enyo.kind({
     stopSpritz: function () {
         moboreader.Spritz.pause();
         this.hide();
+
+        if (webos.setWindowProperties) {
+            webos.setWindowProperties({ blockScreenTimeout: false});
+        }
     },
     onTap: function (inSender, inEvent) {
         if (this.dragging) {

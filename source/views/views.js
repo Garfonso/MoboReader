@@ -176,10 +176,10 @@ enyo.kind({
         this.intervalId = setInterval(this.bindSafely("refreshTimerCalled"), 300000); //refresh all 5 min if active.
     },
     refreshTimerCalled: function () {
-        if (!this.$.authDialog.showing && !this.getActivty()) {
-            this.refreshTap();
+        if (!this.$.authDialog.showing && !this.get("activity")) {
+            this.refreshTap(null, null, true);
         } else {
-            console.error("Are not authed (" + this.$.authDialog.showing + ") or are active (" + this.getActivty() + ")");
+            console.error("Are not authed (" + this.$.authDialog.showing + ") or are active (" + this.get("activity") + ")");
         }
     },
     stopRefreshTimer: function () {
@@ -207,8 +207,8 @@ enyo.kind({
         this.$.api.addArticle(inEvent.url, this.articleCollection);
     },
 
-    refreshTap: function () {
-        this.$.api.downloadArticles(this.articleCollection);
+    refreshTap: function (inSender, inEvent, fastSync) {
+        this.$.api.downloadArticles(this.articleCollection, !fastSync);
     },
     forceRefreshTap: function () {
         this.articleCollection.whipe();
