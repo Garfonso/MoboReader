@@ -1,7 +1,7 @@
 enyo.kind({
     name: "moboreader.SettingsDialog",
     kind: "onyx.Popup",
-    style: "text-align: center; width: 80%;",
+    style: "text-align: center; width: 80%; height: 425px; max-height: 80%",
     scrim: true,
     modal: true,
     autoDismiss: true,
@@ -20,7 +20,10 @@ enyo.kind({
     components: [
         {
             kind: "enyo.Scroller",
+            touch: true,
+            thumb: false,
             classe: "enyo-fill",
+            style: "height: 100%",
             components: [
                 {
                     kind: "onyx.Groupbox",
