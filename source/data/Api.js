@@ -1,5 +1,3 @@
-/*global ArticleContentHandler */
-
 enyo.kind({
     name: "moboreader.AuthModel",
     kind: "enyo.Model",
@@ -231,7 +229,7 @@ enyo.kind({
                             this.added += 1;
                         }
                     } else {
-                        console.error("Adding: " + JSON.stringify(article));
+                        //console.error("Adding: " + JSON.stringify(article));
                         articles.push(article);
                     }
                 }
@@ -310,12 +308,10 @@ enyo.kind({
             if (moboreader.Prefs.downloadSpritzOnUpdate) {
                 moboreader.Spritz.downloadSpritzModel(articleModel, content);
             } else {
-                ArticleContentHandler.storeArticle(articleModel, content);
-
                 enyo.Signals.send("onArticleDownloaded", {
                     id: articleModel.get(articleModel.primaryKey),
                     content: {web: content},
-                    fromWeb: true
+                    model: articleModel
                 });
             }
         }

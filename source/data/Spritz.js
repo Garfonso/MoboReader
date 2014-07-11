@@ -1,4 +1,4 @@
-/*global SpritzLoginDialog, $, ArticleContentHandler */
+/*global SpritzLoginDialog, $ */
 
 enyo.kind({
     name: "SpritzLoginDialog",
@@ -269,10 +269,8 @@ enyo.singleton({
                 web: webContent,
                 spritz: spritzPersist
             },
-            fromWeb: true
+            model: articleModel
         });
-
-        ArticleContentHandler.storeArticle(articleModel, webContent, spritzPersist);
 
         enyo.Signals.send("onSpritzDL", {id: dlId, success: true});
         this.setNumDownloading(this.numDownloading - 1);

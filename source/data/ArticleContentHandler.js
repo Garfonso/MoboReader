@@ -8,6 +8,7 @@ enyo.singleton({
     gettingToStore: {},
     gettingToDL: {},
     storage: {}, //used if not webOS.
+    needDL: [],
 
     //signals:
     //onArticleOpReturned => success true/false, activityId, content { web, spritz} (optional), id = articleId
@@ -15,7 +16,8 @@ enyo.singleton({
     components: [
         {
             kind: "enyo.Signals",
-            onArticleOpReturned: "gotContent"
+            onArticleOpReturned: "gotContent",
+            onArticleDownloaded: "contentDownloaded"
         }
     ],
 
@@ -68,7 +70,13 @@ enyo.singleton({
             if (parseInt(activityId, 10) === inEvent.activityId) {
                 if (!inEvent.success) {
                     this.log("Content missing, download.");
-                    this.gettingToDL[activityId].api.getArticleContent(this.gettingToDL[activityId].model);
+                    if (!this.downloading) {
+                        this.gettingToDL[activityId].api.getArticleContent(this.gettingToDL[activityId].model);
+                    } else {
+                        this.needDL.push(this.gettingToDL[activityId]);
+                    }
+                    this.downloading = true;
+                    delete this.gettingToDL[activityId];
                 } else {
                     this.log("Article ok, don't download.");
                 }
@@ -100,7 +108,7 @@ enyo.singleton({
                 this.storage[params.id] = params.content;
             }
             setTimeout(function(activityId) {
-                this.dbActivityComplete(this, {
+                this.dbActivityComplete(activityId, params.id, this, {
                     success: true,
                     id: params.id,
                     content: params.id ? this.storage[params.id] : undefined,
@@ -129,6 +137,17 @@ enyo.singleton({
             model: articleModel,
             api: api
         };
+    },
+
+    contentDownloaded: function (inSender, inEvent) {
+        this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz);
+
+        if (this.needDL.length > 0) {
+            var obj = this.needDL.shif();
+            obj.api.getArticleContent(obj.model);
+        } else {
+            this.downloading = false;
+        }
     },
 
     dbActivityComplete: function (activityId, id, inSender, inEvent) {
