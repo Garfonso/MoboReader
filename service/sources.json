@@ -6,13 +6,13 @@
         }
     },
     {
+        "source": "utils.js"
+    },
+    {
         "source": "config.js"
     },
     {
         "source": "prologue.js"
-    },
-    {
-        "source": "utils.js"
     },
     {
         "source": "ServiceAssistant.js"

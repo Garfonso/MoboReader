@@ -1,6 +1,8 @@
 var ServiceAssistant = function () {};
 
-ServiceAssistant.prototype.run = function (outerfuture) {
+ServiceAssistant.prototype.setup = function () {
+    var outerfuture = new Future();
+
     //make sure that storage path exists:
     path.exists(Config.storagePath, function (exists) {
         if (!exists) {
