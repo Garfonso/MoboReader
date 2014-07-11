@@ -143,7 +143,7 @@ enyo.singleton({
         this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz);
 
         if (this.needDL.length > 0) {
-            var obj = this.needDL.shif();
+            var obj = this.needDL.shift();
             obj.api.getArticleContent(obj.model);
         } else {
             this.downloading = false;
