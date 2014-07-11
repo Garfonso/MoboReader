@@ -10,27 +10,17 @@ ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
 
     filename = Utils.getFileName(args.id);
 
-    path.exists(filename, function (exists) {
-        if (exists) {
-            future.result = true;
+    fs.readFile(filename, function (err, content) {
+        if (err) {
+            outerfuture.result = {success: false, message: JSON.stringify(err), activityId: args.activityId};
         } else {
-            outerfuture.result = {success: false, message: "File not found: " + filename, activityId: args.activityId};
+            var obj = JSON.parse(content);
+            log("id " + args.id + " needs dl: " + (obj.web && (obj.spritz || !args.requireSpritz)));
+            outerfuture.result = {
+                success: obj.web && (obj.spritz || !args.requireSpritz),
+                id: args.id,
+                activityId: args.activityId
+            };
         }
-    });
-
-    future.then(function readFile() {
-        future.getResult(); //consume result.
-        fs.readFile(filename, function (err, content) {
-            if (err) {
-                outerfuture.result = {success: false, message: JSON.stringify(err), activityId: args.activityId};
-            } else {
-                var obj = JSON.parse(content);
-                outerfuture.result = {
-                    success: obj.web && (obj.spritz || !args.requireSpritz),
-                    id: args.id,
-                    activityId: args.activityId
-                };
-            }
-        });
     });
 };
