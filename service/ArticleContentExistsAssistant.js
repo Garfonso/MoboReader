@@ -26,7 +26,7 @@ ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
             } else {
                 var obj = JSON.parse(content);
                 outerfuture.result = {
-                    success: obj.web && obj.spritz,
+                    success: obj.web && (obj.spritz || !args.requireSpritz),
                     id: args.id,
                     activityId: args.activityId
                 };

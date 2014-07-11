@@ -114,7 +114,7 @@ enyo.singleton({
         return this._genericSend(articleModel, "getArticleContent");
     },
     articleContentExists: function (articleModel) {
-        return this._genericSend(articleModel, "articleContentExists");
+        return this._genericSend(articleModel, "articleContentExists", {requireSpritz: moboreader.Prefs.downloadSpritzOnUpdate});
     },
     deleteContent: function (articleModel) {
         return this._genericSend(articleModel, "deleteArticleContent");
