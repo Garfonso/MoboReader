@@ -21,10 +21,17 @@ GetArticleContentAssistant.prototype.run = function (outerfuture) {
     future.then(function readFile() {
         future.getResult(); //consume result.
         fs.readFile(filename, function (err, content) {
+            var obj;
             if (err) {
                 outerfuture.result = {success: false, message: JSON.stringify(err), activityId: args.activityId};
             } else {
-                outerfuture.result = {success: true, id: args.id, content: JSON.parse(content), activityId: args.activityId};
+                try {
+                    obj = JSON.parse(content);
+                } catch (e) {
+                    log("Error during parse: " + e.message);
+                    outerfuture.result = {success: false, message: JSON.stringify(e), activityId: args.activityId};
+                }
+                outerfuture.result = {success: true, id: args.id, content: obj, activityId: args.activityId};
             }
         });
     });
