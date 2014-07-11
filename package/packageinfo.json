@@ -7,6 +7,6 @@
     "vendorurl": "mobo.info",
     "app": "info.mobo.moboreader",
     "services": [
-        "info.mobo.moboreader.storage"
+        "info.mobo.moboreader.service"
     ]
 }

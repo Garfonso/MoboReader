@@ -96,7 +96,7 @@ enyo.singleton({
 
         if (this.isWebos) {
             req = new enyo.ServiceRequest({
-                service: "info.mobo.moboreader.storage",
+                service: "info.mobo.moboreader.service",
                 method: method
             });
             req.response(this.dbActivityComplete.bind(this, params.activityId, params.id));
