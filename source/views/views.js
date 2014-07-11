@@ -149,6 +149,7 @@ enyo.kind({
             //do this after fetch to prevent empty list in UI.
             this.$.articleView.setCollection(this.articleCollection);
             this.$.articleList.set("collection", this.articleCollection);
+            this.refreshTap(null, null, true);
 
             if (window.PalmSystem) {
                 window.PalmSystem.stageReady();
