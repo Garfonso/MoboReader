@@ -6,9 +6,10 @@ enyo.singleton({
     },
     activityId: 0,
     gettingToStore: {},
-    gettingToDL: {},
+    gettingToDL: false,
     storage: {}, //used if not webOS.
     needDL: [],
+    checkQueue: [],
 
     //signals:
     //onArticleOpReturned => success true/false, activityId, content { web, spritz} (optional), id = articleId
@@ -28,7 +29,7 @@ enyo.singleton({
 
     storeArticle: function (articleModel, webContent, spritzContent) {
         this.activityId += 1;
-
+        
         if (!webContent || !spritzContent) {
             this.gettingToStore[this.activityId] = {
                 model: articleModel,
@@ -66,22 +67,24 @@ enyo.singleton({
             }
         }.bind(this));
 
-        Object.keys(this.gettingToDL).forEach(function (activityId) {
-            if (parseInt(activityId, 10) === inEvent.activityId) {
+        if(this.gettingToDL) {
+            if (this.gettingToDL.activityId === inEvent.activityId) {
                 if (!inEvent.success) {
-                    this.log("Content missing, download.");
-                    if (!this.downloading) {
-                        this.gettingToDL[activityId].api.getArticleContent(this.gettingToDL[activityId].model);
+                    console.error("Need download: " + this.gettingToDL.model.attributes.item_id);
+                    if (!this.downloading || this.downloading === this.gettingToDL.model.attributes.item_id) {
+                        console.error("Doing direct.");
+                        this.gettingToDL.api.getArticleContent(this.gettingToDL.model);
+                        this.downloading = this.gettingToDL.model.attributes.item_id;
                     } else {
-                        this.needDL.push(this.gettingToDL[activityId]);
+                        console.error("Planing for later. Current DL: " + this.downloading);
+                        this.needDL.push(this.gettingToDL);
                     }
-                    this.downloading = true;
-                    delete this.gettingToDL[activityId];
                 } else {
                     this.log("Article ok, don't download.");
                 }
+                delete this.gettingToDL;
             }
-        }.bind(this));
+        }
     },
 
     _genericSend: function (articleModel, method, inParams) {
@@ -90,10 +93,10 @@ enyo.singleton({
         params.id = articleModel ? articleModel.get(articleModel.primaryKey) : undefined;
         if (!params.activityId) {
             this.activityId += 1;
-            this.setDbActivities(this.dbActivities + 1);
             params.activityId = this.activityId;
+            this.setDbActivities(this.dbActivities + 1);
         }
-
+        
         if (this.isWebos) {
             req = new enyo.ServiceRequest({
                 service: "info.mobo.moboreader.service",
@@ -132,37 +135,61 @@ enyo.singleton({
     },
 
     checkAndDownload: function (articleModel, api) {
-        var activityId = this.articleContentExists(articleModel);
-        this.gettingToDL[activityId] = {
-            model: articleModel,
-            api: api
-        };
+        if (!this.gettingToDL) {
+            console.error("Checking: " + articleModel.attributes.item_id);
+            var activityId = this.articleContentExists(articleModel);
+            this.gettingToDL = {
+                model: articleModel,
+                api: api,
+                activityId: activityId
+            };
+        } else {
+            console.error("Checking LATER: " + articleModel.attributes.item_id);
+            this.checkQueue.unshift({
+                model: articleModel,
+                api: api
+            });
+        }
     },
 
     contentDownloaded: function (inSender, inEvent) {
+        console.error("Download finished: " + inEvent.model.attributes.item_id);
         this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz);
 
         if (this.needDL.length > 0) {
             var obj = this.needDL.shift();
             obj.api.getArticleContent(obj.model);
+            this.downloading = obj.model.attributes.item_id
+            console.error("Download started: " + this.downloading);
         } else {
+            console.error("all downloads finished.");
             this.downloading = false;
         }
     },
 
+    //this will mix queue a bit up.. hm..
+    sendNext: function () {
+        var req = this.checkQueue.shift();
+        if (req) {
+            this.checkAndDownload(req.model, req.api);
+        }
+    },
     dbActivityComplete: function (activityId, id, inSender, inEvent) {
         this.log("Incomming response: " + inEvent.success + " for id " + activityId);
         this.setDbActivities(this.dbActivities - 1);
         inEvent.activityId = activityId;
         inEvent.id = id;
         enyo.Signals.send("onArticleOpReturned", inEvent);
+        this.sendNext();
     },
     dbError: function (activityId, id, inSender, inEvent) {
         console.error("dbFailed: " + JSON.stringify(inEvent));
+        this.setDbActivities(this.dbActivities - 1);
         enyo.Signals.send("onArticleOpReturned", {
             id: id,
             success: false,
             activityId: activityId
         });
+        this.sendNext();
     }
 });
