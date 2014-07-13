@@ -11,11 +11,12 @@ ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
     filename = Utils.getFileName(args.id);
 
     fs.readFile(filename, function (err, content) {
+        var obj;
         if (err) {
             outerfuture.result = {success: false, message: JSON.stringify(err), activityId: args.activityId};
         } else {
             try {
-                var obj = JSON.parse(content);
+                obj = JSON.parse(content);
             } catch (e) {
                 log("Error during parse: " + e.message);
                 outerfuture.result = {success: false, message: JSON.stringify(e), activityId: args.activityId};

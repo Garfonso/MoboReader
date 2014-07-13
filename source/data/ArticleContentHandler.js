@@ -29,7 +29,7 @@ enyo.singleton({
 
     storeArticle: function (articleModel, webContent, spritzContent) {
         this.activityId += 1;
-        
+
         if (!webContent || !spritzContent) {
             this.gettingToStore[this.activityId] = {
                 model: articleModel,
@@ -96,7 +96,7 @@ enyo.singleton({
             params.activityId = this.activityId;
             this.setDbActivities(this.dbActivities + 1);
         }
-        
+
         if (this.isWebos) {
             req = new enyo.ServiceRequest({
                 service: "info.mobo.moboreader.service",
@@ -159,7 +159,7 @@ enyo.singleton({
         if (this.needDL.length > 0) {
             var obj = this.needDL.shift();
             obj.api.getArticleContent(obj.model);
-            this.downloading = obj.model.attributes.item_id
+            this.downloading = obj.model.attributes.item_id;
             console.error("Download started: " + this.downloading);
         } else {
             console.error("all downloads finished.");
