@@ -183,7 +183,7 @@ enyo.kind({
                 attributes = rec;
             }
 
-            if (attributes) {
+            if (!attributes) {
                 this.error("rec empty? " + JSON.stringify(rec));
                 continue;
             }
