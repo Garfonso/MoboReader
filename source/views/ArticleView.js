@@ -224,15 +224,17 @@ enyo.kind({
         }
     },
     contentReceived: function (inSender, inEvent) {
-        this.log("ArticleContent changed: ", inEvent);
+        if (this.articleModel.get(this.articleModel.primaryKey) === inEvent.id) {
+            this.log("ArticleContent changed: ", inEvent);
 
-        this.articleModel.spritzModelPersist = inEvent.content.spritz;
-        if (inEvent.content.web) {
-            this.$.articleContent.setContent(inEvent.content.web);
+            this.articleModel.spritzModelPersist = inEvent.content.spritz;
+            if (inEvent.content.web) {
+                this.$.articleContent.setContent(inEvent.content.web);
+            }
+            setTimeout(function () {
+                this.processChildren(this.$.articleContent.node);
+            }.bind(this), 100);
         }
-        setTimeout(function () {
-            this.processChildren(this.$.articleContent.node);
-        }.bind(this), 100);
     },
     linkClick: function (event) {
         this.log("Link clicked: ", event);
