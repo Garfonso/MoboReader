@@ -221,12 +221,12 @@ enyo.singleton({
         this.setNumDownloading(this.numDownloading + 1);
         articleModel.spritzDownloading = this.dlCounter;
 
-        if (!articleModel.attributes.content) {
+        if (!webContent) {
             SpritzClient.fetchContents(articleModel.get("url"),
                                        this.bindSafely("fetchSuccess", articleModel, this.dlCounter, webContent),
                                        this.bindSafely("fetchError", articleModel, this.dlCounter, webContent));
         } else {
-            var locale = articleModel.attributes.content,
+            var locale = webContent,
                 start = locale.indexOf("lang=\"") + 6,
                 end = locale.indexOf("\"", start),
                 tmpNode = document.createElement("div"),
@@ -241,7 +241,7 @@ enyo.singleton({
             }
 
             //now get rid of HTML:
-            tmpNode.innerHTML = articleModel.attributes.content;
+            tmpNode.innerHTML = webContent;
             text = tmpNode.innerText;
 
             SpritzClient.spritzify(text, locale,
