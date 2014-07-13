@@ -151,7 +151,6 @@ enyo.kind({
         this.articleOpId = ArticleContentHandler.getContent(this.articleModel);
 
         setTimeout(function() {
-            //this.$.scroller.scrollTo(0, this.articleModel.get("scrollPos") || 0);
             this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 0);
         }.bind(this), 200);
         this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
@@ -224,7 +223,7 @@ enyo.kind({
         }
     },
     contentReceived: function (inSender, inEvent) {
-        if (this.articleModel.get(this.articleModel.primaryKey) === inEvent.id) {
+        if (this.articleModel && this.articleModel.get && this.articleModel.get(this.articleModel.primaryKey) === inEvent.id) {
             this.log("ArticleContent changed: ", inEvent);
 
             this.articleModel.spritzModelPersist = inEvent.content.spritz;

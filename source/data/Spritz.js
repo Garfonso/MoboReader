@@ -222,7 +222,13 @@ enyo.singleton({
         articleModel.spritzDownloading = this.dlCounter;
 
         if (!webContent) {
-            SpritzClient.fetchContents(articleModel.get("url"),
+            var url;
+            if (articleModel.get) {
+                url = articleModel.get("url");
+            } else {
+                url = articleModel.url;
+            }
+            SpritzClient.fetchContents(url,
                                        this.bindSafely("fetchSuccess", articleModel, this.dlCounter, webContent),
                                        this.bindSafely("fetchError", articleModel, this.dlCounter, webContent));
         } else {
@@ -264,7 +270,7 @@ enyo.singleton({
         var spritzPersist = this.storeSpritzModel(result);
 
         enyo.Signals.send("onArticleDownloaded", {
-            id: articleModel.get(articleModel.primaryKey),
+            id: !!articleModel.get ? articleModel.get(articleModel.primaryKey) : articleModel.item_id,
             content: {
                 web: webContent,
                 spritz: spritzPersist
@@ -276,13 +282,13 @@ enyo.singleton({
         this.setNumDownloading(this.numDownloading - 1);
     },
     fetchError: function (articleModel, dlId) {
-        this.log("Error fetching: ", articleModel.get("url"));
+        this.log("Error fetching: ", (articleModel.get ? articleModel.get("url") : articleModel.url));
         enyo.Signals.send("onSpritzDL", {id: dlId, success: false});
         this.setNumDownloading(this.numDownloading - 1);
         delete articleModel.spritzDownloading;
-        
+
         enyo.Signals.send("onArticleDownloaded", {
-            id: articleModel.get(articleModel.primaryKey),
+            id: !!articleModel.get ? articleModel.get(articleModel.primaryKey) : articleModel.item_id,
             content: {},
             model: articleModel
         });

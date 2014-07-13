@@ -90,7 +90,14 @@ enyo.singleton({
     _genericSend: function (articleModel, method, inParams) {
         var params = inParams || {}, req;
 
-        params.id = articleModel ? articleModel.get(articleModel.primaryKey) : undefined;
+        if (articleModel) {
+            if (articleModel.get) {
+                params.id = articleModel.get(articleModel.primaryKey);
+            } else {
+                params.id = articleModel.item_id;
+            }
+        }
+
         if (!params.activityId) {
             this.activityId += 1;
             params.activityId = this.activityId;

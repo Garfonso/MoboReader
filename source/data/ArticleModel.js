@@ -2,7 +2,13 @@
 
 var parseArticle = function (data) {
     if (!data) { //is called also for commit, data seems empty then.
+        console.error("Undefined data!!");
         return data;
+    }
+
+    if (data.length >= 1) {
+        console.error("Data was array... hm.");
+        data = data[0];
     }
 
     if (data.image) {

@@ -1,6 +1,6 @@
 {
     "id": "info.mobo.moboreader",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "vendor": "Mobo Mobile Apps",
     "type": "web",
     "main": "index.html",
