@@ -42,7 +42,9 @@ enyo.kind({
             kind: "onyx.MoreToolbar",
             components: [
                 {
-                    kind: "onyx.Grabber"
+                    kind: "onyx.Grabber",
+                    ontap: "handleBackGesture",
+                    ondrag: "handleBackGesture"
                 },
                 {
                     kind: "onyx.Button",

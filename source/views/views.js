@@ -31,6 +31,7 @@ enyo.kind({
         {
             kind: "enyo.Panels",
             fit: true,
+            draggable: false,
             classes: "enyo-fill",
             name: "MainPanels",
             components: [
