@@ -115,6 +115,8 @@ enyo.kind({
             if (inEvent.success) {
                 this.$.downloadingSpritzData.hide();
                 this.$.spritzer.show();
+                this.$.wpmDisplay.show();
+                this.setWPM(this.wpm);
                 this.dlId = moboreader.Spritz.start(this.articleModel);
                 this.doSpritzReady();
             } else {
@@ -165,7 +167,7 @@ enyo.kind({
         this.showWPM(Math.round(this.wpm), realWpm);
     },
     showWPM: function (wpm, realWpm) {
-        this.$.wpmDisplay.setContent("Words per minute: " + realWpm + (wpm !== realWpm ? " (Login to go faster)" : ""));
+        this.$.wpmDisplay.setContent("WPM: " + realWpm + (wpm !== realWpm ? " (Login to go faster)" : ""));
     },
 
     drag: function (inSender, inEvent) {
