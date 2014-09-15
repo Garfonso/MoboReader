@@ -92,7 +92,7 @@ enyo.singleton({
             if (window.SpritzClient === undefined && !this.loadingSpritz) {
                 if (window.$) {
                     //load spritz
-                    this.loadScript("spritz.1.2.min.js");
+                    this.loadScript("spritz.1.2.2.min.js", "spritzjs");
                     this.loadingSpritz = true;
                 } else {
                     this.log("Delaying spritz loading until jquery is ready.");
@@ -110,13 +110,16 @@ enyo.singleton({
         dialog.show();
     },
 
-    loadScript: function (name) {
+    loadScript: function (name, id) {
         this.log("Loading ", name);
         var head = document.getElementsByTagName("head")[0],
             script = document.createElement("script");
         script.type = "text/javascript";
         script.charset = "utf-8";
-        script.src = "assets/" + name;
+        script.src = "assets/jslibraries/" + name;
+        if (id) {
+            script.id = id;
+        }
         head.appendChild(script);
     },
 
@@ -125,7 +128,25 @@ enyo.singleton({
             options = {
                 defaultSpeed: 500,
                 speedItems: [250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900,  950, 1000],
-                redicleWidth: node.width() - 10
+                redicleWidth: node.width() - 30,
+
+                // These must correspond to controlTitles below
+                controlButtons: ["rewind", "back", "pauseplay", "forward"],
+
+                header: {
+                    close: false
+                },
+                controlTitles: {
+                    pause: "Pause",
+                    play: "Play",
+                    rewind: "Back to beginning",
+                    back: "Previous sentence",
+                    forware: "Next sentence"
+                },
+                placeholder: {
+                    startText: "Tap to spritz",
+                    endText: "Tap to close spritz dialog."
+                }
             };
 
         if (this.initialized) {

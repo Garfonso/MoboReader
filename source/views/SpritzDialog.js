@@ -63,6 +63,7 @@ enyo.kind({
         {
             id: "spritzer",
             classes: "spritz-container",
+            attributes: {"data-role": "spritzer"},
             name: "spritzer"
         },
         {
