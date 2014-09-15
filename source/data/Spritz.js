@@ -173,6 +173,12 @@ enyo.singleton({
         }.bind(this), 100);
     },
 
+    resetArticle: function (articleModel) {
+        articleModel.spritzOk = false;
+        delete articleModel.spritzModel;
+        delete articleModel.spritzModelPersist;
+    },
+
     receiveProgress: function (completed, total) {
         this.setWordCompleted(completed);
         this.setTotalWords(total);

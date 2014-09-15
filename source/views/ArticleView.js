@@ -247,6 +247,7 @@ enyo.kind({
     },
 
     refreshTap: function () {
+        moboreader.Spritz.resetArticle(this.articleModel);
         this.api.getArticleContent(this.articleModel);
     },
     archiveTap: function () {
