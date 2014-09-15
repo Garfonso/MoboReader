@@ -222,7 +222,7 @@ enyo.singleton({
 
     setWpm: function (wpm) {
         if (!this.spritzController.setSpeed(wpm)) {
-            this.spritzController.setSpeed(this.spritzController.maxUnregisteredSpeed);
+            this.spritzController.setSpeed(SPRITZ.constants.Constants.MAX_SPEED);
         }
         return this.spritzController.getSpeed();
     },
