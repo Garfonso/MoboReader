@@ -182,7 +182,8 @@ enyo.kind({
     setWPM: function (wpm) {
         this.wpm = wpm;
         var realWpm = moboreader.Spritz.setWpm(this.wpm);
-        this.showWPM(Math.round(this.wpm), realWpm);
+        this.log("Real wpm: " + realWpm + " target was: " + this.wpm + " floored: " + Math.floor(this.wpm));
+        this.showWPM(Math.floor(this.wpm), realWpm);
     },
     showWPM: function (wpm, realWpm) {
         this.$.wpmDisplay.setContent("WPM: " + realWpm + (wpm !== realWpm ? " (Login to go faster)" : ""));
