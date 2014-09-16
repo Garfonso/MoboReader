@@ -70,6 +70,7 @@ enyo.kind({
                                 horizontal: "hidden",
                                 touch: true
                             },
+                            onScroll: "listScrolled",
                             fixedChildSize: 50,
                             components: [
                                 {kind: "moboreader.ArticleListItem" }
@@ -226,7 +227,9 @@ enyo.kind({
     },
 
     articleSelected: function (inSender, inEvent) {
-        this.lastIndex = inEvent.index + 4;
+        this.lastIndex = inEvent.index;
+        this.log("Stored ", this.lastIndex, " as last index.");
+        this.scrolled = false;
         var model = this.$.articleList.selected();
         if (model) {
             this.$.articleView.setArticleModel(model);
@@ -234,16 +237,26 @@ enyo.kind({
             this.$.articleList.deselectAll();
         }
     },
+    listScrolled: function () {
+        this.scrolled = true;
+    },
     handleBackGesture: function () {
         this.$.MainPanels.setIndex(0);
-        if (this.lastIndex) {
-            this.log("Scrolling to ", this.lastIndex);
-            if (this.lastIndex >= this.articleCollection.length) {
-                this.lastIndex = this.articleCollection.length -1;
+        this.$.settingsDialog.hide();
+
+        if (this.scrolled) { //scroll to last index if list scrolled because of background operations.
+            var scrollTo = this.lastIndex;
+            if (this.lastIndex) {
+                if (scrollTo >= this.articleCollection.length) {
+                    scrollTo = this.articleCollection.length -1;
+                } else if (scrollTo < 0) {
+                    scrollTo = 0;
+                }
+                this.log("Scrolling to ", scrollTo);
+                this.$.articleList.scrollToIndex(scrollTo);
+            } else {
+                this.log("Lastindex not set ", this.lastIndex);
             }
-            this.$.articleList.scrollToIndex(this.lastIndex);
-        } else {
-            this.log("Lastindex not set ", this.lastIndex);
         }
     }
 });
