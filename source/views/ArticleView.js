@@ -119,10 +119,12 @@ enyo.kind({
     handleBackGesture: function (inSender, inEvent) {
         this.log("Incomming back gesture!! showing: ", this.$.spritzDialog.showing, " running: ", this.$.spritzDialog.running);
         if (this.$.spritzDialog.showing) {
-            if (this.$.spritzDialog.running) {
-                this.$.spritzDialog.stopSpritz();
+            if (!this.$.spritzDialog.preventBack) {
+                if (this.$.spritzDialog.running) {
+                    this.$.spritzDialog.stopSpritz();
+                }
+                this.$.spritzDialog.hide();
             }
-            this.$.spritzDialog.hide();
         } else {
             this.doBack();
         }

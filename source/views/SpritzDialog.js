@@ -15,12 +15,14 @@ enyo.kind({
         onSpritzDownload: ""
     },
     published: {
-        running: ""
+        running: "",
+        preventBack: ""
     },
     bindings: [
         {from: "^moboreader.Spritz.running", to: ".$.scrim.showing"},
         {from: "^moboreader.Spritz.running", to: ".running"},
-        {from: "^moboreader.Spritz.username", to: ".$.loginButton.content"}
+        {from: "^moboreader.Spritz.username", to: ".$.loginButton.content"},
+        {from: ".$.downloadingSpritzData.showing", to: ".preventBack"}
     ],
     wpm: 300,
     minWpm: 300,
