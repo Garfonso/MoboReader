@@ -146,6 +146,7 @@ enyo.kind({
         }
 
         this.$.spritzBtn.removeClass("onyx-affirmative");
+        this.$.spritzBtn.setDisabled(true);
         this.lastScrollWord = 0;
         this.$.articleContent.setContent("Asking db for content...");
 
@@ -227,6 +228,7 @@ enyo.kind({
     contentReceived: function (inSender, inEvent) {
         if (this.articleModel && this.articleModel.get && this.articleModel.get(this.articleModel.primaryKey) === inEvent.id) {
             this.log("ArticleContent changed: ", inEvent);
+            this.$.spritzBtn.setDisabled(false);
 
             if (inEvent.content.spritz) {
                 this.articleModel.spritzModelPersist = inEvent.content.spritz;
