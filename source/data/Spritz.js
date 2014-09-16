@@ -29,27 +29,7 @@ enyo.kind({
                     fit: true,
                     name: "webView",
                     tag: "iframe",
-                    attributes: {sandbox: "allow-scripts allow-forms allow-same-origin"},
-                    onload: "webviewLoaded"
-                },
-                {
-                    kind: "onyx.InputDecorator",
-                    style: "display: block; width: 90%; margin: 10px auto;",
-                    components: [
-                        {
-                            classes: "enyo-fill",
-                            name: "resultEntry",
-                            kind: "onyx.Input",
-                            placeholder: "Paste result here"
-                        }
-                    ]
-                },
-                {
-                    style: "display: block; margin: 10px auto;",
-                    kind: "onyx.Button",
-                    content: "Finish Auth",
-                    name: "finishBtn",
-                    ontap: "doFinish"
+                    attributes: {sandbox: "allow-scripts allow-forms allow-same-origin"}
                 },
                 {
                     style: "display: block; margin: 10px auto;",
@@ -63,19 +43,16 @@ enyo.kind({
 //            ]
 //        }
     ],
-    published: {
-        loginResult: false
-    },
-    doFinish: function () {
-        var auth = this.$.resultEntry.getValue();
-        if (auth) {
-            this.loginResult = auth;
-            SpritzClient.setAuthResponse(auth);
-            //moboreader.Spritz.init();
-            this.hide();
-        }
-    },
     doRetry: function () {
+        function addListener() {
+            if (that.$.webView.eventNode) {
+                that.$.webView.eventNode.onload = that.bindSafely("webviewLoaded");
+            } else {
+                that.log("Need to retry binding.");
+                setTimeout(addListener, 10);
+            }
+        }
+
         var url = this.apiRoot + "oauth/authorize?" +
             //c=Spritz_JSSDK_1.2.2
             "c=" + encodeURIComponent(SPRITZ.client.VersionInfo.name + "_" + SPRITZ.client.VersionInfo.version) + "&" +
@@ -84,18 +61,20 @@ enyo.kind({
             //client_id= ....
             "client_id=" + SpritzSettings.clientId + "&" +
             //redirect_uri=...
-            "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
+            "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri), that = this;
         this.log("Setting src to " + url);
         this.$.webView.setSrc(url);
-        //SpritzClient.userLogin();
+        addListener();
     },
     webviewLoaded: function () {
-        var title = this.$.webView.node.contentDocument.title;
+        this.log("WebView loaded!");
+        var title = this.$.webView.node.contentDocument.title, auth;
         this.log("Got new title: ", title);
         if (title.indexOf("token: ") === 0) {
-            var auth = title.substr(7);
+            auth = title.substr(7);
             this.log("Got token: " + auth);
-            SpritzClient.setAuthResponse(auth);
+            SpritzClient.setAuthResponse(auth, moboreader.Spritz.updateUsername.bind(moboreader.Spritz));
+            this.hide();
         }
     }
 });
@@ -139,12 +118,10 @@ enyo.singleton({
     },
 
     login: function () {
-        /*if (popupWindow) {
-            SpritzClient.userLogin();
-        }*/
         if (SpritzClient.isUserLoggedIn()) {
             SpritzClient.userLogout();
         } else {
+            SpritzClient.userLogout(); //sometimes spritz does not recognize a user to be logged in.
             this.dialog = new SpritzLoginDialog();
             this.dialog.show();
             this.dialog.doRetry();
@@ -162,6 +139,11 @@ enyo.singleton({
             script.id = id;
         }
         head.appendChild(script);
+    },
+
+    updateUsername: function () {
+        this.log("Updating username to " + SpritzClient.getUserName());
+        this.setUsername(SpritzClient.getUserName() || "Login");
     },
 
     init: function () {
@@ -200,17 +182,11 @@ enyo.singleton({
         this.spritzController = new SPRITZ.spritzinc.SpritzerController(options);
         this.spritzController.attach(node);
         this.spritzController.setProgressReporter(this.bindSafely("receiveProgress"));
+        SpritzClient.registerLoginCallback(this.bindSafely("updateUsername"));
+        SpritzClient.logoutCallback = this.bindSafely("updateUsername");
 
         this.initialized = true;
-        this.setUsername(SpritzClient.getUserName() || "Login");
-
-        //if (!SpritzClient.isUserLoggedIn()) {
-            //this.login();
-        var btn = document.getElementsByClassName("spritzer-login-btn")[0];
-        if (btn) {
-            btn.addEventListener("click", function () { this.login(false); }.bind(this));
-        }
-        //}
+        this.updateUsername();
 
         setInterval(function () {
             this.setRunning(this.isRunning());
