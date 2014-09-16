@@ -1,23 +1,36 @@
-/*global SpritzLoginDialog, $ */
+/*global SpritzLoginDialog, $, SpritzSettings */
 
 enyo.kind({
     name: "SpritzLoginDialog",
     kind: "onyx.Popup",
-    style: "text-align: center; width: 80%; z-index: 130",
+    style: "text-align: center; width: 80%; z-index: 130; margin: 4% 9%; height: 90%;",
     scrim: true,
     modal: true,
     autoDismiss: true,
     floating: true,
     centered: true,
     showTransitions: true,
+    apiRoot: "https://api.spritzinc.com/api-server/v1/",
     components: [
+//        {
+//            kind: "enyo.Scroller",
+//            classe: "enyo-fill",
+//            components: [
         {
-            kind: "enyo.Scroller",
-            classe: "enyo-fill",
+            kind: "enyo.FittableRows",
+            classes: "enyo-fill",
             components: [
                 {
                     name: "message",
                     content: "Loging in to spritz. Please log in to spritz in new window and copy result and paste it below."
+                },
+                {
+                    classes: "enyo-fill",
+                    fit: true,
+                    name: "webView",
+                    tag: "iframe",
+                    attributes: {sandbox: "allow-scripts allow-forms allow-same-origin"},
+                    onload: "webviewLoaded"
                 },
                 {
                     kind: "onyx.InputDecorator",
@@ -47,6 +60,8 @@ enyo.kind({
                 }
             ]
         }
+//            ]
+//        }
     ],
     published: {
         loginResult: false
@@ -56,12 +71,32 @@ enyo.kind({
         if (auth) {
             this.loginResult = auth;
             SpritzClient.setAuthResponse(auth);
-            moboreader.Spritz.init();
+            //moboreader.Spritz.init();
             this.hide();
         }
     },
     doRetry: function () {
-        SpritzClient.userLogin();
+        var url = this.apiRoot + "oauth/authorize?" +
+            //c=Spritz_JSSDK_1.2.2
+            "c=" + encodeURIComponent(SPRITZ.client.VersionInfo.name + "_" + SPRITZ.client.VersionInfo.version) + "&" +
+            //response_type=token
+            "response_type=token&" +
+            //client_id= ....
+            "client_id=" + SpritzSettings.clientId + "&" +
+            //redirect_uri=...
+            "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
+        this.log("Setting src to " + url);
+        this.$.webView.setSrc(url);
+        //SpritzClient.userLogin();
+    },
+    webviewLoaded: function () {
+        var title = this.$.webView.node.contentDocument.title;
+        this.log("Got new title: ", title);
+        if (title.indexOf("token: ") === 0) {
+            var auth = title.substr(7);
+            this.log("Got token: " + auth);
+            SpritzClient.setAuthResponse(auth);
+        }
     }
 });
 
@@ -73,7 +108,8 @@ enyo.singleton({
         totalWords: 0,
         running: false,
         numDownloading: 0,
-        available: false
+        available: false,
+        username: "Login"
     },
     bindings: [
         { from: "^.moboreader.Prefs.useSpritz", to: ".available" }
@@ -102,12 +138,17 @@ enyo.singleton({
         }
     },
 
-    login: function (popupWindow) {
-        if (popupWindow) {
+    login: function () {
+        /*if (popupWindow) {
             SpritzClient.userLogin();
+        }*/
+        if (SpritzClient.isUserLoggedIn()) {
+            SpritzClient.userLogout();
+        } else {
+            this.dialog = new SpritzLoginDialog();
+            this.dialog.show();
+            this.dialog.doRetry();
         }
-        var dialog = new SpritzLoginDialog();
-        dialog.show();
     },
 
     loadScript: function (name, id) {
@@ -134,7 +175,8 @@ enyo.singleton({
                 controlButtons: ["rewind", "back", "pauseplay", "forward"],
 
                 header: {
-                    close: false
+                    close: false,
+                    login: false
                 },
                 controlTitles: {
                     pause: "Pause",
@@ -149,6 +191,7 @@ enyo.singleton({
                 }
             };
 
+        SPRITZ.utils.debugLevel = 10000000; //make spritz talk to us :)
         if (this.initialized) {
             this.spritzController.detach();
             delete this.spritzController;
@@ -159,6 +202,7 @@ enyo.singleton({
         this.spritzController.setProgressReporter(this.bindSafely("receiveProgress"));
 
         this.initialized = true;
+        this.setUsername(SpritzClient.getUserName() || "Login");
 
         //if (!SpritzClient.isUserLoggedIn()) {
             //this.login();

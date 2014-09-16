@@ -19,7 +19,8 @@ enyo.kind({
     },
     bindings: [
         {from: "^moboreader.Spritz.running", to: ".$.scrim.showing"},
-        {from: "^moboreader.Spritz.running", to: ".running"}
+        {from: "^moboreader.Spritz.running", to: ".running"},
+        {from: "^moboreader.Spritz.username", to: ".$.loginButton.content"}
     ],
     wpm: 300,
     minWpm: 300,
@@ -67,11 +68,26 @@ enyo.kind({
             name: "spritzer"
         },
         {
-            name: "wpmDisplay",
-            style: "text-align: center; color: black; padding: 10px; width: 100%; position: absolute; top: 30%",
-            content: "",
-            showing: true,
-            ontap: "onTap"
+            name: "spritzControl",
+            classes: "spritz-container",
+            style: "text-align: center; color: black; padding: 10px 0;",
+            components: [
+                {
+                    name: "wpmDisplay",
+                    style: "display: inline-block; margin-left: 70px; padding-top: 4px;",
+                    content: "",
+                    showing: true,
+                    ontap: "onTap"
+                },
+                {
+                    name: "loginButton",
+                    kind: "onyx.Button",
+                    style: "display: inline-block; float: right; height: 1.5em; padding: 0px 5px; margin-right: 15px; max-width: 240px;",
+                    content: "Login",
+                    showing: true,
+                    ontap: "startLogin"
+                }
+            ]
         },
         {
             kind: "Signals",
@@ -99,14 +115,14 @@ enyo.kind({
         if (this.dlId < 0) {
             this.$.downloadingSpritzData.hide();
             this.$.spritzer.show();
-            this.$.wpmDisplay.show();
+            this.$.spritzControl.show();
             this.dlId = moboreader.Spritz.start(this.articleModel);
             this.setWPM(this.wpm);
             this.doSpritzReady();
         } else {
             this.$.downloadingSpritzData.show();
             this.$.spritzer.hide();
-            this.$.wpmDisplay.hide();
+            this.$.spritzControl.hide();
             this.doSpritzDownload();
         }
     },
@@ -115,7 +131,7 @@ enyo.kind({
             if (inEvent.success) {
                 this.$.downloadingSpritzData.hide();
                 this.$.spritzer.show();
-                this.$.wpmDisplay.show();
+                this.$.spritzControl.show();
                 this.setWPM(this.wpm);
                 this.dlId = moboreader.Spritz.start(this.articleModel);
                 this.doSpritzReady();
@@ -190,5 +206,9 @@ enyo.kind({
         setTimeout(function () {
             this.dragging = false;
         }.bind(this), 500);
+    },
+
+    startLogin: function (inSender, inEvent) {
+        moboreader.Spritz.login();
     }
 });
