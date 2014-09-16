@@ -236,6 +236,7 @@ enyo.kind({
                 this.articleModel.spritzModelPersist = inEvent.content.spritz;
             }
             if (inEvent.content.web) {
+                this.articleModel.webContent = inEvent.content.web;
                 this.$.articleContent.setContent(inEvent.content.web);
             }
             setTimeout(function () {

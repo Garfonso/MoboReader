@@ -262,11 +262,7 @@ enyo.singleton({
 
     downloadSpritzModel: function (articleModel, webContent) {
         if (!webContent) {
-            if (articleModel.get) {
-                webContent = articleModel.get("content");
-            } else {
-                webContent = articleModel.content;
-            }
+            webContent = articleModel.webContent;
         }
         this.dlCounter += 1;
         this.setNumDownloading(this.numDownloading + 1);
