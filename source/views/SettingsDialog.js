@@ -22,7 +22,8 @@ enyo.kind({
             kind: "enyo.Scroller",
             touch: true,
             thumb: false,
-            classe: "enyo-fill",
+            classe: "enyo-fill enyo-fit",
+            fit: true,
             style: "height: 100%",
             components: [
                 {
