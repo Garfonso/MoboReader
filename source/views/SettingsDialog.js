@@ -8,6 +8,9 @@ enyo.kind({
     floating: true,
     centered: true,
     showTransitions: true,
+    events: {
+        onLogoutRequest: ""
+    },
     bindings: [
         { from: "^.moboreader.Prefs.maxDownloadedArticles", to: ".$.maxEntries.inVal", oneWay: false},
         {from: "^.moboreader.Prefs.sortOrder", to: ".$.sortOrder.inVal", oneWay: false  },
@@ -93,6 +96,13 @@ enyo.kind({
                         }
                     ]
                 },
+                {
+                    style: "margin: 10px auto; display: block;",
+                    kind: "onyx.Button",
+                    content: "Logout from Pocket",
+                    name: "logoutBtn",
+                    ontap: "logout"
+                },
 
                 {
                     style: "margin: 10px 5px; width: 100px;",
@@ -103,5 +113,9 @@ enyo.kind({
                 }
             ]
         }
-    ]
+    ],
+    logout: function () {
+        this.hide();
+        this.doLogoutRequest();
+    }
 });

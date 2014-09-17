@@ -79,6 +79,17 @@ enyo.kind({
         this.log("Pocket-Model stored.");
         this.storing = false;
     },
+    logout: function () {
+        this.authModel.set("needLogin", true);
+        this.authModel.set("username", "");
+        this.authModel.set("accessToken", "");
+        this.authModel.set("lastSync", 0);
+        this.authModel.set("unsyncedActivities", []);
+        this.storeModel();
+
+        this.doNeedAuth();
+        this.startAuth();
+    },
 
     dummy: function () { },
 

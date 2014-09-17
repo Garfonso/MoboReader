@@ -133,7 +133,8 @@ enyo.kind({
         },
         {
             name: "settingsDialog",
-            kind: "moboreader.SettingsDialog"
+            kind: "moboreader.SettingsDialog",
+            onLogoutRequest: "logoutOfPocket"
         },
         {
             kind: "Signals",
@@ -219,12 +220,22 @@ enyo.kind({
     },
     continueWipe: function (inSender, inEvent) {
         if (inEvent.activityId === this.dbOpId) {
-            this.$.api.downloadArticles(this.articleCollection, true);
+            if (this.loggingOut) {
+                this.$.api.logout();
+                this.loggingOut = false;
+            } else {
+                this.$.api.downloadArticles(this.articleCollection, true);
+            }
         }
     },
     settingsTap: function () {
         this.$.settingsDialog.show();
     },
+    logoutOfPocket: function () {
+        this.loggingOut = true;
+        this.forceRefreshTap();
+    },
+
 
     articleSelected: function (inSender, inEvent) {
         this.lastIndex = inEvent.index;
