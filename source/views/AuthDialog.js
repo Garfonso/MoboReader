@@ -45,10 +45,14 @@ enyo.kind({
     ],
 
     doShow: function () {
-        this.show();
-        this.$.message.setContent("Preparing login to Pocket");
-        this.$.spinner.show();
-        this.$.retryBtn.hide();
+		try {
+            this.show();
+            this.$.message.setContent("Preparing login to Pocket");
+            this.$.spinner.show();
+            this.$.retryBtn.hide();
+        } catch (e) {
+            this.log("Error in doShow: ", e);
+        }
     },
     setURL: function (url) {
         this.$.spinner.hide();
