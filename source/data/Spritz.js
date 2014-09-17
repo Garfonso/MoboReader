@@ -22,14 +22,14 @@ enyo.kind({
             components: [
                 {
                     name: "message",
-                    content: "Loging in to spritz. Please log in to spritz in new window and copy result and paste it below."
+                    content: "Loging in to spritz. Please log in to spritz below."
                 },
                 {
                     classes: "enyo-fill",
                     fit: true,
+                    kind: "IFrameWebView",
                     name: "webView",
-                    tag: "iframe",
-                    attributes: {sandbox: "allow-scripts allow-forms allow-same-origin"}
+                    onPageTitleChanged: "webviewLoaded"
                 },
                 {
                     style: "display: block; margin: 10px auto;",
@@ -44,15 +44,6 @@ enyo.kind({
 //        }
     ],
     doRetry: function () {
-        function addListener() {
-            if (that.$.webView.eventNode) {
-                that.$.webView.eventNode.onload = that.bindSafely("webviewLoaded");
-            } else {
-                that.log("Need to retry binding.");
-                setTimeout(addListener, 10);
-            }
-        }
-
         var url = this.apiRoot + "oauth/authorize?" +
             //c=Spritz_JSSDK_1.2.2
             "c=" + encodeURIComponent(SPRITZ.client.VersionInfo.name + "_" + SPRITZ.client.VersionInfo.version) + "&" +
@@ -61,14 +52,13 @@ enyo.kind({
             //client_id= ....
             "client_id=" + SpritzSettings.clientId + "&" +
             //redirect_uri=...
-            "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri), that = this;
+            "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
         this.log("Setting src to " + url);
-        this.$.webView.setSrc(url);
-        addListener();
+        this.$.webView.setUrl(url);
     },
-    webviewLoaded: function () {
+    webviewLoaded: function (inSender, inEvent) {
         this.log("WebView loaded!");
-        var title = this.$.webView.node.contentDocument.title, auth;
+        var title = inEvent.title, auth;
         this.log("Got new title: ", title);
         if (title.indexOf("token: ") === 0) {
             auth = title.substr(7);
