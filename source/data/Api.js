@@ -22,19 +22,20 @@ enyo.kind({
 enyo.kind({
     name: "moboreader.Api",
     published: {
-        authModel: "",
+        authModel: new moboreader.AuthModel({id: "authModel"}),
         active: 0
     },
     articlesPerBatch: 10,
     offset: 0,
 
     authToken: false, //only used during authentication
-    redirectUri: "http://www.mobo.info/pocket_login_success.html",
+    redirectUri: "http://www.mobo.info/login_success.html",
     redirectUriHost: "www.mobo.info",
     consumerKey: "21005-ded74cb03e611ba462973e00",
 
     events: {
         onNeedAuth: "",
+        onShowLogin: "",
         onAuthorized: "",
         onAuthFailed: "",
         onStartActivity: "",
@@ -44,8 +45,6 @@ enyo.kind({
 
     create: function () {
         this.inherited(arguments);
-
-        this.authModel = new moboreader.AuthModel({id: "authModel"});
 
         this.authModel.fetch({
             success: this.bindSafely("modelFetched"),
@@ -118,15 +117,19 @@ enyo.kind({
     },
     gotAuthToken: function (inSender, inResponse) {
         this.authToken = inResponse.code;
-        var authWin = window.open("https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri);
+        this.doShowLogin({
+            url: "https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri
+        });
 
-        authWin.onload = function () {
+        //var authWin = window.open();
+
+        /*authWin.onload = function () {
             this.log("location: ", authWin.location);
             if (authWin.location && authWin.location.host === this.redirectUriHost) {
                 authWin.close();
                 this.finishAuth();
             }
-        }.bind(this);
+        }.bind(this);*/
     },
     finishAuth: function () {
         var req, data;

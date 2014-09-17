@@ -119,6 +119,7 @@ enyo.kind({
             name: "api",
             kind: "moboreader.Api",
             onNeedAuth: "showAuthDialog",
+            onShowLogin: "setAuthUrl",
             onAuthorized: "hideAuthDialog",
             onAuthFailed: "hideAuthDialog"
         },
@@ -206,6 +207,9 @@ enyo.kind({
 
     showAddDialog: function () {
         this.$.addDialog.doShow();
+    },
+    setAuthUrl: function (inSender, inEvent) {
+        this.$.authDialog.setURL(inEvent.url);
     },
     addArticle: function (inSendder, inEvent) {
         this.$.api.addArticle(inEvent.url, this.articleCollection);

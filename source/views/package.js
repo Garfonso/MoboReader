@@ -3,6 +3,7 @@ enyo.depends(
     "AuthDialog.js",
     "ArticleListItem.js",
     "ArticleView.js",
+    "IFrameWebView.js",
     "LinkPopup.js",
     "PickerWithHintAndBinding.js",
     "SettingsDialog.js",
