@@ -181,7 +181,8 @@ enyo.kind({
             console.log("Processing node ", node);
             console.log("Width: ", node.scrollWidth, " > ", node.clientWidth, ": ", node.scrollWidth > node.clientWidth);
 
-            scroller = new enyo.Scroller({
+            scroller = this.$.articleContent.createComponent({
+                kind: "enyo.Scroller",
                 touch: true,
                 horizontal: "scroll",
                 vertical: "hidden",
