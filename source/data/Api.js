@@ -1,3 +1,5 @@
+/*global ArticleContentHandler */
+
 enyo.kind({
     name: "moboreader.AuthModel",
     kind: "enyo.Model",
@@ -461,7 +463,7 @@ enyo.kind({
         return result || { set: function () {}, destroy: function () {} };
     },
     processActions: function (collection, objs, results) {
-        var arr = [];
+        var arr = [], articleModel;
         if (!results) {
             results = [];
         }
@@ -484,11 +486,15 @@ enyo.kind({
             switch (obj.action) {
                 case "add":
                     //try to add. Not sure that really works. Add call wants item id??
-                    collection.addRightIndex(result);
+                    this.log("Adding: ", result);
+                    articleModel = collection.addRightIndex(result);
+                    this.log("Resulting model: ", articleModel);
+                    ArticleContentHandler.checkAndDownload(articleModel, this);
                     break;
                 case "readd":
                     this.log("Adding back: " + JSON.stringify(result));
-                    collection.addRightIndex(result);
+                    articleModel = collection.addRightIndex(result);
+                    ArticleContentHandler.checkAndDownload(articleModel, this);
                     break;
                 case "favorite":
                     rec.set("favorite", 1);

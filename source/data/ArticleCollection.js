@@ -13,8 +13,8 @@ enyo.kind({
         {from: "^.moboreader.Prefs.sortOrder", to: ".sortOrder"}
     ],
 
-    success: function () {
-
+    success: function (index) {
+        this.log("Stored: ", index);
     },
 
     sortOrderChanged: function () {
@@ -79,7 +79,7 @@ enyo.kind({
                 continue;
             }
             rec.commit({
-                success: this.success.bind(this)
+                success: this.success.bind(this, i)
             });
         }
 
@@ -192,16 +192,17 @@ enyo.kind({
                 if (attributes[field] < hash[field]) {
                     this.log(attributes[field], " < ", hash[field], " => add at ", i);
                     this.add(hash, i);
-                    return;
+                    return this.at(i);
                 }
             } else {
                 if (attributes[field] > hash[field]) {
                     this.log(attributes[field], " > ", hash[field], " => add at ", i);
                     this.add(hash, i);
-                    return;
+                    return this.at(i);
                 }
             }
         }
         this.add(hash);
+        return this.at(this.length - 1);
     }
 });
