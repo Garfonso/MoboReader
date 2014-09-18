@@ -194,7 +194,6 @@ enyo.kind({
                     {allowHtml: true, content: node.innerHTML}
                 ]
             });
-            scroller.$.strategy.preventDragPropagation = false;
             scroller.renderInto(node);
 
             //child.style.overflowWrap = "break-word";
