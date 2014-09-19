@@ -45,7 +45,7 @@ enyo.kind({
     ],
 
     doShow: function () {
-		try {
+        try {
             this.show();
             this.$.message.setContent("Preparing login to Pocket");
             this.$.spinner.show();

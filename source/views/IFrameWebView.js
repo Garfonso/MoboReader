@@ -14,29 +14,41 @@ enyo.kind({
     useWebView: false,
     useIFrame: false,
     components: [
-        {
-            name: "iframe",
-            tag: "iframe",
-            classes: "enyo-fill",
-            attributes: {sandbox: "allow-scripts allow-forms"},
-            showing: false
-        },
+/*
         {
             kind: "enyo.Scroller",
             touch: true,
             thumb: true,
             classes: "enyo-fill",
             components: [
+*/
                 {
+                    name: "iframe",
+                    tag: "iframe",
+                    classes: "enyo-fill",
+                    attributes: {sandbox: "allow-scripts allow-forms"},
+                    showing: false
+                },
+                {
+                    //used on webos phones (2.x). This is needed for proper scrolling.
+                    name: "webViewContainer",
+                    classes: "enyo-fill",
+                    style: "width: 1000px; height: 1000px;",
+                    showing: false
+                },
+                {
+                    //used on legacy webos 3.x
                     name: "webView",
                     kind: "WebView",
-                    //classes: "enyo-fill",
-                    style: "width: 1000px; height: 1000px;",
+                    classes: "enyo-fill",
                     onPageTitleChanged: "webviewLoaded",
-                    showing: false
+                    showing: false,
+                    components: [
+                        {name: "target"}
+                    ]
                 }
-            ]
-        }
+/*            ]
+        }*/
     ],
     create: function () {
         this.inherited(arguments);
@@ -46,14 +58,25 @@ enyo.kind({
             if (devInfo.modelName === "Lune OS Device") {
                 this.log("LuneOS device");
                 this.useIFrame = true;
+                this.$.iframe.addStyles("width: 1000px; height: 1000px;");
                 this.$.iframe.show();
-            } else if (devInfo.platformVersionMajor <= 3) {
+            } else if (devInfo.platformVersionMajor === 3) {
                 //use old webview
                 this.log("webOS 3");
                 this.useWebView = true;
                 this.$.webView.show();
+                this.webView = this.$.webView;
             } else {
-                this.log("webOS " + devInfo.platformVersionMajor + " use window.open");
+                this.useWebViewEnc = true;
+                this.$.webViewContainer.show();
+                this.webView = this.$.webViewContainer.createComponent({
+                    name: "webViewInner",
+                    kind: "WebView",
+                    classes: "enyo-fill",
+                    onPageTitleChanged: "webviewLoaded"
+                });
+                this.webView.renderInto(this.$.target);
+                this.webView.resize();
             }
         } else {
             this.log("No webOS device, use iFrame");
@@ -62,12 +85,6 @@ enyo.kind({
         }
     },
 
-    periodicCheck: function () {
-        if (!this.useIFrame && !this.useWebView) {
-            setTimeout(this.bindSafely("periodicCheck"), 500);
-            this.pageLoaded();
-        }
-    },
     addLoadListener: function () {
         if (this.useIFrame) {
             this.$.iframe.hasNode();
@@ -78,26 +95,12 @@ enyo.kind({
                 this.log("Need to retry binding.");
                 setTimeout(this.bindSafely("addLoadListener"), 10);
             }
-        } else if (!this.useWebView) {
-            this.periodicCheck();
         }
     },
     pageLoaded: function () {
         var url;
-        if (this.useIFrame) {
-            this.log("content Document: " + this.$.iframe.node.contentDocument);
-            this.title = this.$.iframe.node.contentDocument.title;
-            url = this.$.iframe.node.contentDocument.location.toString();
-        } else if (!this.useWebView) {
-            if (this.win) {
-                this.log("Getting url & title from window");
-                url = this.win.document.location;
-                this.title = this.win.document.title;
-            } else {
-                this.log("window not yet opened?");
-                return;
-            }
-        }
+        this.title = this.$.iframe.node.contentDocument.title;
+        url = this.$.iframe.node.contentDocument.location.toString();
         this.log("URL: " + url + " with title " + this.title);
         if (this.title !== this.oldTitle) {
             this.doPageTitleChanged({
@@ -118,16 +121,11 @@ enyo.kind({
         this.oldTitle = null;
         this.addLoadListener();
         if (this.useIFrame) {
-            this.log("Setting url on iFrame");
             this.$.iframe.setSrc(this.url);
-        } else if (this.useWebView) {
-            this.log("Setting url on webView");
-            this.$.webView.setUrl(this.url);
-            this.$.webView.resize();
+        } else if (this.useWebView || this.useWebViewEnc) {
+            this.webView.setUrl(this.url);
         } else {
-            this.log("Opening new window.");
-            this.win = window.open(this.url);
-            this.win.onload = this.bindSafely("pageLoaded");
+            throw "Unknown mode...??";
         }
     },
     enableJavascriptChanged: function () {
