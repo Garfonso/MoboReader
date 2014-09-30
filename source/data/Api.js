@@ -25,14 +25,14 @@ enyo.kind({
     name: "moboreader.Api",
     published: {
         authModel: new moboreader.AuthModel({id: "authModel"}),
-        active: 0
+        active: 0,
+        redirectUri: "http://www.mobo.info/login_success.html",
+        redirectUriHost: "www.mobo.info"
     },
     articlesPerBatch: 10,
     offset: 0,
 
     authToken: false, //only used during authentication
-    redirectUri: "http://www.mobo.info/login_success.html",
-    redirectUriHost: "www.mobo.info",
     consumerKey: "21005-ded74cb03e611ba462973e00",
 
     events: {

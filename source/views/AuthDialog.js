@@ -9,7 +9,8 @@ enyo.kind({
     centered: true,
     showTransitions: true,
     published: {
-        api: ""
+        api: "",
+        redirectURL: ""
     },
     components: [
         {

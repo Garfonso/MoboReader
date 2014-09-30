@@ -14,19 +14,28 @@ enyo.kind({
     useWebView: false,
     useIFrame: false,
     components: [
-/*
+
         {
             kind: "enyo.Scroller",
             touch: true,
             thumb: true,
             classes: "enyo-fill",
             components: [
-*/
                 {
                     name: "iframe",
                     tag: "iframe",
-                    classes: "enyo-fill",
-                    attributes: {sandbox: "allow-scripts allow-forms"},
+                    classes: "enyo-fill enyo-fit",
+                    attributes: {
+                        //pocket:
+                        //sandbox: "allow-popups allow-top-navigation allow-same-origin allow-scripts allow-forms", ok!
+                        //sandbox: "allow-top-navigation allow-same-origin allow-scripts allow-forms", ok!
+                        //sandbox: "allow-same-origin allow-scripts allow-forms", ok
+                        //sandbox: "allow-same-origin allow-scripts", ok
+                        sandbox: "allow-same-origin allow-forms", // => would be fine, but login_success fails.
+                        //sandbox: "allow-popups allow-top-navigation allow-scripts", NOT OK
+                        //sandbox: "allow-same-origin", //will NOT work! ;)
+                        scrolling: "no"
+                    },
                     showing: false
                 },
                 {
@@ -47,8 +56,8 @@ enyo.kind({
                         {name: "target"}
                     ]
                 }
-/*            ]
-        }*/
+            ]
+        }
     ],
     create: function () {
         this.inherited(arguments);
@@ -58,7 +67,7 @@ enyo.kind({
             if (devInfo.modelName === "Lune OS Device") {
                 this.log("LuneOS device");
                 this.useIFrame = true;
-                this.$.iframe.addStyles("width: 1000px; height: 1000px;");
+                //this.$.iframe.addStyles("width: 1000px; height: 1000px;");
                 this.$.iframe.show();
             } else if (devInfo.platformVersionMajor === 3) {
                 //use old webview

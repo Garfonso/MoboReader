@@ -194,6 +194,7 @@ enyo.kind({
     },
 
     showAuthDialog: function () {
+        this.$.authDialog.setRedirectURL(this.$.api.getRedirectUri());
         this.$.authDialog.doShow();
     },
     hideAuthDialog: function (inSender, inResponse) {
