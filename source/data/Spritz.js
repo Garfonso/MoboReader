@@ -58,10 +58,11 @@ enyo.kind({
     },
     webviewLoaded: function (inSender, inEvent) {
         this.log("WebView loaded!");
-        var title = inEvent.title, auth;
-        this.log("Got new title: ", title);
-        if (title.indexOf("token: ") === 0) {
-            auth = title.substr(7);
+        var url = inEvent.url, auth, start;
+        start = url.indexOf("login_success.html#");
+        this.log("Got new title: ", url);
+        if (start > 0) {
+            auth = url.substr(start + "login_success.html#".length);
             this.log("Got token: " + auth);
             SpritzClient.setAuthResponse(auth, moboreader.Spritz.updateUsername.bind(moboreader.Spritz));
             this.hide();
