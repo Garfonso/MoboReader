@@ -13,12 +13,14 @@ enyo.kind({
     },
     useWebView: false,
     useIFrame: false,
+    useWebViewEnc: false,
     components: [
 
         {
             kind: "enyo.Scroller",
             touch: true,
             thumb: true,
+            onScroll: "propagateScroll",
             classes: "enyo-fill",
             components: [
                 {
@@ -34,7 +36,8 @@ enyo.kind({
                         sandbox: "allow-same-origin allow-forms", // => would be fine, but login_success fails.
                         //sandbox: "allow-popups allow-top-navigation allow-scripts", NOT OK
                         //sandbox: "allow-same-origin", //will NOT work! ;)
-                        scrolling: "no"
+                        scrolling: "no",
+                        seamless: "seamless"
                     },
                     showing: false
                 },
@@ -100,11 +103,15 @@ enyo.kind({
             if (this.$.iframe.node) {
                 this.log("Added binding.");
                 this.$.iframe.node.onload = this.bindSafely("pageLoaded");
+                this.$.iframe.node.onresize = this.bindSafely("contentResized");
             } else {
                 this.log("Need to retry binding.");
                 setTimeout(this.bindSafely("addLoadListener"), 10);
             }
         }
+    },
+    contentResized: function (inEvent) {
+        this.log("Content  resized: ", inEvent);
     },
     pageLoaded: function () {
         var url;
@@ -117,6 +124,51 @@ enyo.kind({
                 url: url
             });
             this.oldTitle = this.title;
+        }
+
+        if (this.useIFrame) {
+            this.log("Adding event listeners.");
+            this.$.iframe.node.contentDocument.onanmiationEnd = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onchange = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onclick = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ononcopy = enyo.dispatch;
+            this.$.iframe.node.contentDocument.oncut = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ondbclick = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ondrag = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ondragstart = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ondragend = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ongesturechange = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ongestureend = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ongesturestart = enyo.dispatch;
+            this.$.iframe.node.contentDocument.oinput = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onkeydown = enyo.dispatch;
+            this.$.iframe.node.contentDocument.okeypress = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onkeyup = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onmousedown = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onmousemove = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onmouseout = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onmouseover = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onmouseup = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onmousewheel = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onpaste = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onscroll = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ontouchend = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ontouchmove = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ontouchstart = enyo.dispatch;
+            this.$.iframe.node.contentDocument.ontransitioned = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onwebkitAnimationEnd = enyo.dispatch;
+            this.$.iframe.node.contentDocument.onwebkitTransitionEnd = enyo.dispatch;
+
+            setTimeout(function () {
+                var bounds = {
+                    heigth: this.$.iframe.node.contentDocument.body.clientHeight,
+                    width: this.$.iframe.node.contentDocument.body.clientWidth
+                };
+
+                this.log("Setting bounds ", bounds);
+
+                this.$.iframe.setBounds(bounds);
+            }.bind(this), 100);
         }
     },
     webviewLoaded: function (inSender, inEvent) {

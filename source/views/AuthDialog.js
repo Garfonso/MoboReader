@@ -27,7 +27,7 @@ enyo.kind({
                     kind: "onyx.Spinner"
                 },
                 {
-                    classes: "enyo-fill",
+                    classes: "enyo-fill enyo-fit",
                     fit: true,
                     kind: "IFrameWebView",
                     name: "webView",
