@@ -1,4 +1,4 @@
-/*global SpritzLoginDialog, $, SpritzSettings, app */
+/*global SpritzLoginDialog, $, SpritzSettings */
 
 enyo.kind({
     name: "SpritzLoginDialog",
@@ -142,7 +142,7 @@ enyo.singleton({
             options = {
                 defaultSpeed: 500,
                 speedItems: [250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900,  950, 1000],
-                redicleWidth: node.width() - 30,
+                redicleWidth: window.PalmSystem ? node.width() : node.width() - 30,
 
                 // These must correspond to controlTitles below
                 controlButtons: ["rewind", "back", "pauseplay", "forward"],
@@ -164,7 +164,7 @@ enyo.singleton({
                 }
             };
         if (!window.width) {
-			window.width = app.$.mainView.hasNode().clientWidth; //somehow this is not set on TP.
+            window.width = node.width() + 30; //somehow this is not set on TP.
         }
 
         SPRITZ.utils.debugLevel = 10000000; //make spritz talk to us :)

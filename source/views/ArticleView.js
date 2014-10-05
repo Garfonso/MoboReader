@@ -1,4 +1,4 @@
-/*global ArticleContentHandler, eyno */
+/*global ArticleContentHandler */
 
 enyo.kind({
     name: "moboreader.ArticleView",
@@ -120,7 +120,7 @@ enyo.kind({
     create: function () {
         this.inherited(arguments);
         
-        if (eyno.webos && (enyo.webos.isPhone() || enyo.webos.isLuneOS())) {
+		if (window.PalmSystem && (enyo.webos.isPhone() || enyo.webos.isLuneOS())) {
             this.$.backBtn.hide();
         }
     },
