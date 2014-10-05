@@ -1,4 +1,4 @@
-/*global SpritzLoginDialog, $, SpritzSettings */
+/*global SpritzLoginDialog, $, SpritzSettings, app */
 
 enyo.kind({
     name: "SpritzLoginDialog",
@@ -163,6 +163,9 @@ enyo.singleton({
                     endText: "Tap to close spritz dialog."
                 }
             };
+        if (!window.width) {
+			window.width = app.$.mainView.hasNode().clientWidth; //somehow this is not set on TP.
+        }
 
         SPRITZ.utils.debugLevel = 10000000; //make spritz talk to us :)
         if (this.initialized) {
