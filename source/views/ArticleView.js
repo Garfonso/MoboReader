@@ -1,4 +1,4 @@
-/*global ArticleContentHandler */
+/*global ArticleContentHandler, eyno */
 
 enyo.kind({
     name: "moboreader.ArticleView",
@@ -42,9 +42,10 @@ enyo.kind({
             kind: "onyx.MoreToolbar",
             components: [
                 {
-                    kind: "onyx.Grabber",
-                    ontap: "handleBackGesture",
-                    ondrag: "handleBackGesture"
+                    kind: "onyx.Button",
+                    name: "backBtn",
+                    content: "Back",
+                    ontap: "handleBackGesture"
                 },
                 {
                     kind: "onyx.Button",
@@ -116,6 +117,13 @@ enyo.kind({
 
         {from: "^.moboreader.Spritz.wordCompleted", to: ".currentWord" }
     ],
+    create: function () {
+        this.inherited(arguments);
+        
+        if (eyno.webos && (enyo.webos.isPhone() || enyo.webos.isLuneOS())) {
+            this.$.backBtn.hide();
+        }
+    },
     handleBackGesture: function (inSender, inEvent) {
         this.log("Incomming back gesture!! showing: ", this.$.spritzDialog.showing, " running: ", this.$.spritzDialog.running);
         if (this.$.spritzDialog.showing) {
