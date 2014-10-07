@@ -61,7 +61,7 @@ enyo.kind({
         this.$.webView.setUrl(url);
     },
     webviewLoaded: function (inSender, inEvent) {
-        if (inEvent.title.indexOf("token:") === 0) {
+        if (typeof inEvent.title === "string" && inEvent.title.indexOf("token:") === 0) {
             this.api.finishAuth();
         } else {
             this.log("Wrong title: ", inEvent.url);
