@@ -45,8 +45,11 @@ enyo.kind({
                     //used on webos phones (2.x). This is needed for proper scrolling.
                     name: "webViewContainer",
                     classes: "enyo-fill",
-                    style: "width: 1000px; height: 1000px;",
-                    showing: false
+                    style: "width: 10000px; height: 10000px;",
+                    showing: false,
+                    components: [
+                        {name: "target"}
+                    ]
                 },
                 {
                     //used on legacy webos 3.x
@@ -54,10 +57,7 @@ enyo.kind({
                     kind: "WebView",
                     classes: "enyo-fill",
                     onPageTitleChanged: "webviewLoaded",
-                    showing: false,
-                    components: [
-                        {name: "target"}
-                    ]
+                    showing: false
                 }
             ]
         }
