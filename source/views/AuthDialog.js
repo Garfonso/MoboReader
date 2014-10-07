@@ -46,14 +46,11 @@ enyo.kind({
     ],
 
     doShow: function () {
-        //try {
-            this.show();
-            this.$.message.setContent("Preparing login to Pocket");
-            this.$.spinner.show();
-            this.$.retryBtn.hide();
-        //} catch (e) {
-        //    this.log("Error in doShow: ", e);
-        //}
+        this.show();
+        this.$.message.setContent("Preparing login to Pocket");
+        this.$.spinner.show();
+        this.$.retryBtn.hide();
+        this.fired = false;
     },
     setURL: function (url) {
         this.$.spinner.hide();
@@ -62,9 +59,14 @@ enyo.kind({
     },
     processTitleChange: function (inSender, inEvent) {
         var title = inEvent.title;
-        
+        if (this.fired) {
+            this.log("Already authorizing, abort.");
+            return;
+        }
+
         if (typeof title === "string" && title.indexOf("token:") === 0) {
             this.api.finishAuth();
+            this.fired = true;
         } else {
             this.log("Wrong title: ", title);
         }
@@ -82,6 +84,7 @@ enyo.kind({
             this.api.startAuth();
             this.$.retryBtn.hide();
             this.$.spinner.show();
+            this.fired = false;
             this.$.message.setContent("Preparing login to Pocket");
         } else {
             this.$.retryBtn.hide();
