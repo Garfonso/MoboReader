@@ -269,6 +269,8 @@ enyo.kind({
                 this.refreshing = false;
                 collection.updateArticleContent(this);
             }
+        } else {
+            this.refreshing = false;
         }
 
         this.setActive(this.active - 1);
