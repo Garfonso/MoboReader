@@ -36,11 +36,10 @@ enyo.kind({
                         sandbox: "allow-same-origin allow-forms", // => would be fine, but login_success fails.
                         //sandbox: "allow-popups allow-top-navigation allow-scripts", NOT OK
                         //sandbox: "allow-same-origin", //will NOT work! ;)
-                        scrolling: "no",
-                        seamless: "seamless"
                     },
                     showing: false
                 },
+                            style: "-webkit-overflow-scrolling: touch; overflow-y: scroll;",
                 {
                     //used on webos phones (2.x). This is needed for proper scrolling.
                     name: "webViewContainer",
