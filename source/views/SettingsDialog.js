@@ -1,7 +1,7 @@
 enyo.kind({
     name: "moboreader.SettingsDialog",
     kind: "onyx.Popup",
-    style: "text-align: center; width: 80%; height: 550px; max-height: 80%",
+    style: "text-align: center; width: 80%; height: 80%;",
     scrim: true,
     modal: true,
     autoDismiss: true,
@@ -25,91 +25,95 @@ enyo.kind({
             kind: "enyo.Scroller",
             touch: true,
             thumb: false,
-            classe: "enyo-fill enyo-fit",
-            fit: true,
             style: "height: 100%",
             components: [
                 {
-                    kind: "onyx.Groupbox",
+                    kind: "FittableRows",
+                    style: "height: 550px;",
                     components: [
                         {
-                            kind: "onyx.GroupboxHeader",
-                            content: "Pocket settings"
-                        },
-                        {
-                            kind: "PickerWithHintAndBinding",
-                            name: "maxEntries",
-                            hint: "Max downloaded entries",
-                            pickerComponents: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-                        },
-                        {
-                            kind: "PickerWithHintAndBinding",
-                            name: "sortOrder",
-                            hint: "Sort articles for ",
-                            pickerComponents: ["newest", "oldest", "title", "url"]
-                        }
-                    ]
-                },
-                {
-                    kind: "onyx.Groupbox",
-                    components: [
-                        {
-                            kind: "onyx.GroupboxHeader",
-                            content: "Display settings"
-                        },
-                        {
-                            kind: "PickerWithHintAndBinding",
-                            name: "fontSize",
-                            hint: "Font size in article view",
-                            pickerComponents: [12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
-                        }
-                    ]
-                },
-                {
-                    kind: "onyx.Groupbox",
-                    components: [
-                        {
-                            kind: "onyx.GroupboxHeader",
-                            content: "Spritz settings"
-                        },
-                        {
-                            style: "overflow: hidden; padding: 10px;",
+                            kind: "onyx.Groupbox",
                             components: [
-                                { content: "Use spritz", style: "float: left; "},
                                 {
-                                    kind: "onyx.Checkbox",
-                                    name: "useSpritz",
-                                    style: "float: right;"
+                                    kind: "onyx.GroupboxHeader",
+                                    content: "Pocket settings"
+                                },
+                                {
+                                    kind: "PickerWithHintAndBinding",
+                                    name: "maxEntries",
+                                    hint: "Max downloaded entries",
+                                    pickerComponents: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+                                },
+                                {
+                                    kind: "PickerWithHintAndBinding",
+                                    name: "sortOrder",
+                                    hint: "Sort articles for ",
+                                    pickerComponents: ["newest", "oldest", "title", "url"]
                                 }
                             ]
                         },
                         {
-                            style: "overflow: hidden; padding: 10px;",
+                            kind: "onyx.Groupbox",
                             components: [
-                                { content: "Download spritz data for offline use", style: "float: left; "},
                                 {
-                                    kind: "onyx.Checkbox",
-                                    name: "downloadSpritzOnUpdate",
-                                    style: "float: right;"
+                                    kind: "onyx.GroupboxHeader",
+                                    content: "Display settings"
+                                },
+                                {
+                                    kind: "PickerWithHintAndBinding",
+                                    name: "fontSize",
+                                    hint: "Font size in article view",
+                                    pickerComponents: [12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
                                 }
                             ]
-                        }
-                    ]
-                },
-                {
-                    style: "margin: 10px auto; display: block;",
-                    kind: "onyx.Button",
-                    content: "Logout from Pocket",
-                    name: "logoutBtn",
-                    ontap: "logout"
-                },
+                        },
+                        {
+                            kind: "onyx.Groupbox",
+                            components: [
+                                {
+                                    kind: "onyx.GroupboxHeader",
+                                    content: "Spritz settings"
+                                },
+                                {
+                                    style: "overflow: hidden; padding: 10px;",
+                                    components: [
+                                        { content: "Use spritz", style: "float: left; "},
+                                        {
+                                            kind: "onyx.Checkbox",
+                                            name: "useSpritz",
+                                            style: "float: right;"
+                                        }
+                                    ]
+                                },
+                                {
+                                    style: "overflow: hidden; padding: 10px;",
+                                    components: [
+                                        { content: "Download spritz data for offline use", style: "float: left; "},
+                                        {
+                                            kind: "onyx.Checkbox",
+                                            name: "downloadSpritzOnUpdate",
+                                            style: "float: right;"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            style: "margin: 10px auto; display: block;",
+                            kind: "onyx.Button",
+                            content: "Logout from Pocket",
+                            name: "logoutBtn",
+                            ontap: "logout"
+                        },
 
-                {
-                    style: "margin: 10px 5px; width: 100px;",
-                    kind: "onyx.Button",
-                    content: "Close",
-                    name: "cancelBtn",
-                    ontap: "hide"
+                        {
+                            style: "margin: 10px 5px; width: 100px;",
+                            kind: "onyx.Button",
+                            content: "Close",
+                            name: "cancelBtn",
+                            ontap: "hide"
+                        }
+                    ]
                 }
             ]
         }
