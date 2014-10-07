@@ -45,8 +45,9 @@ enyo.kind({
                     //used on webos phones (2.x). This is needed for proper scrolling.
                     name: "webViewContainer",
                     classes: "enyo-fill",
-                    style: "width: 10000px; height: 10000px;",
+                    style: "width: 1000px; height: 1000px;",
                     showing: false,
+                    onPageTitleChanged: "webviewLoaded",
                     components: [
                         {name: "target"}
                     ]
@@ -89,9 +90,12 @@ enyo.kind({
                 });
                 this.webView.renderInto(this.$.target);
                 this.webView.resize();
+                this.webView.focus();
+                this.webView.clearCookies();
             }
         } else {
             this.log("No webOS device, use iFrame");
+            this.$.iframe.attributes.sandbox = "allow-scripts allow-forms";
             this.$.iframe.show();
             this.useIFrame = true;
         }
@@ -116,8 +120,11 @@ enyo.kind({
     pageLoaded: function () {
         var url;
         this.title = this.$.iframe.node.contentDocument.title;
+        if (typeof this.title === "object") {
+            this.title = this.title.toString();
+        }
         url = this.$.iframe.node.contentDocument.location.toString();
-        this.log("URL: " + url + " with title " + this.title);
+        this.log("URL: " + url + " with title " + this.title, " type of title: ", typeof this.title);
         if (this.title !== this.oldTitle) {
             this.doPageTitleChanged({
                 title: this.title,
@@ -126,7 +133,7 @@ enyo.kind({
             this.oldTitle = this.title;
         }
 
-        if (this.useIFrame) {
+        /*if (this.useIFrame) {
             this.log("Adding event listeners.");
             this.$.iframe.node.contentDocument.onanmiationEnd = enyo.dispatch;
             this.$.iframe.node.contentDocument.onchange = enyo.dispatch;
@@ -169,9 +176,10 @@ enyo.kind({
 
                 this.$.iframe.setBounds(bounds);
             }.bind(this), 100);
-        }
+        }*/
     },
     webviewLoaded: function (inSender, inEvent) {
+        this.log("On webviewLoaded, title: ", inEvent.inTitle);
         this.doPageTitleChanged({
             title: inEvent.inTitle,
             url: inEvent.inUrl

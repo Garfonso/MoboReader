@@ -31,7 +31,7 @@ enyo.kind({
                     fit: true,
                     kind: "IFrameWebView",
                     name: "webView",
-                    onPageTitleChanged: "webviewLoaded"
+                    onPageTitleChanged: "processTitleChange"
                 },
                 {
                     style: "display: block; margin: 10px auto;",
@@ -46,25 +46,27 @@ enyo.kind({
     ],
 
     doShow: function () {
-        try {
+        //try {
             this.show();
             this.$.message.setContent("Preparing login to Pocket");
             this.$.spinner.show();
             this.$.retryBtn.hide();
-        } catch (e) {
-            this.log("Error in doShow: ", e);
-        }
+        //} catch (e) {
+        //    this.log("Error in doShow: ", e);
+        //}
     },
     setURL: function (url) {
         this.$.spinner.hide();
         this.$.message.setContent("Please log in to Pocket below.");
         this.$.webView.setUrl(url);
     },
-    webviewLoaded: function (inSender, inEvent) {
-        if (typeof inEvent.title === "string" && inEvent.title.indexOf("token:") === 0) {
+    processTitleChange: function (inSender, inEvent) {
+        var title = inEvent.title;
+        
+        if (typeof title === "string" && title.indexOf("token:") === 0) {
             this.api.finishAuth();
         } else {
-            this.log("Wrong title: ", inEvent.url);
+            this.log("Wrong title: ", title);
         }
     },
     resultOk: function (username) {
