@@ -172,7 +172,7 @@ enyo.kind({
      ******************* Article Sync ********************************************************
      *****************************************************************************************/
     downloadArticles: function (collection, slow) {
-        if (this.refreshing) {
+        if (this.refreshing || this.authModel.get("needLogin")) {
             return;
         } else {
             this.refreshing = true;
@@ -281,7 +281,7 @@ enyo.kind({
     getArticleContent: function (articleModel) {
         var req, data;
 
-        if (articleModel.downloadingContent) {
+        if (this.authModel.get("needLogin") || articleModel.downloadingContent) {
             return;
         }
         articleModel.downloadingContent = true;
@@ -353,6 +353,10 @@ enyo.kind({
             actions = this.authModel.get("unsyncedActivities"),
             action = {action: "add", url: url, time: Math.round(Date.now() / 1000)};
 
+        if (this.authModel.get("needLogin")) {
+            return;
+        }
+
         this.setActive(this.active + 1);
         req = new moboreader.Ajax({
             url: "https://getpocket.com/v3/add",
@@ -372,6 +376,10 @@ enyo.kind({
     },
     articleAction: function (articleModel, action, collection, callback, url) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
+
+        if (this.authModel.get("needLogin")) {
+            return;
+        }
 
         this.setActive(this.active + 1);
         if (articleModel && action) {
