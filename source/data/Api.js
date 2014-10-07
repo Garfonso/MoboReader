@@ -92,6 +92,16 @@ enyo.kind({
         this.startAuth();
     },
 
+    checkForUnauthorized: function (inResponse) {
+        if (inResponse === 401) {
+            return true;
+        }
+        if (typeof inResponse.indexOf === "function" && inResponse.indexOf("401") >= 0) {
+            return true;
+        }
+        return false;
+    },
+    
     dummy: function () { },
 
     /*****************************************************************************************
@@ -224,7 +234,7 @@ enyo.kind({
         var articles = [], key, list = inResponse.list, article, rec, oldLength, listLength = 0;
 
         this.log("Got response: ", inResponse);
-        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+        if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
         }
@@ -276,8 +286,8 @@ enyo.kind({
         this.setActive(this.active - 1);
     },
     downloadArticlesFailed: function (inSender, inResponse) {
-        this.log("Failed to download: ", inResponse);
-        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+        this.log("Failed to download: ", inResponse, " type: ", typeof inResponse);
+        if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
         }
@@ -315,7 +325,7 @@ enyo.kind({
     },
     gotArticleContent: function (articleModel, inSender, inResponse) {
         this.log("Got content: ", inResponse);
-        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+        if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
             this.setActive(this.active - 1);
@@ -353,7 +363,7 @@ enyo.kind({
     downloadContentFailed: function (inSender, inResponse, articleModel) {
         articleModel.downloadingContent = false;
         this.log("Failed to download: ", inResponse);
-        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+        if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
         }
@@ -556,7 +566,7 @@ enyo.kind({
     actionSuccess: function (collection, callback, actions, inSender, inResponse) {
         var i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
-        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+        if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
             this.setActive(this.active - 1);
@@ -601,7 +611,7 @@ enyo.kind({
         }
         this.setActive(this.active - 1);
 
-        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+        if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
         }
