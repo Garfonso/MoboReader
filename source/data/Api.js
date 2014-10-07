@@ -224,6 +224,10 @@ enyo.kind({
         var articles = [], key, list = inResponse.list, article, rec, oldLength, listLength = 0;
 
         this.log("Got response: ", inResponse);
+        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+            this.log("Not authorized? => start auth.");
+            this.logout();
+        }
         if (list) {
             for (key in list) {
                 if (list.hasOwnProperty(key)) {
@@ -271,6 +275,10 @@ enyo.kind({
     },
     downloadArticlesFailed: function (inSender, inResponse) {
         this.log("Failed to download: ", inResponse);
+        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+            this.log("Not authorized? => start auth.");
+            this.logout();
+        }
         this.refreshing = false;
         this.setActive(this.active - 1);
     },
@@ -305,6 +313,12 @@ enyo.kind({
     },
     gotArticleContent: function (articleModel, inSender, inResponse) {
         this.log("Got content: ", inResponse);
+        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+            this.log("Not authorized? => start auth.");
+            this.logout();
+            this.setActive(this.active - 1);
+            return;
+        }
 
         articleModel.downloadingContent = false;
         //remove links from images:
@@ -337,6 +351,10 @@ enyo.kind({
     downloadContentFailed: function (inSender, inResponse, articleModel) {
         articleModel.downloadingContent = false;
         this.log("Failed to download: ", inResponse);
+        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+            this.log("Not authorized? => start auth.");
+            this.logout();
+        }
         this.setActive(this.active - 1);
         enyo.Signals.send("onArticleDownloaded", {
             id: articleModel.get(articleModel.primaryKey),
@@ -536,6 +554,12 @@ enyo.kind({
     actionSuccess: function (collection, callback, actions, inSender, inResponse) {
         var i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
+        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+            this.log("Not authorized? => start auth.");
+            this.logout();
+            this.setActive(this.active - 1);
+            return;
+        }
 
         remActions = this.processActions(collection, actions, inResponse.action_results || inResponse.item);
 
@@ -574,6 +598,11 @@ enyo.kind({
             this.storeModel();
         }
         this.setActive(this.active - 1);
+
+        if (typeof inResponse === "string" && inResponse.indexOf("401") >= 0) {
+            this.log("Not authorized? => start auth.");
+            this.logout();
+        }
 
         if (callback) {
             callback();
