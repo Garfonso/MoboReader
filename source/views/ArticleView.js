@@ -177,7 +177,6 @@ enyo.kind({
     },
     processChildren: function (node) {
         var i,
-            text,
             children = node.children,
             child,
             scroller;
@@ -188,10 +187,6 @@ enyo.kind({
         }
 
         if (node.scrollWidth > node.clientWidth) {
-            console.log("Need scroller!");
-            console.log("Processing node ", node);
-            console.log("Width: ", node.scrollWidth, " > ", node.clientWidth, ": ", node.scrollWidth > node.clientWidth);
-
             scroller = this.$.articleContent.createComponent({
                 kind: "enyo.Scroller",
                 touch: true,
@@ -209,23 +204,10 @@ enyo.kind({
 
             //child.style.overflowWrap = "break-word";
             node.style.backgroundColor = "rgb(220, 220, 220)";
-
-            console.log("Scroll width now is: ", node.scrollWidth);
         }
 
         if (node.tagName === "A") {
             node.onclick = this.linkClick.bind(this);
-        }
-
-        //maybe add . to end of headline.
-        if (node.tagName.indexOf("H") === 0) {
-            text = node.textContent.trim();
-            if (text !== "" &&
-                text.charAt(text.length - 1) !== "." &&
-                text.charAt(text.length - 1) !== "?" &&
-                text.charAt(text.length - 1) !== "!") {
-                text += ".";
-            }
         }
     },
     dbOp: function (inSender, inEvent) { //filter events here.
