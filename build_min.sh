@@ -7,7 +7,7 @@ bash tools/deploy.sh
 cp appinfo.json deploy
 
 scp -r -P 55022 deploy/* root@localhost:/media/cryptofs/apps/usr/palm/applications/info.mobo.moboreader/
-scp -r -P 55022 service/* root@localhost:/media/cryptofs/apps/usr/palm/services/info.mobo.moboreader.storage/
+scp -r -P 55022 service/* root@localhost:/media/cryptofs/apps/usr/palm/services/info.mobo.moboreader.service/
 
 ssh -p 55022 root@localhost systemctl restart luna-next
 
