@@ -27,6 +27,7 @@ enyo.kind({
             touch: true,
             thumb: true,
             fit: true,
+            strategyKind: "TouchScrollStrategyWithThumbs",
             horizontal: "hidden",
             classes: "enyo-fill",
             components: [
@@ -155,6 +156,7 @@ enyo.kind({
             delete oldValue.spritzModelPersist;
         }
 
+        this.$.scroller.$.strategy.hideThumbs();
         this.$.spritzBtn.removeClass("onyx-affirmative");
         this.$.spritzBtn.setDisabled(true);
         this.lastScrollWord = 0;
@@ -163,9 +165,6 @@ enyo.kind({
         enyo.Signals.send("onStartDBActivity", {});
         this.articleOpId = ArticleContentHandler.getContent(this.articleModel);
 
-        setTimeout(function() {
-            this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 0);
-        }.bind(this), 200);
         this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
     },
     downloadContent: function () {
@@ -249,6 +248,8 @@ enyo.kind({
             }
             setTimeout(function () {
                 this.processChildren(this.$.articleContent.node);
+                this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
+                this.$.scroller.$.strategy.showThumbs();
             }.bind(this), 100);
         }
     },

@@ -8,5 +8,6 @@ enyo.depends(
     "PickerWithHintAndBinding.js",
     "SettingsDialog.js",
     "SpritzDialog.js",
+    "TouchScrollStrategyWithThumbs.js",
     "views.js"
 );
