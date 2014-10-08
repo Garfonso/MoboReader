@@ -135,6 +135,9 @@ enyo.kind({
                 this.$.spritzDialog.hide();
             }
         } else {
+            if (this.timeoutId) {
+                clearTimeout(this.timeoutId);
+            }
             this.doBack();
         }
 
@@ -160,6 +163,7 @@ enyo.kind({
         this.$.spritzBtn.removeClass("onyx-affirmative");
         this.$.spritzBtn.setDisabled(true);
         this.lastScrollWord = 0;
+        this.$.articleContent.destroyClientControls();
         this.$.articleContent.setContent("Asking db for content...");
 
         enyo.Signals.send("onStartDBActivity", {});
@@ -243,10 +247,14 @@ enyo.kind({
                 this.articleModel.spritzModelPersist = inEvent.content.spritz;
             }
             if (inEvent.content.web) {
+                this.log("Updating content...");
                 this.articleModel.webContent = inEvent.content.web;
                 this.$.articleContent.setContent(inEvent.content.web);
             }
-            setTimeout(function () {
+            if (this.timeoutId) {
+                clearTimeout(this.timeoutId);
+            }
+            this.timeoutID = setTimeout(function () {
                 this.processChildren(this.$.articleContent.node);
                 this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
                 this.$.scroller.$.strategy.showThumbs();
