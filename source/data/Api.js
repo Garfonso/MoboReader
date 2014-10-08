@@ -335,8 +335,8 @@ enyo.kind({
         articleModel.downloadingContent = false;
         //remove links from images:
         var content = inResponse.article;
-        content = content.replace(/<a href=[^<]+?><div/gim, "<div");
-        content = content.replace(/div><\/a>/gim, "div>");
+        //content = content.replace(/<a href=[^<]+?><div/gim, "<div");
+        //content = content.replace(/div><\/a>/gim, "div>");
 
         //add . to end of headings:
         content = content.replace(/([^.?!])\s*?<\s*?\/(h\d|strong|p)\s*?>/gim, "$1<span style=\"display:none;\">.</span></$2>");
