@@ -120,8 +120,8 @@ enyo.kind({
     ],
     create: function () {
         this.inherited(arguments);
-        
-		if (window.PalmSystem && (enyo.webos.isPhone() || enyo.webos.isLuneOS())) {
+
+        if (window.PalmSystem && (enyo.webos.isPhone() || enyo.webos.isLuneOS())) {
             this.$.backBtn.hide();
         }
     },
