@@ -20,13 +20,12 @@ enyo.kind({
             kind: "enyo.Scroller",
             touch: true,
             thumb: true,
-            onScroll: "propagateScroll",
             classes: "enyo-fill",
             components: [
                 {
                     name: "iframe",
                     tag: "iframe",
-                    classes: "enyo-fill enyo-fit",
+                    classes: "enyo-fill",
                     attributes: {
                         //pocket:
                         //sandbox: "allow-popups allow-top-navigation allow-same-origin allow-scripts allow-forms", ok!
@@ -36,10 +35,11 @@ enyo.kind({
                         sandbox: "allow-same-origin allow-forms", // => would be fine, but login_success fails.
                         //sandbox: "allow-popups allow-top-navigation allow-scripts", NOT OK
                         //sandbox: "allow-same-origin", //will NOT work! ;)
+                        scrolling: "no",
+                        seamless: "seamless"
                     },
-                    showing: false
+                    showing: true
                 },
-                            style: "-webkit-overflow-scrolling: touch; overflow-y: scroll;",
                 {
                     //used on webos phones (2.x). This is needed for proper scrolling.
                     name: "webViewContainer",
