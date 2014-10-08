@@ -441,7 +441,7 @@ enyo.kind({
     },
     addNoDuplicates: function (actions, action) {
         var i, key = "item_id";
-        if(!action || !action.action) {
+        if (!action || !action.action) {
             console.error("Action undefined.");
             return;
         }
@@ -466,7 +466,7 @@ enyo.kind({
     },
     removeFinishedActions: function (remActions) {
         var actions = this.authModel.get("unsyncedActivities");
-        remActions.forEach(function(action) {
+        remActions.forEach(function (action) {
             var index = actions.indexOf(action);
             if (index < 0) {
                 console.warn("Action " + JSON.stringify(action) + " not found in model. Already done?");
