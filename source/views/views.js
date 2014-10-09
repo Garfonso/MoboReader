@@ -117,15 +117,7 @@ enyo.kind({
         //non ui stuff:
         {
             name: "api",
-            kind: "moboreader.Api",
-            onNeedAuth: "showAuthDialog",
-            onShowLogin: "setAuthUrl",
-            onAuthorized: "hideAuthDialog",
-            onAuthFailed: "hideAuthDialog"
-        },
-        {
-            name: "authDialog",
-            kind: "moboreader.AuthDialog"
+            kind: "moboreader.Api"
         },
         {
             name: "addDialog",
@@ -193,24 +185,8 @@ enyo.kind({
         }
     },
 
-    showAuthDialog: function () {
-        this.$.authDialog.setRedirectURL(this.$.api.getRedirectUri());
-        this.$.authDialog.doShow();
-    },
-    hideAuthDialog: function (inSender, inResponse) {
-        if (inResponse.error) {
-            this.$.authDialog.resultFail(this.$.api);
-        } else {
-            this.$.authDialog.resultOk(inResponse.username);
-            this.$.api.downloadArticles(this.articleCollection);
-        }
-    },
-
     showAddDialog: function () {
         this.$.addDialog.doShow();
-    },
-    setAuthUrl: function (inSender, inEvent) {
-        this.$.authDialog.setURL(inEvent.url);
     },
     addArticle: function (inSendder, inEvent) {
         this.$.api.addArticle(inEvent.url, this.articleCollection);
@@ -240,7 +216,6 @@ enyo.kind({
         this.loggingOut = true;
         this.forceRefreshTap();
     },
-
 
     articleSelected: function (inSender, inEvent) {
         this.lastIndex = inEvent.index;

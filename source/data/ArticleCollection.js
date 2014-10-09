@@ -169,9 +169,14 @@ enyo.kind({
         var i, key = this.getSortKey(), field = key.field, desc = key.desc, rec, attributes;
         hash = parseArticle(hash);
 
-        if(enyo.store.findLocal("moboreader.ArticleModel", hash)) {
+        rec = enyo.store.findLocal("moboreader.ArticleModel", hash);
+        /*if (!rec.item_id) {
+            rec = rec[0];
+        }*/
+        //console.error("Article there: " + JSON.stringify(rec));
+        if (rec) {
             console.warn("Article already present: " + hash.title, ", " + hash.url);
-            return;
+            return rec;
         }
 
         for (i = 0; i < this.records.length; i += 1) {

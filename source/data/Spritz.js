@@ -1,74 +1,4 @@
-/*global SpritzLoginDialog, $, SpritzSettings */
-
-enyo.kind({
-    name: "SpritzLoginDialog",
-    kind: "onyx.Popup",
-    style: "text-align: center; width: 80%; z-index: 130; margin: 4% 9%; height: 90%;",
-    scrim: true,
-    modal: true,
-    autoDismiss: true,
-    floating: true,
-    centered: true,
-    showTransitions: true,
-    apiRoot: "https://api.spritzinc.com/api-server/v1/",
-    components: [
-//        {
-//            kind: "enyo.Scroller",
-//            classe: "enyo-fill",
-//            components: [
-        {
-            kind: "enyo.FittableRows",
-            classes: "enyo-fill",
-            components: [
-                {
-                    name: "message",
-                    content: "Loging in to spritz. Please log in to spritz below."
-                },
-                {
-                    classes: "enyo-fill",
-                    fit: true,
-                    kind: "IFrameWebView",
-                    name: "webView",
-                    onPageTitleChanged: "webviewLoaded"
-                },
-                {
-                    style: "display: block; margin: 10px auto;",
-                    kind: "onyx.Button",
-                    content: "Retry",
-                    name: "retryBtn",
-                    ontap: "doRetry"
-                }
-            ]
-        }
-//            ]
-//        }
-    ],
-    doRetry: function () {
-        var url = this.apiRoot + "oauth/authorize?" +
-            //c=Spritz_JSSDK_1.2.2
-            "c=" + encodeURIComponent(SPRITZ.client.VersionInfo.name + "_" + SPRITZ.client.VersionInfo.version) + "&" +
-            //response_type=token
-            "response_type=token&" +
-            //client_id= ....
-            "client_id=" + SpritzSettings.clientId + "&" +
-            //redirect_uri=...
-            "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
-        this.log("Setting src to " + url);
-        this.$.webView.setUrl(url);
-    },
-    webviewLoaded: function (inSender, inEvent) {
-        this.log("WebView loaded!");
-        var url = inEvent.url, auth, start;
-        start = url.indexOf("login_success.html#");
-        this.log("Got new title: ", url);
-        if (start > 0) {
-            auth = url.substr(start + "login_success.html#".length);
-            this.log("Got token: " + auth);
-            SpritzClient.setAuthResponse(auth, moboreader.Spritz.updateUsername.bind(moboreader.Spritz));
-            this.hide();
-        }
-    }
-});
+/*global $, SpritzSettings */
 
 enyo.singleton({
     name: "moboreader.Spritz",
@@ -113,9 +43,37 @@ enyo.singleton({
             SpritzClient.userLogout();
         } else {
             SpritzClient.userLogout(); //sometimes spritz does not recognize a user to be logged in.
-            this.dialog = new SpritzLoginDialog();
+            var url = "https://api.spritzinc.com/api-server/v1/oauth/authorize?" +
+                //c=Spritz_JSSDK_1.2.2
+                "c=" + encodeURIComponent(SPRITZ.client.VersionInfo.name + "_" + SPRITZ.client.VersionInfo.version) + "&" +
+                //response_type=token
+                "response_type=token&" +
+                //client_id= ....
+                "client_id=" + SpritzSettings.clientId + "&" +
+                //redirect_uri=...
+                "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
+            this.destroyComponents();
+            this.dialog = this.createComponent({
+                kind: "moboreader.AuthDialog",
+                callback: this.bindSafely("finishLogin"),
+                serviceName: "Spritz"
+            });
             this.dialog.show();
+            this.dialog.setUrl(url);
             this.dialog.doRetry();
+        }
+    },
+    finishLogin: function (url, title) {
+        this.log("Spritz logged in!");
+        var auth, start;
+        start = url.indexOf("login_success.html#");
+        if (start > 0) {
+            auth = url.substr(start + "login_success.html#".length);
+            this.log("Got token: " + auth);
+            SpritzClient.setAuthResponse(auth, moboreader.Spritz.updateUsername.bind(moboreader.Spritz));
+            return true;
+        } else {
+            return false;
         }
     },
 

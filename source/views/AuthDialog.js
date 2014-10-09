@@ -9,8 +9,9 @@ enyo.kind({
     centered: true,
     showTransitions: true,
     published: {
-        api: "",
-        redirectURL: ""
+        callback: "",
+        redirectURL: "",
+        serviceName: ""
     },
     components: [
         {
@@ -19,7 +20,7 @@ enyo.kind({
             components: [
                 {
                     name: "message",
-                    content: "Preparing login to Pocket"
+                    content: "Preparing login"
                 },
                 {
                     name: "spinner",
@@ -31,7 +32,8 @@ enyo.kind({
                     fit: true,
                     kind: "IFrameWebView",
                     name: "webView",
-                    onPageTitleChanged: "processTitleChange"
+                    onPageTitleChanged: "processTitleChange",
+                    showing: false
                 },
                 {
                     style: "display: block; margin: 10px auto;",
@@ -47,48 +49,63 @@ enyo.kind({
 
     doShow: function () {
         this.show();
-        this.$.message.setContent("Preparing login to Pocket");
-        this.$.spinner.show();
         this.$.retryBtn.hide();
+        this.$.spinner.show();
         this.fired = false;
     },
     setURL: function (url) {
-        this.$.spinner.hide();
-        this.$.message.setContent("Please log in to Pocket below.");
-        this.$.webView.setUrl(url);
+        if (url) {
+            this.$.webView.show();
+            this.$.spinner.hide();
+            this.url = url;
+            this.$.message.setContent("Please log in to " + this.serviceName + " below.");
+            this.$.webView.setUrl(url);
+        }
     },
     processTitleChange: function (inSender, inEvent) {
-        var title = inEvent.title;
+        var title = inEvent.title, result;
         if (this.fired) {
             this.log("Already authorizing, abort.");
             return;
         }
 
         if (typeof title === "string" && title.indexOf("token:") === 0) {
-            this.api.finishAuth();
+            result = this.callback(inEvent.url, inEvent.title);
+            if (result !== undefined) {
+                if (result) {
+                    this.resultOk();
+                } else {
+                    this.resultFail();
+                }
+            }
+            this.$.webView.hide();
+            this.$.spinner.show();
             this.fired = true;
         } else {
             this.log("Wrong title: ", title);
         }
     },
     resultOk: function (username) {
-        this.$.message.setContent("Successfully logged in as " + username);
+        this.$.message.setContent("Successfully logged in" + (username ? (" as " + username + ".") : "."));
         setTimeout(function () { this.hide(); }.bind(this), 2000);
     },
-    resultFail: function () {
+    resultFail: function (retryFunc) {
         this.$.message.setContent("Failed to log in. Please try again later.");
         this.$.retryBtn.show();
+        this.retryFunc = retryFunc;
     },
     doRetry: function () {
-        if (this.api) {
-            this.api.startAuth();
-            this.$.retryBtn.hide();
+        if (this.retryFunc && typeof this.retryFunc === "function") {
+            this.retryFunc();
+            this.$.webView.hide();
             this.$.spinner.show();
-            this.fired = false;
-            this.$.message.setContent("Preparing login to Pocket");
         } else {
             this.$.retryBtn.hide();
-            this.$.message.setContent("Retry failed. Please restart app.");
+            if (this.url) {
+                this.$.webView.setUrl(this.url);
+            }
+            this.fired = false;
+            this.$.message.setContent("Please log in to " + this.serviceName + " below.");
         }
     }
 });

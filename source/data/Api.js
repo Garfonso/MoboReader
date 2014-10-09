@@ -35,16 +35,6 @@ enyo.kind({
     authToken: false, //only used during authentication
     consumerKey: "21005-ded74cb03e611ba462973e00",
 
-    events: {
-        onNeedAuth: "",
-        onShowLogin: "",
-        onAuthorized: "",
-        onAuthFailed: "",
-        onStartActivity: "",
-        onEndActivity: ""
-    },
-
-
     create: function () {
         this.inherited(arguments);
 
@@ -56,7 +46,6 @@ enyo.kind({
     modelFetched: function () {
         if (this.authModel.get("needLogin")) {
             setTimeout(function () {
-                this.doNeedAuth();
                 this.startAuth();
             }.bind(this), 1000);
         } else {
@@ -88,7 +77,6 @@ enyo.kind({
         this.authModel.set("unsyncedActivities", []);
         this.storeModel();
 
-        this.doNeedAuth();
         this.startAuth();
     },
 
@@ -129,19 +117,16 @@ enyo.kind({
     },
     gotAuthToken: function (inSender, inResponse) {
         this.authToken = inResponse.code;
-        this.doShowLogin({
-            url: "https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri
+        
+        this.destroyComponents();
+        this.loginDialog = this.createComponent({
+            kind: "moboreader.AuthDialog",
+            serviceName: "GetPocket",
+            callback: this.bindSafely("finishAuth")
         });
-
-        //var authWin = window.open();
-
-        /*authWin.onload = function () {
-            this.log("location: ", authWin.location);
-            if (authWin.location && authWin.location.host === this.redirectUriHost) {
-                authWin.close();
-                this.finishAuth();
-            }
-        }.bind(this);*/
+        
+        this.loginDialog.show();
+        this.loginDialog.setUrl("https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri);
     },
     finishAuth: function () {
         var req, data;
@@ -171,11 +156,11 @@ enyo.kind({
         this.storeModel();
 
         this.authModel.addListener("change", this.bindSafely("storeModel"));
-        this.doAuthorized({"username": inResponse.username});
+        this.loginDialog.resultOk(inResponse.username);
     },
     authError: function (inSender, inResponse) {
         this.log("Auth error!! " + JSON.stringify(inResponse));
-        this.doAuthFailed({error: true});
+        this.loginDialog.resultFail(this.bindSafely("startAuth"));
     },
 
     /*****************************************************************************************
@@ -205,7 +190,6 @@ enyo.kind({
         var req, data;
 
         this.setActive(this.active + 1);
-        this.doStartActivity();
 
         data = {
             consumer_key: this.consumerKey,
@@ -404,7 +388,7 @@ enyo.kind({
         req.response(this.actionSuccess.bind(this, collection, null, [action]));
         req.error(this.bindSafely("actionFailed", {}, null));
     },
-    articleAction: function (articleModel, action, collection, callback, url) {
+    articleAction: function (articleModel, action, collection, callback) {
         var req, actionObj, actions = this.authModel.get("unsyncedActivities");
 
         if (this.authModel.get("needLogin")) {
@@ -495,7 +479,7 @@ enyo.kind({
         });
 
         if (!result) {
-            console.error("No item found for ", id);
+            console.error("No item found for " + id);
         }
 
         return result || { set: function () {}, destroy: function () {} };
@@ -509,7 +493,7 @@ enyo.kind({
         objs.forEach(function (obj, index) {
             var result = results[index], rec;
             //handle add.
-            if (obj.action === "add" && !obj.item_id) {
+            if (obj.action === "add" && !obj.item_id && !result.item_id) {
                 result = results;
             }
             if (!result) {
