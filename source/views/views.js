@@ -165,7 +165,6 @@ enyo.kind({
         this.articleCollection.set("url", "pocket-unread-list");
         this.articleCollection.fetch({strategy: "merge", success: fetchResult.bind(this), fail: fetchResult.bind(this)});
         this.$.articleView.setApi(this.$.api);
-        this.$.authDialog.setApi(this.$.api);
     },
     startRefreshTimer: function () {
         if (this.invervalId) {
