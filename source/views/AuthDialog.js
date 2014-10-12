@@ -1,7 +1,7 @@
 enyo.kind({
     name: "moboreader.AuthDialog",
     kind: "onyx.Popup",
-    style: "text-align: center; width: 80%; height: 90%;",
+    style: "text-align: center; width: 80%; z-index: 130; margin: 4% 9%; height: 90%; position: absolute; top: 0; left: 0; bottom: 100%; right: 100%;",
     scrim: true,
     modal: true,
     autoDismiss: false,
@@ -11,8 +11,12 @@ enyo.kind({
     published: {
         callback: "",
         redirectURL: "",
-        serviceName: ""
+        serviceName: "",
+        cancelable: false
     },
+    bindings: [
+        {from: ".cancellable", to: ".$.cancelButton"}
+    ],
     components: [
         {
             kind: "enyo.FittableRows",
@@ -29,6 +33,7 @@ enyo.kind({
                 },
                 {
                     classes: "enyo-fill",
+                    style: "display: block; margin: 10px auto;",
                     fit: true,
                     kind: "IFrameWebView",
                     name: "webView",
@@ -36,14 +41,25 @@ enyo.kind({
                     showing: false
                 },
                 {
-                    style: "display: block; margin: 10px auto;",
+                    style: "margin: 10px auto;",
                     kind: "onyx.Button",
                     content: "Retry",
                     name: "retryBtn",
                     ontap: "doRetry",
                     showing: false
+                },
+                {
+                    style: "margin: 10px auto;",
+                    kind: "onyx.Button",
+                    content: "Cancel",
+                    ontap: "hide",
+                    showing: false
                 }
             ]
+        },
+        {
+            kind: "enyo.Signals",
+            onbackbutton: "handleBackGesture"
         }
     ],
 
@@ -53,7 +69,7 @@ enyo.kind({
         this.$.spinner.show();
         this.fired = false;
     },
-    setURL: function (url) {
+    setUrl: function (url) {
         if (url) {
             this.$.webView.show();
             this.$.spinner.hide();
@@ -106,6 +122,11 @@ enyo.kind({
             }
             this.fired = false;
             this.$.message.setContent("Please log in to " + this.serviceName + " below.");
+        }
+    },
+    handleBackGesture: function () {
+        if (this.cancelable) {
+            this.hide();
         }
     }
 });

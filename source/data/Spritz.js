@@ -52,12 +52,10 @@ enyo.singleton({
                 "client_id=" + SpritzSettings.clientId + "&" +
                 //redirect_uri=...
                 "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
-            this.destroyComponents();
-            this.dialog = this.createComponent({
-                kind: "moboreader.AuthDialog",
-                callback: this.bindSafely("finishLogin"),
-                serviceName: "Spritz"
-            });
+            this.dialog = new moboreader.AuthDialog();
+            this.dialog.setCallback(this.bindSafely("finishLogin"));
+            this.dialog.setServiceName("Spritz");
+            this.dialog.setCancelable(true);
             this.dialog.show();
             this.dialog.setUrl(url);
             this.dialog.doRetry();
@@ -75,6 +73,8 @@ enyo.singleton({
         } else {
             return false;
         }
+        this.dialog.destroy();
+        delete this.dialog;
     },
 
     loadScript: function (name, id) {
