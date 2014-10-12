@@ -16,6 +16,10 @@ enyo.kind({
     success: function (index) {
         this.log("Stored: ", index);
     },
+    
+    fail: function (index) {
+        this.error("Failed to store: ", index);
+    },
 
     sortOrderChanged: function () {
         this.resortCollection();
@@ -79,7 +83,8 @@ enyo.kind({
                 continue;
             }
             rec.commit({
-                success: this.success.bind(this, i)
+                success: this.success.bind(this, i),
+                fail: this.fail.bind(this, i)
             });
         }
 
