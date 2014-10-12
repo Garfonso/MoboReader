@@ -117,7 +117,8 @@ enyo.kind({
         //non ui stuff:
         {
             name: "api",
-            kind: "moboreader.Api"
+            kind: "moboreader.Api",
+            onAuthFinished: "refreshTap"
         },
         {
             name: "addDialog",

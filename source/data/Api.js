@@ -32,6 +32,10 @@ enyo.kind({
     articlesPerBatch: 10,
     offset: 0,
 
+    events: {
+        onAuthFinished: ""
+    },
+
     authToken: false, //only used during authentication
     consumerKey: "21005-ded74cb03e611ba462973e00",
 
@@ -117,14 +121,14 @@ enyo.kind({
     },
     gotAuthToken: function (inSender, inResponse) {
         this.authToken = inResponse.code;
-        
+
         this.destroyComponents();
         this.loginDialog = this.createComponent({
             kind: "moboreader.AuthDialog",
             serviceName: "GetPocket",
             callback: this.bindSafely("finishAuth")
         });
-        
+
         this.loginDialog.show();
         this.loginDialog.setUrl("https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri);
     },
@@ -157,6 +161,7 @@ enyo.kind({
 
         this.authModel.addListener("change", this.bindSafely("storeModel"));
         this.loginDialog.resultOk(inResponse.username);
+        this.doAuthFinished();
     },
     authError: function (inSender, inResponse) {
         this.log("Auth error!! " + JSON.stringify(inResponse));
