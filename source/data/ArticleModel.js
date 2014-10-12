@@ -2,7 +2,7 @@
 
 var parseArticle = function (data) {
     if (!data || typeof data !== "object") { //is called also for commit, data seems empty then.
-        console.error("Undefined data!! " + typeof data);
+        //console.error("Undefined data!! " + typeof data);
         return data;
     }
 
