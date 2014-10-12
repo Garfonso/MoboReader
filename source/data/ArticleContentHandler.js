@@ -21,6 +21,10 @@ enyo.singleton({
             onArticleDownloaded: "contentDownloaded"
         }
     ],
+    
+    debugOut: function (msg) {
+        //noop or console.error for on device debugging.
+    },
 
     create: function () {
         this.inherited(arguments);
@@ -53,7 +57,7 @@ enyo.singleton({
         Object.keys(this.gettingToStore).forEach(function (activityId) {
             var obj = this.gettingToStore[activityId];
             if (obj.getId === inEvent.activityId) {
-                console.log("Got article content!");
+                this.debugOut("Got article content!");
                 var content = inEvent.content || {};
                 content.web = obj.webContent || content.web;
                 content.spritz = obj.spritzContent || content.spritz;
@@ -70,13 +74,13 @@ enyo.singleton({
         if(this.gettingToDL) {
             if (this.gettingToDL.activityId === inEvent.activityId) {
                 if (!inEvent.success) {
-                    console.error("Need download: " + this.gettingToDL.model.attributes.item_id);
+                    this.debugOut("Need download: " + this.gettingToDL.model.attributes.item_id);
                     if (!this.downloading || this.downloading === this.gettingToDL.model.attributes.item_id) {
-                        console.error("Doing direct.");
+                        this.debugOut("Doing direct.");
                         this.gettingToDL.api.getArticleContent(this.gettingToDL.model);
                         this.downloading = this.gettingToDL.model.attributes.item_id;
                     } else {
-                        console.error("Planing for later. Current DL: " + this.downloading);
+                        this.debugOut("Planing for later. Current DL: " + this.downloading);
                         this.needDL.push(this.gettingToDL);
                     }
                 } else {
@@ -143,7 +147,7 @@ enyo.singleton({
 
     checkAndDownload: function (articleModel, api) {
         if (!this.gettingToDL) {
-            console.error("Checking: " + articleModel.attributes.item_id);
+            this.debugOut("Checking: " + articleModel.attributes.item_id);
             var activityId = this.articleContentExists(articleModel);
             this.gettingToDL = {
                 model: articleModel,
@@ -151,7 +155,7 @@ enyo.singleton({
                 activityId: activityId
             };
         } else {
-            console.error("Checking LATER: " + articleModel.attributes.item_id);
+            this.debugOut("Checking LATER: " + articleModel.attributes.item_id);
             this.checkQueue.unshift({
                 model: articleModel,
                 api: api
@@ -160,16 +164,16 @@ enyo.singleton({
     },
 
     contentDownloaded: function (inSender, inEvent) {
-        console.error("Download finished: " + inEvent.model.attributes.item_id);
+        this.debugOut("Download finished: " + inEvent.model.attributes.item_id);
         this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz);
 
         if (this.needDL.length > 0) {
             var obj = this.needDL.shift();
             obj.api.getArticleContent(obj.model);
             this.downloading = obj.model.attributes.item_id;
-            console.error("Download started: " + this.downloading);
+            this.debugOut("Download started: " + this.downloading);
         } else {
-            console.error("all downloads finished.");
+            this.debugOut("all downloads finished.");
             this.downloading = false;
         }
     },
@@ -182,7 +186,7 @@ enyo.singleton({
         }
     },
     dbActivityComplete: function (activityId, id, inSender, inEvent) {
-        this.log("Incomming response: " + inEvent.success + " for id " + activityId);
+        this.debugOut("Incomming response: " + inEvent.success + " for id " + activityId);
         this.setDbActivities(this.dbActivities - 1);
         inEvent.activityId = activityId;
         inEvent.id = id;
@@ -190,7 +194,7 @@ enyo.singleton({
         this.sendNext();
     },
     dbError: function (activityId, id, inSender, inEvent) {
-        console.error("dbFailed: " + JSON.stringify(inEvent));
+        this.log("dbFailed: " + JSON.stringify(inEvent));
         this.setDbActivities(this.dbActivities - 1);
         enyo.Signals.send("onArticleOpReturned", {
             id: id,
