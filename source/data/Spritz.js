@@ -52,13 +52,17 @@ enyo.singleton({
                 "client_id=" + SpritzSettings.clientId + "&" +
                 //redirect_uri=...
                 "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
-            this.dialog = new moboreader.AuthDialog();
-            this.dialog.setCallback(this.bindSafely("finishLogin"));
-            this.dialog.setServiceName("Spritz");
-            this.dialog.setCancelable(true);
-            this.dialog.show();
-            this.dialog.setUrl(url);
-            this.dialog.doRetry();
+            
+            enyo.Signals.send("onNeedShowAuth", {
+                serviceName: "Spritz",
+                redirectUrl: this.redirectUri,
+                callback: this.bindSafely("finishLogin"),
+                cancelable: true
+            });
+            
+            enyo.Signals.send("onAuthURL", {
+                url: url
+            });
         }
     },
     finishLogin: function (url, title) {
@@ -73,8 +77,6 @@ enyo.singleton({
         } else {
             return false;
         }
-        this.dialog.destroy();
-        delete this.dialog;
     },
 
     loadScript: function (name, id) {

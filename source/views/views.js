@@ -110,6 +110,11 @@ enyo.kind({
                     components: [
                         {kind: "moboreader.ArticleView", name: "articleView", classes: "enyo-fill enyo-fit", onBack: "handleBackGesture"}
                     ]
+                },
+                {
+                    name: "AuthPanel",
+                    kind: "moboreader.AuthDialog",
+                    onHideAuth: "hideAuth"
                 }
             ]
         },
@@ -117,8 +122,7 @@ enyo.kind({
         //non ui stuff:
         {
             name: "api",
-            kind: "moboreader.Api",
-            onAuthFinished: "refreshTap"
+            kind: "moboreader.Api"
         },
         {
             name: "addDialog",
@@ -136,7 +140,10 @@ enyo.kind({
             onrelaunch: "addArticle",
             onactivate: "startRefreshTimer",
             ondeactivate: "stopRefreshTimer",
-            onArticleOpReturned: "continueWipe"
+            onArticleOpReturned: "continueWipe",
+
+            onNeedShowAuth: "showAuth",
+            onAuthOk: "refreshTap"
         }
     ],
     create: function () {
@@ -176,7 +183,7 @@ enyo.kind({
         if (!this.$.authDialog.showing && !this.get("activity")) {
             this.refreshTap(null, null, true);
         } else {
-            console.error("Are not authed (" + this.$.authDialog.showing + ") or are active (" + this.get("activity") + ")");
+            console.error("Are not authed (" + this.$.authDialog.showing + ") or are active (" + this.pocketDL + ", " + this.spritzDL + ", " + this. dbActivities + ")");
         }
     },
     stopRefreshTimer: function () {
@@ -243,11 +250,19 @@ enyo.kind({
                 } else if (scrollTo < 0) {
                     scrollTo = 0;
                 }
-                this.log("Scrolling to ", scrollTo);
+                this.error("Scrolling to ", scrollTo);
                 this.$.articleList.scrollToIndex(scrollTo);
             } else {
                 this.log("Lastindex not set ", this.lastIndex);
             }
         }
+    },
+
+    showAuth: function (inSender, inEvent) {
+        this.lastPanelIndex = this.$.MainPanels.getIndex();
+        this.$.MainPanels.setIndex(2);
+    },
+    hideAuth: function (inSender, inEvent) {
+        this.$.MainPanels.setIndex(this.lastPanelIndex || 0);
     }
 });

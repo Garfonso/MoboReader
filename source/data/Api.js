@@ -93,7 +93,7 @@ enyo.kind({
         }
         return false;
     },
-    
+
     dummy: function () { },
 
     /*****************************************************************************************
@@ -115,6 +115,13 @@ enyo.kind({
             postBody: data
         });
 
+        enyo.Signals.send("onNeedShowAuth", {
+            serviceName: "getPocket",
+            redirectUrl: this.redirectUri,
+            callback: this.bindSafely("finishAuth"),
+            cancelable: false
+        });
+
         req.go();
         req.response(this.bindSafely("gotAuthToken"));
         req.error(this.bindSafely("authError"));
@@ -122,15 +129,9 @@ enyo.kind({
     gotAuthToken: function (inSender, inResponse) {
         this.authToken = inResponse.code;
 
-        this.destroyComponents();
-        this.loginDialog = this.createComponent({
-            kind: "moboreader.AuthDialog",
-            serviceName: "GetPocket",
-            callback: this.bindSafely("finishAuth")
+        enyo.Signals.send("onAuthURL", {
+            url: "https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri
         });
-
-        this.loginDialog.show();
-        this.loginDialog.setUrl("https://getpocket.com/auth/authorize?request_token=" + this.authToken + "&redirect_uri=" + this.redirectUri);
     },
     finishAuth: function () {
         var req, data;
@@ -160,12 +161,11 @@ enyo.kind({
         this.storeModel();
 
         this.authModel.addListener("change", this.bindSafely("storeModel"));
-        this.loginDialog.resultOk(inResponse.username);
-        this.doAuthFinished();
+        enyo.Signals.send("onAuthOk", { username: inResponse.username });
     },
     authError: function (inSender, inResponse) {
         this.log("Auth error!! " + JSON.stringify(inResponse));
-        this.loginDialog.resultFail(this.bindSafely("startAuth"));
+        enyo.Signals.send("onAuthFailed", {callback: this.bindSafely("startAuth")});
     },
 
     /*****************************************************************************************
@@ -275,13 +275,13 @@ enyo.kind({
         this.setActive(this.active - 1);
     },
     downloadArticlesFailed: function (inSender, inResponse) {
+        this.refreshing = false;
+        this.setActive(this.active - 1);
         this.log("Failed to download: ", inResponse, " type: ", typeof inResponse);
         if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
         }
-        this.refreshing = false;
-        this.setActive(this.active - 1);
     },
 
     /*****************************************************************************************
@@ -314,10 +314,10 @@ enyo.kind({
     },
     gotArticleContent: function (articleModel, inSender, inResponse) {
         this.log("Got content: ", inResponse);
+        this.setActive(this.active - 1);
         if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
-            this.setActive(this.active - 1);
             return;
         }
 
@@ -346,17 +346,15 @@ enyo.kind({
                 });
             }
         }
-
-        this.setActive(this.active - 1);
     },
     downloadContentFailed: function (inSender, inResponse, articleModel) {
         articleModel.downloadingContent = false;
+        this.setActive(this.active - 1);
         this.log("Failed to download: ", inResponse);
         if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
         }
-        this.setActive(this.active - 1);
         enyo.Signals.send("onArticleDownloaded", {
             id: articleModel.get(articleModel.primaryKey),
             content: {},

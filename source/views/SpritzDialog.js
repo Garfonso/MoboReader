@@ -211,6 +211,8 @@ enyo.kind({
     },
 
     startLogin: function (inSender, inEvent) {
+        moboreader.Spritz.pause();
+        this.hide();
         moboreader.Spritz.login();
     }
 });

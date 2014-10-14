@@ -159,6 +159,7 @@ enyo.kind({
             delete oldValue.spritzModelPersist;
         }
 
+        this.received = false;
         this.$.scroller.$.strategy.hideThumbs();
         this.$.spritzBtn.removeClass("onyx-affirmative");
         this.$.spritzBtn.setDisabled(true);
@@ -232,15 +233,21 @@ enyo.kind({
                 this.log("Updating content...");
                 this.articleModel.webContent = inEvent.content.web;
                 this.$.articleContent.setContent(inEvent.content.web);
+                this.received = true;
+
+                if (this.timeoutId) {
+                    clearTimeout(this.timeoutId);
+                }
+                this.timeoutID = setTimeout(function () {
+                    this.processChildren(this.$.articleContent.node);
+                    this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
+                    this.$.scroller.$.strategy.showThumbs();
+                }.bind(this), 100);
             }
-            if (this.timeoutId) {
-                clearTimeout(this.timeoutId);
+
+            if (!this.received) {
+                this.$.articleContent.setContent("Content download failed, please press refresh to retry.");
             }
-            this.timeoutID = setTimeout(function () {
-                this.processChildren(this.$.articleContent.node);
-                this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
-                this.$.scroller.$.strategy.showThumbs();
-            }.bind(this), 100);
         }
     },
     linkClick: function (event) {

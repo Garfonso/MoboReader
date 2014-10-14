@@ -1,81 +1,70 @@
 enyo.kind({
     name: "moboreader.AuthDialog",
-    kind: "onyx.Popup",
-    style: "text-align: center; width: 80%; z-index: 130; margin: 4% 9%; height: 90%; position: absolute; top: 0; left: 0; bottom: 100%; right: 100%;",
-    scrim: true,
-    modal: true,
-    autoDismiss: false,
-    floating: true,
-    centered: true,
-    showTransitions: true,
+    kind: "enyo.FittableRows",
     published: {
         callback: "",
         redirectURL: "",
         serviceName: "",
         cancelable: false
     },
-    bindings: [
-        {from: ".cancellable", to: ".$.cancelButton"}
-    ],
+    events: {
+        onHideAuth: ""
+    },
     components: [
         {
-            kind: "enyo.FittableRows",
+            kind: "onyx.Toolbar",
+            style: "text-align: center;",
+            name: "message",
+            content: "Preparing login"
+        },
+        {
+            name: "spinner",
+            style: "display: block; margin: 10px auto;",
+            kind: "onyx.Spinner"
+        },
+        {
             classes: "enyo-fill",
-            components: [
-                {
-                    name: "message",
-                    content: "Preparing login"
-                },
-                {
-                    name: "spinner",
-                    style: "display: block; margin: 10px auto;",
-                    kind: "onyx.Spinner"
-                },
-                {
-                    classes: "enyo-fill",
-                    style: "display: block; margin: 10px auto;",
-                    fit: true,
-                    kind: "IFrameWebView",
-                    name: "webView",
-                    onPageTitleChanged: "processTitleChange",
-                    showing: false
-                },
-                {
-                    style: "margin: 10px auto;",
-                    kind: "onyx.Button",
-                    content: "Retry",
-                    name: "retryBtn",
-                    ontap: "doRetry",
-                    showing: false
-                },
-                {
-                    style: "margin: 10px auto;",
-                    kind: "onyx.Button",
-                    content: "Cancel",
-                    ontap: "hide",
-                    showing: false
-                }
-            ]
+            style: "display: block; margin: 10px auto;",
+            fit: true,
+            kind: "IFrameWebView",
+            name: "webView",
+            onPageTitleChanged: "processTitleChange",
+            showing: false
+        },
+        {
+            style: "margin: 10px auto;",
+            kind: "onyx.Button",
+            content: "Retry",
+            name: "retryBtn",
+            ontap: "doRetry",
+            showing: false
         },
         {
             kind: "enyo.Signals",
-            onbackbutton: "handleBackGesture"
+            onbackbutton: "handleBackGesture",
+            onNeedShowAuth: "prepareAuthDialog",
+            onAuthURL: "setUrl",
+            onAuthOk: "resultOk"
         }
     ],
 
-    doShow: function () {
-        this.show();
+    prepareAuthDialog: function (inSender, inEvent) {
         this.$.retryBtn.hide();
         this.$.spinner.show();
         this.fired = false;
+
+        this.setCancelable(!!inEvent.cancelable);
+        this.redirectURL = inEvent.redirectURL;
+        this.serviceName = inEvent.serviceName;
+        this.callback = inEvent.callback;
     },
-    setUrl: function (url) {
-        if (url) {
+    setUrl: function (inSender, inEvent) {
+        if (inEvent.url) {
             this.$.webView.show();
             this.$.spinner.hide();
-            this.url = url;
+            this.url = inEvent.url;
             this.$.message.setContent("Please log in to " + this.serviceName + " below.");
-            this.$.webView.setUrl(url);
+            this.$.webView.setUrl(this.url);
         }
     },
     processTitleChange: function (inSender, inEvent) {
@@ -101,14 +90,15 @@ enyo.kind({
             this.log("Wrong title: ", title);
         }
     },
-    resultOk: function (username) {
+    resultOk: function (inSender, inEvent) {
+        var username = inEvent ? inEvent.username : false;
         this.$.message.setContent("Successfully logged in" + (username ? (" as " + username + ".") : "."));
-        setTimeout(function () { this.hide(); }.bind(this), 2000);
+        setTimeout(function () { this.doHideAuth(); }.bind(this), 2000);
     },
-    resultFail: function (retryFunc) {
+    resultFail: function (inSender, inEvent) {
         this.$.message.setContent("Failed to log in. Please try again later.");
         this.$.retryBtn.show();
-        this.retryFunc = retryFunc;
+        this.retryFunc = inEvent.callback;
     },
     doRetry: function () {
         if (this.retryFunc && typeof this.retryFunc === "function") {
@@ -126,7 +116,7 @@ enyo.kind({
     },
     handleBackGesture: function () {
         if (this.cancelable) {
-            this.hide();
+            this.doHideAuth();
         }
     }
 });
