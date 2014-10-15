@@ -491,8 +491,8 @@ enyo.kind({
 
         objs.forEach(function (obj, index) {
             var result = results[index], rec;
-            //handle add.
-            if (obj.action === "add" && !obj.item_id && !result.item_id) {
+            //handle add. On add "results" is only one object.
+            if (obj.action === "add" && !obj.item_id && (!result || !result.item_id)) {
                 result = results;
             }
             if (!result) {
