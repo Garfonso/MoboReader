@@ -18,6 +18,8 @@ var parseArticle = function (data) {
 
     if (data.image) {
         data.image_src = data.image.src;
+    } else if (data.images && data.images["1"]) {
+        data.image_src = data.images["1"].src;
     } else {
         data.image_src = "assets/empty.png";
     }
