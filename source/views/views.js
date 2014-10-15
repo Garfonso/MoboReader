@@ -243,19 +243,21 @@ enyo.kind({
         this.$.MainPanels.setIndex(0);
         this.$.settingsDialog.hide();
 
-        if (this.scrolled) { //scroll to last index if list scrolled because of background operations.
+        if (this.scrolled || enyo.webos.isPhone()) { //scroll to last index if list scrolled because of background operations.
             var scrollTo = this.lastIndex;
             if (this.lastIndex) {
                 if (scrollTo >= this.articleCollection.length) {
-                    scrollTo = this.articleCollection.length -1;
+                    scrollTo = this.articleCollection.length - 1;
                 } else if (scrollTo < 0) {
                     scrollTo = 0;
                 }
-                this.error("Scrolling to ", scrollTo);
+                this.log("Scrolling to ", scrollTo);
                 this.$.articleList.scrollToIndex(scrollTo);
             } else {
                 this.log("Lastindex not set ", this.lastIndex);
             }
+        } else {
+            this.log("List did not scroll");
         }
     },
 
