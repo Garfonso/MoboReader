@@ -110,11 +110,6 @@ enyo.kind({
                     components: [
                         {kind: "moboreader.ArticleView", name: "articleView", classes: "enyo-fill enyo-fit", onBack: "handleBackGesture"}
                     ]
-                },
-                {
-                    name: "AuthPanel",
-                    kind: "moboreader.AuthDialog",
-                    onHideAuth: "hideAuth"
                 }
             ]
         },
@@ -143,7 +138,8 @@ enyo.kind({
             onArticleOpReturned: "continueWipe",
 
             onNeedShowAuth: "showAuth",
-            onAuthOk: "refreshTap"
+            onAuthOk: "refreshTap",
+            onHideAuth: "hideAuth"
         }
     ],
     create: function () {
@@ -239,6 +235,11 @@ enyo.kind({
         this.scrolled = true;
     },
     handleBackGesture: function () {
+        if (this.$.MainPanels.getIndex() === 2) {
+            this.log("In auth dialog, prevent back!");
+            return;
+        }
+
         this.$.MainPanels.setIndex(0);
         this.$.settingsDialog.hide();
 
@@ -259,6 +260,16 @@ enyo.kind({
     },
 
     showAuth: function (inSender, inEvent) {
+        if (!this.authCreated) {
+            this.authCreated = true;
+            var authDialog = this.$.MainPanels.createComponent({
+                name: "AuthPanel",
+                kind: "moboreader.AuthDialog"
+            });
+            this.$.MainPanels.render();
+            //need to hand signal for auth dialog to catch it:
+            authDialog.prepareAuthDialog(inSender, inEvent);
+        }
         this.lastPanelIndex = this.$.MainPanels.getIndex();
         this.$.MainPanels.setIndex(2);
     },

@@ -93,7 +93,7 @@ enyo.kind({
     resultOk: function (inSender, inEvent) {
         var username = inEvent ? inEvent.username : false;
         this.$.message.setContent("Successfully logged in" + (username ? (" as " + username + ".") : "."));
-        setTimeout(function () { this.doHideAuth(); }.bind(this), 2000);
+        setTimeout(function () { enyo.Signals.send("onHideAuth"); }, 2000);
     },
     resultFail: function (inSender, inEvent) {
         this.$.message.setContent("Failed to log in. Please try again later.");
@@ -116,7 +116,7 @@ enyo.kind({
     },
     handleBackGesture: function () {
         if (this.cancelable) {
-            this.doHideAuth();
+            enyo.Signals.send("onHideAuth");
         }
     }
 });
