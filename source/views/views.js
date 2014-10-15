@@ -176,10 +176,10 @@ enyo.kind({
         this.intervalId = setInterval(this.bindSafely("refreshTimerCalled"), 300000); //refresh all 5 min if active.
     },
     refreshTimerCalled: function () {
-        if (!this.$.authDialog.showing && !this.get("activity")) {
+        if (!this.$.api.authModel.needLogin && !this.get("activity")) {
             this.refreshTap(null, null, true);
         } else {
-            console.error("Are not authed (" + this.$.authDialog.showing + ") or are active (" + this.pocketDL + ", " + this.spritzDL + ", " + this. dbActivities + ")");
+            console.error("Are not authed (" + this.$.api.authModel.needLogin + ") or are active (" + this.pocketDL + ", " + this.spritzDL + ", " + this.dbActivities + ")");
         }
     },
     stopRefreshTimer: function () {
