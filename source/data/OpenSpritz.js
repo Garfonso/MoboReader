@@ -17,7 +17,7 @@ enyo.kind({
         onDone: ""
     },
     spritz_timers: [],
-    ms_per_word: 60000/500,
+    ms_per_word: 60000 / 500,
 
     // The meat!
     spritzify: function (input, wpm) {

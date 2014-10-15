@@ -49,6 +49,7 @@ enyo.kind({
     ],
 
     prepareAuthDialog: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.$.retryBtn.hide();
         this.$.spinner.show();
         this.fired = false;
@@ -59,6 +60,7 @@ enyo.kind({
         this.callback = inEvent.callback;
     },
     setUrl: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         if (inEvent.url) {
             this.$.webView.show();
             this.$.spinner.hide();
@@ -68,6 +70,7 @@ enyo.kind({
         }
     },
     processTitleChange: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         var title = inEvent.title, result;
         if (this.fired) {
             this.log("Already authorizing, abort.");
@@ -91,11 +94,13 @@ enyo.kind({
         }
     },
     resultOk: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         var username = inEvent ? inEvent.username : false;
         this.$.message.setContent("Successfully logged in" + (username ? (" as " + username + ".") : "."));
         setTimeout(function () { enyo.Signals.send("onHideAuth"); }, 2000);
     },
     resultFail: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.$.message.setContent("Failed to log in. Please try again later.");
         this.$.retryBtn.show();
         this.retryFunc = inEvent.callback;

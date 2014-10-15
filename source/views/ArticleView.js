@@ -126,6 +126,7 @@ enyo.kind({
         }
     },
     handleBackGesture: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("Incomming back gesture!! showing: ", this.$.spritzDialog.showing, " running: ", this.$.spritzDialog.running);
         if (this.$.spritzDialog.showing) {
             if (!this.$.spritzDialog.preventBack) {
@@ -222,6 +223,7 @@ enyo.kind({
         }
     },
     contentReceived: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         if (this.articleModel && this.articleModel.get && this.articleModel.get(this.articleModel.primaryKey) === inEvent.id) {
             this.log("ArticleContent changed: ", inEvent);
             this.$.spritzBtn.setDisabled(false);
@@ -275,7 +277,7 @@ enyo.kind({
         this.articleModel.doDelete(this.api, this.collection);
     },
     copyTap: function () {
-
+        return undefined;
     },
 
     spritzTap: function () {
@@ -292,6 +294,7 @@ enyo.kind({
         }
     },
     scrollTo: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("Incomming scroll event: ", inEvent);
         this.$.scroller.scrollTo(0, this.$.scroller.scrollTop - inEvent.dy);
     },

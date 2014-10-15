@@ -109,6 +109,7 @@ enyo.kind({
         this.log("Content  resized: ", inEvent);
     },
     pageLoaded: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("Page loaded: ", inEvent);
         var url;
         if (this.$.iframe.hasNode() && this.$.iframe.node.contentDocument) {
@@ -116,7 +117,7 @@ enyo.kind({
             this.log("Adding enyo event handler to content document");
             this.$.iframe.node.contentDocument.onload = enyo.blubbler;
 */
-            
+
             this.title = this.$.iframe.node.contentDocument.title;
             if (typeof this.title === "object") {
                 this.title = this.title.toString();
@@ -137,6 +138,7 @@ enyo.kind({
         }
     },
     webviewLoaded: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("On webviewLoaded, title: ", inEvent.inTitle);
         this.doPageTitleChanged({
             title: inEvent.inTitle,
@@ -157,7 +159,8 @@ enyo.kind({
     enableJavascriptChanged: function () {
         var sandbox = this.$.iframe.getAttribute("sandbox"),
             seperator = " ",
-            parts, partsNew = [];
+            parts,
+            partsNew = [];
         if (!sandbox) {
             sandbox = "";
             seperator = "";

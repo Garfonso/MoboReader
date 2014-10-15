@@ -191,11 +191,13 @@ enyo.kind({
     showAddDialog: function () {
         this.$.addDialog.doShow();
     },
-    addArticle: function (inSendder, inEvent) {
+    addArticle: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.$.api.addArticle(inEvent.url, this.articleCollection);
     },
 
     refreshTap: function (inSender, inEvent, fastSync) {
+        /*jslint unparam:true*/
         this.$.api.downloadArticles(this.articleCollection, !fastSync);
     },
     forceRefreshTap: function () {
@@ -203,6 +205,7 @@ enyo.kind({
         this.dbOpId = ArticleContentHandler.wipe();
     },
     continueWipe: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         if (inEvent.activityId === this.dbOpId) {
             if (this.loggingOut) {
                 this.$.api.logout();
@@ -221,6 +224,7 @@ enyo.kind({
     },
 
     articleSelected: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.lastIndex = inEvent.index;
         this.log("Stored ", this.lastIndex, " as last index.");
         this.scrolled = false;
@@ -275,7 +279,7 @@ enyo.kind({
         this.lastPanelIndex = this.$.MainPanels.getIndex();
         this.$.MainPanels.setIndex(2);
     },
-    hideAuth: function (inSender, inEvent) {
+    hideAuth: function () {
         this.$.MainPanels.setIndex(this.lastPanelIndex || 0);
     }
 });

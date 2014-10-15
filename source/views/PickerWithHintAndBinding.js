@@ -12,17 +12,17 @@ enyo.kind({
         { from: ".inVal", to: ".$.picker.selected", oneWay: false, transform: function (val, dir) {
             if (dir === "target") {
                 return val.value;
-            } else {
-                var i, controls = this.$.picker.getClientControls();
-                for (i = 0; i < controls.length; i += 1) {
-                    if (controls[i].value === val) {
-                        return controls[i];
-                    }
-                }
+            }
 
-                if (val) {
-                    return this.$.picker.createComponent({content: String(val), value: val});
+            var i, controls = this.$.picker.getClientControls();
+            for (i = 0; i < controls.length; i += 1) {
+                if (controls[i].value === val) {
+                    return controls[i];
                 }
+            }
+
+            if (val) {
+                return this.$.picker.createComponent({content: String(val), value: val});
             }
         }}
     ],

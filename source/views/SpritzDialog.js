@@ -129,6 +129,7 @@ enyo.kind({
         }
     },
     downloadingDone: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         if (inEvent.id === this.dlId) {
             if (inEvent.success) {
                 this.$.downloadingSpritzData.hide();
@@ -152,6 +153,7 @@ enyo.kind({
         }
     },
     onTap: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         if (this.dragging) {
             this.log("Dragging, ignore tap.");
             return;
@@ -189,6 +191,7 @@ enyo.kind({
     },
 
     drag: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("Dragging: ", inEvent);
 
         this.dragging = true;
@@ -196,11 +199,13 @@ enyo.kind({
         this.calcWPM(inEvent.clientX);
     },
     dragStart: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("Drag Start: ", inEvent);
         this.dragStart = {x: inEvent.clientX, y: inEvent.clientY};
         this.dragging = true;
     },
     dragEnd: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         this.log("Drag end: ", inEvent);
 
         this.doScrollTo({dy: inEvent.dy});
@@ -210,7 +215,7 @@ enyo.kind({
         }.bind(this), 500);
     },
 
-    startLogin: function (inSender, inEvent) {
+    startLogin: function () {
         moboreader.Spritz.pause();
         this.hide();
         moboreader.Spritz.login();

@@ -90,7 +90,7 @@ enyo.kind({
         return false;
     },
 
-    dummy: function () { },
+    dummy: function () { return undefined; },
 
     /*****************************************************************************************
      ******************* Authorization *******************************************************
@@ -123,6 +123,7 @@ enyo.kind({
         req.error(this.bindSafely("authError"));
     },
     gotAuthToken: function (inSender, inResponse) {
+        /*jslint unparam: true */
         this.authToken = inResponse.code;
 
         enyo.Signals.send("onAuthURL", {
@@ -148,6 +149,7 @@ enyo.kind({
         req.error(this.bindSafely("authError"));
     },
     authFinished: function (inSender, inResponse) {
+        /*jslint unparam: true */
         this.log("auth finished: ", inResponse);
         this.authModel.set("username", inResponse.username);
         this.authModel.set("accessToken", inResponse.access_token);
@@ -160,6 +162,7 @@ enyo.kind({
         enyo.Signals.send("onAuthOk", { username: inResponse.username });
     },
     authError: function (inSender, inResponse) {
+        /*jslint unparam: true */
         this.log("Auth error!! " + JSON.stringify(inResponse));
         enyo.Signals.send("onAuthFailed", {callback: this.bindSafely("startAuth")});
     },
@@ -170,9 +173,9 @@ enyo.kind({
     downloadArticles: function (collection, slow) {
         if (this.refreshing || this.authModel.get("needLogin")) {
             return;
-        } else {
-            this.refreshing = true;
         }
+
+        this.refreshing = true;
         this.offset = 0;
         if (slow) {
             this.authModel.set("lastSync", 0);
@@ -216,6 +219,7 @@ enyo.kind({
         req.error(this.bindSafely("downloadArticlesFailed"));
     },
     gotArticles: function (collection, inSender, inResponse) {
+        /*jslint unparam: true */
         var articles = [], key, list = inResponse.list, article, rec, oldLength, listLength = 0;
 
         this.log("Got response: ", inResponse);
@@ -271,6 +275,7 @@ enyo.kind({
         this.setActive(this.active - 1);
     },
     downloadArticlesFailed: function (inSender, inResponse) {
+        /*jslint unparam: true */
         this.refreshing = false;
         this.setActive(this.active - 1);
         this.log("Failed to download: ", inResponse, " type: ", typeof inResponse);
@@ -309,6 +314,7 @@ enyo.kind({
         req.error(this.bindSafely("downloadContentFailed", articleModel));
     },
     gotArticleContent: function (articleModel, inSender, inResponse) {
+        /*jslint unparam: true, regexp: true */
         this.log("Got content: ", inResponse);
         this.setActive(this.active - 1);
         if (this.checkForUnauthorized(inResponse)) {
@@ -344,6 +350,7 @@ enyo.kind({
         }
     },
     downloadContentFailed: function (inSender, inResponse, articleModel) {
+        /*jslint unparam: true */
         articleModel.downloadingContent = false;
         this.setActive(this.active - 1);
         this.log("Failed to download: ", inResponse);
@@ -439,7 +446,7 @@ enyo.kind({
         //check if this action is already happening:
         for (i = actions.length - 1; i >= 0; i -= 1) {
             if (actions[i][key] === action[key] &&
-                actions[i].action === action.action) {
+                    actions[i].action === action.action) {
                 //keep the newer one.
                 actions.splice(i, 1);
             }
@@ -481,7 +488,7 @@ enyo.kind({
             console.error("No item found for " + id);
         }
 
-        return result || { set: function () {}, destroy: function () {} };
+        return result || { set: function () { return undefined; }, destroy: function () { return undefined; } };
     },
     processActions: function (collection, objs, results) {
         var arr = [], articleModel;
@@ -505,48 +512,49 @@ enyo.kind({
             }
 
             switch (obj.action) {
-                case "add":
-                    //try to add. Not sure that really works. Add call wants item id??
-                    this.log("Adding: ", result);
-                    articleModel = collection.addRightIndex(result);
-                    this.log("Resulting model: ", articleModel);
-                    ArticleContentHandler.checkAndDownload(articleModel, this);
-                    break;
-                case "readd":
-                    this.log("Adding back: " + JSON.stringify(result));
-                    articleModel = collection.addRightIndex(result);
-                    ArticleContentHandler.checkAndDownload(articleModel, this);
-                    break;
-                case "favorite":
-                    rec.set("favorite", 1);
-                    break;
-                case "unfavorite":
-                    rec.set("favorite", 0);
-                    break;
-                case "archive":
-                    rec.set("status", "1");
-                    rec.set("archived", true);
-                    rec.destroy({
-                        success: function () { console.log("Destruction of " + obj.item_id + " success."); }
-                    });
-                    arr.push(rec);
-                    break;
-                case "delete":
-                    rec.set("status", "2");
-                    rec.set("archived", true);
-                    rec.destroy({
-                        success: function () { console.log("Destruction of " + obj.item_id + " success."); }
-                    });
-                    arr.push(rec);
+            case "add":
+                //try to add. Not sure that really works. Add call wants item id??
+                this.log("Adding: ", result);
+                articleModel = collection.addRightIndex(result);
+                this.log("Resulting model: ", articleModel);
+                ArticleContentHandler.checkAndDownload(articleModel, this);
                 break;
-                default:
-                    this.log("Action ", obj.action, " not understood??");
-                    break;
+            case "readd":
+                this.log("Adding back: " + JSON.stringify(result));
+                articleModel = collection.addRightIndex(result);
+                ArticleContentHandler.checkAndDownload(articleModel, this);
+                break;
+            case "favorite":
+                rec.set("favorite", 1);
+                break;
+            case "unfavorite":
+                rec.set("favorite", 0);
+                break;
+            case "archive":
+                rec.set("status", "1");
+                rec.set("archived", true);
+                rec.destroy({
+                    success: function () { console.log("Destruction of " + obj.item_id + " success."); }
+                });
+                arr.push(rec);
+                break;
+            case "delete":
+                rec.set("status", "2");
+                rec.set("archived", true);
+                rec.destroy({
+                    success: function () { console.log("Destruction of " + obj.item_id + " success."); }
+                });
+                arr.push(rec);
+                break;
+            default:
+                this.log("Action ", obj.action, " not understood??");
+                break;
             }
         }.bind(this));
         return arr;
     },
     actionSuccess: function (collection, callback, actions, inSender, inResponse) {
+        /*jslint unparam: true */
         var i, successfulActions = [], remActions;
         this.log("Action succeeded: ", inResponse);
         if (this.checkForUnauthorized(inResponse)) {
@@ -583,6 +591,7 @@ enyo.kind({
         }
     },
     actionFailed: function (action, callback, inSender, inResponse) {
+        /*jslint unparam: true */
         this.log("Article Action failed: ", inResponse);
 
         if (action) {

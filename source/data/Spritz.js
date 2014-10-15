@@ -52,20 +52,20 @@ enyo.singleton({
                 "client_id=" + SpritzSettings.clientId + "&" +
                 //redirect_uri=...
                 "redirect_uri=" + encodeURIComponent(SpritzSettings.redirectUri);
-            
+
             enyo.Signals.send("onNeedShowAuth", {
                 serviceName: "Spritz",
                 redirectUrl: this.redirectUri,
                 callback: this.bindSafely("finishLogin"),
                 cancelable: true
             });
-            
+
             enyo.Signals.send("onAuthURL", {
                 url: url
             });
         }
     },
-    finishLogin: function (url, title) {
+    finishLogin: function (url) {
         this.log("Spritz logged in!");
         var auth, start;
         start = url.indexOf("login_success.html#");
@@ -74,9 +74,9 @@ enyo.singleton({
             this.log("Got token: " + auth);
             SpritzClient.setAuthResponse(auth, moboreader.Spritz.updateUsername.bind(moboreader.Spritz));
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     },
 
     loadScript: function (name, id) {
@@ -176,9 +176,9 @@ enyo.singleton({
             this.log("Need to download spritz model from ", articleModel.attributes.url);
             if (articleModel.spritzDownloading >= 0) {
                 return articleModel.spritzDownloading;
-            } else {
-                return this.downloadSpritzModel(articleModel);
             }
+
+            return this.downloadSpritzModel(articleModel);
         }
 
         if (restart) {
@@ -223,13 +223,7 @@ enyo.singleton({
         articleModel.spritzDownloading = this.dlCounter;
 
         if (!webContent) {
-            var url;
-            if (articleModel.get) {
-                url = articleModel.get("url");
-            } else {
-                url = articleModel.url;
-            }
-            SpritzClient.fetchContents(url,
+            SpritzClient.fetchContents(articleModel.get ? articleModel.get("url") : articleModel.url,
                                        this.bindSafely("fetchSuccess", articleModel, this.dlCounter, webContent),
                                        this.bindSafely("fetchError", articleModel, this.dlCounter, webContent));
         } else {

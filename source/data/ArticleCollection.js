@@ -16,7 +16,7 @@ enyo.kind({
     success: function (index) {
         this.log("Stored: ", index);
     },
-    
+
     fail: function (index) {
         this.error("Failed to store: ", index);
     },
@@ -28,19 +28,19 @@ enyo.kind({
     getSortKey: function () {
         var field, desc;
         switch (this.sortOrder) {
-            case "newest":
-                field = "time_added";
-                desc = true;
-                break;
-            case "oldest":
-                field = "time_added";
-                break;
-            case "title":
-                field = "title";
-                break;
-            case "url":
-                field = "url";
-                break;
+        case "newest":
+            field = "time_added";
+            desc = true;
+            break;
+        case "oldest":
+            field = "time_added";
+            break;
+        case "title":
+            field = "title";
+            break;
+        case "url":
+            field = "url";
+            break;
         }
 
         return {field: field, desc: desc };
@@ -76,16 +76,16 @@ enyo.kind({
             rec = this.at(i);
             if (!rec) {
                 console.error("record " + i + " was undefined!!");
-                continue;
+            } else {
+                if (!rec.commit) {
+                    console.error("record " + JSON.stringify(rec) + " had no commit method!");
+                } else {
+                    rec.commit({
+                        success: this.success.bind(this, i),
+                        fail: this.fail.bind(this, i)
+                    });
+                }
             }
-            if (!rec.commit) {
-                console.error("record " + JSON.stringify(rec) + " had no commit method!");
-                continue;
-            }
-            rec.commit({
-                success: this.success.bind(this, i),
-                fail: this.fail.bind(this, i)
-            });
         }
 
         if (added) {
@@ -115,10 +115,10 @@ enyo.kind({
             index = keys[i].indexOf("moboreader-app-");
 
             if (keys[i].indexOf("spritz.telemetry") === 0 ||
-                (index === 0) &&
-                 keys[i] !== "moboreader-app-authModel" &&
-                 keys[i] !== "moboreader-app-pocket-unread-list" &&
-                !this.idInCollection(keys[i].substr(index + "moboreader-app-".length))) {
+                    (index === 0 &&
+                        keys[i] !== "moboreader-app-authModel" &&
+                        keys[i] !== "moboreader-app-pocket-unread-list" &&
+                        !this.idInCollection(keys[i].substr(index + "moboreader-app-".length)))) {
                 localStorage.removeItem(keys[i]);
             }
         }
@@ -195,20 +195,19 @@ enyo.kind({
 
             if (!attributes) {
                 this.error("rec empty? " + JSON.stringify(rec));
-                continue;
-            }
-
-            if (desc) {
-                if (attributes[field] < hash[field]) {
-                    this.log(attributes[field], " < ", hash[field], " => add at ", i);
-                    this.add(hash, i);
-                    return this.at(i);
-                }
             } else {
-                if (attributes[field] > hash[field]) {
-                    this.log(attributes[field], " > ", hash[field], " => add at ", i);
-                    this.add(hash, i);
-                    return this.at(i);
+                if (desc) {
+                    if (attributes[field] < hash[field]) {
+                        this.log(attributes[field], " < ", hash[field], " => add at ", i);
+                        this.add(hash, i);
+                        return this.at(i);
+                    }
+                } else {
+                    if (attributes[field] > hash[field]) {
+                        this.log(attributes[field], " > ", hash[field], " => add at ", i);
+                        this.add(hash, i);
+                        return this.at(i);
+                    }
                 }
             }
         }

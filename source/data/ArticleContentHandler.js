@@ -21,9 +21,10 @@ enyo.singleton({
             onArticleDownloaded: "contentDownloaded"
         }
     ],
-    
-    debugOut: function (msg) {
+
+    debugOut: function () {
         //noop or console.error for on device debugging.
+        return undefined;
     },
 
     create: function () {
@@ -43,7 +44,7 @@ enyo.singleton({
             };
         } else {
             this.setDbActivities(this.dbActivities + 1);
-            this._genericSend(articleModel, "storeArticleContent", {
+            this.privateGenericSend(articleModel, "storeArticleContent", {
                 content: {
                     web: webContent,
                     spritz: spritzContent
@@ -54,16 +55,17 @@ enyo.singleton({
         return this.activityId;
     },
     gotContent: function (inSender, inEvent) {
+        /*jslint unparam: true */
         Object.keys(this.gettingToStore).forEach(function (activityId) {
-            var obj = this.gettingToStore[activityId];
+            var obj = this.gettingToStore[activityId],
+                content = inEvent.content || {};
             if (obj.getId === inEvent.activityId) {
                 this.debugOut("Got article content!");
-                var content = inEvent.content || {};
                 content.web = obj.webContent || content.web;
                 content.spritz = obj.spritzContent || content.spritz;
                 this.setDbActivities(this.dbActivities + 1);
 
-                this._genericSend(obj.model, "storeArticleContent", {
+                this.privateGenericSend(obj.model, "storeArticleContent", {
                     content: content,
                     activityId: activityId
                 });
@@ -71,7 +73,7 @@ enyo.singleton({
             }
         }.bind(this));
 
-        if(this.gettingToDL) {
+        if (this.gettingToDL) {
             if (this.gettingToDL.activityId === inEvent.activityId) {
                 if (!inEvent.success) {
                     this.debugOut("Need download: " + this.gettingToDL.model.attributes.item_id);
@@ -91,7 +93,7 @@ enyo.singleton({
         }
     },
 
-    _genericSend: function (articleModel, method, inParams) {
+    privateGenericSend: function (articleModel, method, inParams) {
         var params = inParams || {}, req;
 
         if (articleModel) {
@@ -121,7 +123,7 @@ enyo.singleton({
             if (params.content) {
                 this.storage[params.id] = params.content;
             }
-            setTimeout(function(activityId) {
+            setTimeout(function (activityId) {
                 this.dbActivityComplete(activityId, params.id, this, {
                     success: true,
                     id: params.id,
@@ -133,16 +135,16 @@ enyo.singleton({
         return this.activityId;
     },
     getContent: function (articleModel) {
-        return this._genericSend(articleModel, "getArticleContent");
+        return this.privateGenericSend(articleModel, "getArticleContent");
     },
     articleContentExists: function (articleModel) {
-        return this._genericSend(articleModel, "articleContentExists", {requireSpritz: moboreader.Prefs.downloadSpritzOnUpdate});
+        return this.privateGenericSend(articleModel, "articleContentExists", {requireSpritz: moboreader.Prefs.downloadSpritzOnUpdate});
     },
     deleteContent: function (articleModel) {
-        return this._genericSend(articleModel, "deleteArticleContent");
+        return this.privateGenericSend(articleModel, "deleteArticleContent");
     },
     wipe: function () {
-        return this._genericSend(null, "wipeStorage");
+        return this.privateGenericSend(null, "wipeStorage");
     },
 
     checkAndDownload: function (articleModel, api) {
@@ -164,6 +166,7 @@ enyo.singleton({
     },
 
     contentDownloaded: function (inSender, inEvent) {
+        /*jslint unparam: true */
         this.debugOut("Download finished: " + inEvent.model.attributes.item_id);
         this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz);
 
@@ -186,6 +189,7 @@ enyo.singleton({
         }
     },
     dbActivityComplete: function (activityId, id, inSender, inEvent) {
+        /*jslint unparam: true */
         this.debugOut("Incomming response: " + inEvent.success + " for id " + activityId);
         this.setDbActivities(this.dbActivities - 1);
         inEvent.activityId = activityId;
@@ -194,6 +198,7 @@ enyo.singleton({
         this.sendNext();
     },
     dbError: function (activityId, id, inSender, inEvent) {
+        /*jslint unparam: true */
         this.log("dbFailed: " + JSON.stringify(inEvent));
         this.setDbActivities(this.dbActivities - 1);
         enyo.Signals.send("onArticleOpReturned", {

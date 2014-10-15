@@ -44,8 +44,8 @@ var parseArticle = function (data) {
     }
 
     if (!data.host) {
-        var start = data.url.indexOf("//") + 2;
-        var end = data.url.indexOf("/", start);
+        var start = data.url.indexOf("//") + 2,
+            end   = data.url.indexOf("/", start);
         data.host = data.url.substring(start, end);
         if (!data.host) {
             console.error("Could not extract host from: " + data.url);

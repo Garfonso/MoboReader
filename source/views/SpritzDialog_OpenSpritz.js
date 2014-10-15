@@ -131,6 +131,7 @@ enyo.kind({
         this.hide();
     },
     onTap: function (inSender, inEvent) {
+        /*jslint unparam:true*/
         if (this.$.spritz.running) {
             this.pause();
         } else {
