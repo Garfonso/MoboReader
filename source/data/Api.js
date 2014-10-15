@@ -32,10 +32,6 @@ enyo.kind({
     articlesPerBatch: 10,
     offset: 0,
 
-    events: {
-        onAuthFinished: ""
-    },
-
     authToken: false, //only used during authentication
     consumerKey: "21005-ded74cb03e611ba462973e00",
 
