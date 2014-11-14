@@ -353,7 +353,7 @@ enyo.kind({
         /*jslint unparam: true */
         articleModel.downloadingContent = false;
         this.setActive(this.active - 1);
-        this.log("Failed to download: ", inResponse);
+        this.log("Failed to download: ", inResponse, " for ", articleModel);
         if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
