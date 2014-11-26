@@ -14,7 +14,7 @@ enyo.kind({
     ],
 
     success: function (index) {
-        this.log("Stored: ", index);
+        //this.log("Stored: ", index);
     },
 
     fail: function (index) {

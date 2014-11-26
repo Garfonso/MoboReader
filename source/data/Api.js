@@ -245,7 +245,6 @@ enyo.kind({
                             rec.set("greyout", true);
                             collection.remove(rec);
                             rec.destroy({succes: this.dummy});
-                            this.added += 1;
                         }
                     } else {
                         //console.error("Adding: " + JSON.stringify(article));
@@ -258,7 +257,7 @@ enyo.kind({
             if (listLength > 0) {
                 oldLength = collection.length;
                 collection.merge(articles);
-                this.added += collection.length - oldLength;
+                this.added = collection.length - oldLength;
 
                 this.downloadArticlesInner(collection);
             } else {
@@ -353,7 +352,7 @@ enyo.kind({
         /*jslint unparam: true */
         articleModel.downloadingContent = false;
         this.setActive(this.active - 1);
-        this.log("Failed to download: ", inResponse);
+        this.log("Failed to download: ", inResponse, " for ", articleModel);
         if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
             this.logout();
