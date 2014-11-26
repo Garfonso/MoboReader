@@ -41,7 +41,7 @@ enyo.kind({
                         //seamless: "seamless",
                         onload: enyo.bubbler
                     },
-                    style: "border: none;",
+                    style: "z-index: -1;",
                     showing: false,
                     onload: "pageLoaded"
                 },
