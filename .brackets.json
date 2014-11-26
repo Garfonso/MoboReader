@@ -4,6 +4,16 @@
         "sloppy": true,
         "browser": true,
         "devel": true,
-        "predef": ["enyo", "moboreader", "SPRITZ", "SpritzClient", "webos"]
-    }
+        "predef": [
+            "enyo",
+            "moboreader",
+            "SPRITZ",
+            "SpritzClient",
+            "webos"
+        ]
+    },
+    "jscodehints.detectedExclusions": [
+        "D:/Dropbox/workspace/MoboReader/deploy/build/enyo.js",
+        "D:/Dropbox/workspace/MoboReader/source/views/IFrameWebView.js"
+    ]
 }
