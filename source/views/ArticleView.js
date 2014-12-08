@@ -251,9 +251,10 @@ enyo.kind({
                 }
                 this.timeoutID = setTimeout(function () {
                     this.processChildren(this.$.articleContent.node);
+                    this.log("Scrolling to " + this.articleModel.get("scrollPos"));
                     this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
                     this.$.scroller.$.strategy.showThumbs();
-                }.bind(this), 100);
+                }.bind(this), 300);
             } else {
                 this.log("No web content?");
                 if (!this.received) {
