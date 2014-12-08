@@ -16,6 +16,7 @@ enyo.kind({
         {from: "^.moboreader.Prefs.sortOrder", to: ".$.sortOrder.inVal", oneWay: false  },
 
         {from: "^.moboreader.Prefs.fontSize", to: ".$.fontSize.inVal", oneWay: false  },
+        {from: "^.moboreader.Prefs.goBackOnArchive", to: ".$.goBackOnArchive.checked", oneWay: false  },
 
         {from: "^.moboreader.Prefs.useSpritz", to: ".$.useSpritz.checked", oneWay: false  },
         {from: "^.moboreader.Prefs.downloadSpritzOnUpdate", to: ".$.downloadSpritzOnUpdate.checked", oneWay: false  }
@@ -64,7 +65,18 @@ enyo.kind({
                                     name: "fontSize",
                                     hint: "Font size in article view",
                                     pickerComponents: [12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
-                                }
+                                },
+                                {
+                                    style: "overflow: hidden; padding: 10px;",
+                                    components: [
+                                        { content: "Go back on archive", style: "float: left; "},
+                                        {
+                                            kind: "onyx.Checkbox",
+                                            name: "goBackOnArchive",
+                                            style: "float: right;"
+                                        }
+                                    ]
+                                },
                             ]
                         },
                         {

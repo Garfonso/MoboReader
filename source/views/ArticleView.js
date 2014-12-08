@@ -284,8 +284,10 @@ enyo.kind({
         this.api.getArticleContent(this.articleModel);
     },
     archiveTap: function () {
-        //this.doBack();
         this.articleModel.doArchive(this.api, this.collection);
+        if (moboreader.Prefs.getGoBackOnArchive()) {
+            this.doBack();
+        }
     },
     favoriteTap: function () {
         this.articleModel.doFavorite(this.api, this.collection);

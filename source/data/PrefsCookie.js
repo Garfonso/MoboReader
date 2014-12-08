@@ -7,6 +7,7 @@ enyo.singleton({
 
         //display options:
         fontSize: 16,
+        goBackOnArchive: false,
 
         //spritz options
         useSpritz: true,
@@ -22,6 +23,9 @@ enyo.singleton({
     },
     fontSizeChanged: function () {
         enyo.setCookie("fontSize", this.fontSize);
+    },
+    goBackOnArchiveChanged: function () {
+        enyo.setCookie("goBackOnArchive", this.goBackOnArchive);
     },
     useSpritzChanged: function () {
         enyo.setCookie("useSpritz", this.useSpritz);
@@ -45,6 +49,7 @@ enyo.singleton({
         this.setSortOrder(enyo.getCookie("sortOrder") || this.sortOrder);
 
         this.setFontSize(enyo.getCookie("fontSize") || this.fontSize);
+        this.setGoBackOnArchive(!(enyo.getCookie("goBackOnArchive") === false));
 
         this.setUseSpritz(enyo.getCookie("useSpritz") === "true" || enyo.getCookie("useSpritz") === undefined);
         this.setDownloadSpritzOnUpdate(enyo.getCookie("downloadSpritzOnUpdate") === "true");
