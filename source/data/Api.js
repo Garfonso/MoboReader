@@ -345,7 +345,7 @@ enyo.kind({
             }
         }
     },
-    downloadContentFailed: function (inSender, inResponse, articleModel) {
+    downloadContentFailed: function (articleModel, inSender, inResponse) {
         /*jslint unparam: true */
         articleModel.downloadingContent = false;
         this.setActive(this.active - 1);
