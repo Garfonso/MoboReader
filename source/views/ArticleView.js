@@ -14,6 +14,9 @@ enyo.kind({
     events: {
         onBack: ""
     },
+    handlers: {
+        onunload: "cleanUpOnUndload"
+    },
     components: [
         {
             kind: "onyx.Toolbar",
