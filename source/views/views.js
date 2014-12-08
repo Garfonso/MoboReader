@@ -136,6 +136,7 @@ enyo.kind({
             onactivate: "startRefreshTimer",
             ondeactivate: "stopRefreshTimer",
             onArticleOpReturned: "continueWipe",
+            onunload: "cleanUpOnUndload",
 
             onNeedShowAuth: "showAuth",
             onAuthOk: "refreshTap",
@@ -169,6 +170,11 @@ enyo.kind({
         this.articleCollection.fetch({strategy: "merge", success: fetchResult.bind(this), fail: fetchResult.bind(this)});
         this.$.articleView.setApi(this.$.api);
     },
+    cleanUpOnUndload: function () {
+        this.log("Cleaning up on onload.");
+        this.articleCollection.storeWithChilds();
+    },
+
     startRefreshTimer: function () {
         if (this.invervalId) {
             clearInterval(this.invervalId);
