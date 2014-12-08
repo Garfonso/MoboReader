@@ -220,7 +220,7 @@ enyo.kind({
     },
     gotArticles: function (collection, inSender, inResponse) {
         /*jslint unparam: true */
-        var articles = [], key, list = inResponse.list, article, rec, oldLength, listLength = 0;
+        var key, list = inResponse.list, article, rec, listLength = 0;
 
         this.log("Got response: ", inResponse);
         if (this.checkForUnauthorized(inResponse)) {
@@ -248,20 +248,17 @@ enyo.kind({
                         }
                     } else {
                         //console.error("Adding: " + JSON.stringify(article));
-                        articles.push(article);
+                        collection.addRightIndex(article);
+                        this.added += 1;
                     }
                 }
             }
 
-            this.log("Now have", articles.length, "new items.");
+            this.log("Now have", this.added, "new items.");
             if (listLength > 0) {
-                oldLength = collection.length;
-                collection.merge(articles);
-                this.added = collection.length - oldLength;
-
                 this.downloadArticlesInner(collection);
             } else {
-                collection.storeWithChilds(this.added > 0); //tell if we added articles => then a sort will happen.
+                collection.storeWithChilds(); //sort not necessary anymore, articles will be added at right index during download.
                 this.authModel.set("lastSync", inResponse.since || 0);
 
                 this.refreshing = false;
