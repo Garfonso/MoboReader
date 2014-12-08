@@ -299,7 +299,7 @@ enyo.kind({
             images: 1,
             videos: 1,
             refresh: articleModel.get("content") === undefined ? 0 : 1,
-            url: articleModel.get("resolved_url"),
+            url: articleModel.get("url"), //if available uses resolved url, otherwise any other URL source.
             output: "json"
         };
 

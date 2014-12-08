@@ -37,7 +37,7 @@ var parseArticle = function (data) {
     }
 
     data.title = data.title || data.resolved_title || data.given_title || data.normal_title || "No title";
-    data.url = data.url || data.resolved_url || data.given_url || data.normal_url;
+    data.url = data.resolved_url || data.url || data.given_url || data.normal_url;
     if (!data.url) {
         data.url = "No url";
         console.error("Had article without url: " + JSON.stringify(data));
