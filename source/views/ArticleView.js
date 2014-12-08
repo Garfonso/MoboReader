@@ -139,10 +139,24 @@ enyo.kind({
             if (this.timeoutId) {
                 clearTimeout(this.timeoutId);
             }
+            if (this.articleModel) {
+                this.cleanUpArticle(this.articleModel);
+            }
             this.doBack();
         }
 
         inEvent.preventDefault();
+    },
+    cleanUpArticle: function (oldValue) {
+        //keep memory footprint small:
+        delete oldValue.webContent;
+        delete oldValue.spritzModelPersist;
+
+        if (oldValue && oldValue.attributes && oldValue.previous) {
+            oldValue.set("scrollPos", this.$.scroller.scrollTop);
+            oldValue.commit();
+            oldValue.tryDestroy(true);
+        }
     },
     articleModelChanged: function (oldValue) {
         this.$.spritzDialog.hide();
@@ -150,14 +164,8 @@ enyo.kind({
             if (this.oldListener) {
                 oldValue.removeListener("destroy", this.oldListener);
             }
-            if (oldValue.attributes && oldValue.previous) {
-                oldValue.set("scrollPos", this.$.scroller.scrollTop);
-                oldValue.commit();
-            }
 
-            //keep memory footprint small:
-            delete oldValue.webContent;
-            delete oldValue.spritzModelPersist;
+            this.cleanUpArticle(oldValue);
         }
 
         this.received = false;
@@ -171,7 +179,8 @@ enyo.kind({
         enyo.Signals.send("onStartDBActivity", {});
         this.articleOpId = ArticleContentHandler.getContent(this.articleModel);
 
-        this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
+        this.articleModel.showing = true;
+        //this.oldListener = this.articleModel.addListener("destroy", this.bindSafely("doBack"));
     },
     downloadContent: function () {
         this.log("Downloading article content.");
@@ -271,7 +280,7 @@ enyo.kind({
         this.api.getArticleContent(this.articleModel);
     },
     archiveTap: function () {
-        this.doBack();
+        //this.doBack();
         this.articleModel.doArchive(this.api, this.collection);
     },
     favoriteTap: function () {
@@ -312,4 +321,3 @@ enyo.kind({
         this.$.spritzBtn.addClass("onyx-affirmative");
     }
 });
-

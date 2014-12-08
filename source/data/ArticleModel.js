@@ -78,7 +78,7 @@ enyo.kind({
     },
 
     doArchive: function (api, collection) {
-        if (this.get("status") && this.get("status") === "0") {
+        if (this.get("archived") !== true) {
             this.set("greyout", true);
             this.set("archived", true);
             api.articleAction(this, "archive", collection);
@@ -109,5 +109,19 @@ enyo.kind({
     destroy: function () {
         ArticleContentHandler.deleteContent(this);
         this.inherited(arguments);
+    },
+
+    tryDestroy: function (notShowing) {
+        if (notShowing === true) {
+            this.showing = false;
+        }
+        if (this.showing || this.get("status") === "0") {
+            return;
+        }
+
+        this.destroy({
+            success: function () {  },
+            fail: function () { console.error("Destruction of " + JSON.stringify(this) + " failed."); }.bind(this)
+        });
     }
 });

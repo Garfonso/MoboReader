@@ -244,7 +244,7 @@ enyo.kind({
                             rec.set("archived", true);
                             rec.set("greyout", true);
                             collection.remove(rec);
-                            rec.destroy({succes: this.dummy});
+                            rec.tryDestroy();
                         }
                     } else {
                         //console.error("Adding: " + JSON.stringify(article));
@@ -484,7 +484,7 @@ enyo.kind({
             console.error("No item found for " + id);
         }
 
-        return result || { set: function () { return undefined; }, destroy: function () { return undefined; } };
+        return result || { set: function () { return undefined; }, tryDestroy: function () { return undefined; } };
     },
     processActions: function (collection, objs, results) {
         var arr = [], articleModel;
@@ -529,17 +529,13 @@ enyo.kind({
             case "archive":
                 rec.set("status", "1");
                 rec.set("archived", true);
-                rec.destroy({
-                    success: function () { console.log("Destruction of " + obj.item_id + " success."); }
-                });
+                rec.tryDestroy();
                 arr.push(rec);
                 break;
             case "delete":
                 rec.set("status", "2");
                 rec.set("archived", true);
-                rec.destroy({
-                    success: function () { console.log("Destruction of " + obj.item_id + " success."); }
-                });
+                rec.tryDestroy();
                 arr.push(rec);
                 break;
             default:
