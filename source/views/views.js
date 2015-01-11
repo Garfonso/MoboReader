@@ -134,8 +134,6 @@ enyo.kind({
             kind: "Signals",
             onAddArticle: "addArticle",
             onrelaunch: "addArticle",
-            onactivate: "startRefreshTimer",
-            ondeactivate: "stopRefreshTimer",
             onArticleOpReturned: "continueWipe",
             onunload: "cleanUpOnUndload",
 
@@ -158,9 +156,9 @@ enyo.kind({
                 if (window.PalmSystem.allowResizeOnPositiveSpaceChange) {
                     window.PalmSystem.allowResizeOnPositiveSpaceChange(false); //deactivate keyboard resizing our app.
                 }
-                console.error("Launch Params: " + JSON.stringify(webos.launchParams()));
+                this.error("Launch Params: " + JSON.stringify(webos.launchParams()));
                 if (webos.launchParams().url) {
-                    console.error("Adding article: " + webos.launchParams().url);
+                    this.error("Adding article: " + webos.launchParams().url);
                     this.$.api.addArticle(webos.launchParams().url, this.articleCollection);
                 }
             }
@@ -174,25 +172,6 @@ enyo.kind({
     cleanUpOnUndload: function () {
         this.log("Cleaning up on onload.");
         this.articleCollection.storeWithChilds();
-    },
-
-    startRefreshTimer: function () {
-        if (this.invervalId) {
-            clearInterval(this.invervalId);
-        }
-        this.intervalId = setInterval(this.bindSafely("refreshTimerCalled"), 300000); //refresh all 5 min if active.
-    },
-    refreshTimerCalled: function () {
-        if (!this.$.api.authModel.needLogin && !this.get("activity")) {
-            this.refreshTap(null, null, true);
-        } else {
-            console.error("Are not authed (" + this.$.api.authModel.needLogin + ") or are active (" + this.pocketDL + ", " + this.spritzDL + ", " + this.dbActivities + ")");
-        }
-    },
-    stopRefreshTimer: function () {
-        if (this.invervalId) {
-            clearInterval(this.invervalId);
-        }
     },
 
     showAddDialog: function () {
