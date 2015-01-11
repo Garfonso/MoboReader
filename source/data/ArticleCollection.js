@@ -145,7 +145,7 @@ enyo.kind({
     },
 
     updateArticleContent: function (api) {
-        var i, rec, ids = [];
+        var i, rec;
         for (i = 0; i < this.records.length; i += 1) {
             rec = this.at(i);
             if (rec) {
