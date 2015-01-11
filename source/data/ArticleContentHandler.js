@@ -1,3 +1,6 @@
+/*jslint sloppy: true*/
+/*global enyo, moboreader*/
+
 enyo.singleton({
     name: "ArticleContentHandler",
     published: {

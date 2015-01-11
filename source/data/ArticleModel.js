@@ -1,4 +1,5 @@
-/*global ArticleContentHandler*/
+/*jslint sloppy: true, browser: true, devel: true */
+/*global ArticleContentHandler, enyo*/
 
 var parseArticle = function (data) {
     if (!data || typeof data !== "object") { //is called also for commit, data seems empty then.
@@ -120,7 +121,7 @@ enyo.kind({
         }
 
         this.destroy({
-            success: function () {  },
+            success: function () { return undefined; },
             fail: function () { console.error("Destruction of " + JSON.stringify(this) + " failed."); }.bind(this)
         });
     }

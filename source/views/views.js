@@ -1,4 +1,5 @@
-/*global ArticleContentHandler */
+/*jslint sloppy: true, browser: true */
+/*global ArticleContentHandler, enyo, webos, moboreader */
 
 enyo.kind({
     name: "moboreader.MainView",

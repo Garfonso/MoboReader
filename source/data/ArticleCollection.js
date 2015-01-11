@@ -1,4 +1,5 @@
-/*global parseArticle, ArticleContentHandler */
+/*jslint sloppy: true, devel: true */
+/*global parseArticle, ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
     name: "moboreader.ArticleCollection",
@@ -15,6 +16,7 @@ enyo.kind({
 
     success: function (index) {
         //this.log("Stored: ", index);
+        return index;
     },
 
     fail: function (index) {
@@ -143,7 +145,7 @@ enyo.kind({
     },
 
     updateArticleContent: function (api) {
-        var i, rec;
+        var i, rec, ids = [];
         for (i = 0; i < this.records.length; i += 1) {
             rec = this.at(i);
             if (rec) {

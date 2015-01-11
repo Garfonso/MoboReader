@@ -1,4 +1,5 @@
-/*global ArticleContentHandler */
+/*jslint sloppy: true, devel: true */
+/*global ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
     name: "moboreader.AuthModel",
