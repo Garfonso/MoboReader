@@ -4,13 +4,13 @@
         "sloppy": true,
         "browser": true,
         "devel": true,
-        "predef": [
-            "enyo",
-            "moboreader",
-            "SPRITZ",
-            "SpritzClient",
-            "webos"
-        ]
+        "predef": {
+            "enyo": false,
+            "moboreader": false,
+            "SPRITZ": false,
+            "SpritzClient": false,
+            "webos": false
+		}
     },
     "jscodehints.detectedExclusions": [
         "D:/Dropbox/workspace/MoboReader/deploy/build/enyo.js",

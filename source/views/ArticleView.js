@@ -1,4 +1,5 @@
-/*global ArticleContentHandler */
+/*jslint sloppy: true */
+/*global ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
     name: "moboreader.ArticleView",

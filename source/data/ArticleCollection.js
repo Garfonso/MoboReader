@@ -215,5 +215,28 @@ enyo.kind({
         }
         this.add(hash);
         return this.at(this.length - 1);
+    },
+
+    cleanUp: function () {
+        var i, rec, attributes, deletedRecs = [];
+        for (i = 0; i < this.records.length; i += 1) {
+            this.log("i: ", i);
+            rec = this.at(i);
+            if (rec.attributes) {
+                attributes = rec.attributes;
+            } else {
+                attributes = rec;
+            }
+
+            if (attributes.greyout) {
+                rec.tryDestroy();
+                deletedRecs.push(rec);
+            }
+        }
+
+        if (deletedRecs && deletedRecs.length > 0) {
+            this.log("Removing: ", deletedRecs);
+            this.remove(deletedRecs);
+        }
     }
 });

@@ -176,6 +176,8 @@ enyo.kind({
             return;
         }
 
+        collection.cleanUp();
+
         this.refreshing = true;
         this.offset = 0;
         if (slow) {
@@ -488,7 +490,7 @@ enyo.kind({
         return result || { set: function () { return undefined; }, tryDestroy: function () { return undefined; } };
     },
     processActions: function (collection, objs, results) {
-        var arr = [], articleModel;
+        var articleModel;
         if (!results) {
             results = [];
         }
@@ -530,25 +532,22 @@ enyo.kind({
             case "archive":
                 rec.set("status", "1");
                 rec.set("archived", true);
-                rec.tryDestroy();
-                arr.push(rec);
+                rec.set("greyout", true);
                 break;
             case "delete":
                 rec.set("status", "2");
                 rec.set("archived", true);
-                rec.tryDestroy();
-                arr.push(rec);
+                rec.set("greyout", true);
                 break;
             default:
                 this.log("Action ", obj.action, " not understood??");
                 break;
             }
         }.bind(this));
-        return arr;
     },
     actionSuccess: function (collection, callback, actions, inSender, inResponse) {
         /*jslint unparam: true */
-        var i, successfulActions = [], remActions;
+        var i, successfulActions = [];
         this.log("Action succeeded: ", inResponse);
         if (this.checkForUnauthorized(inResponse)) {
             this.log("Not authorized? => start auth.");
@@ -557,7 +556,7 @@ enyo.kind({
             return;
         }
 
-        remActions = this.processActions(collection, actions, inResponse.action_results || inResponse.item);
+        this.processActions(collection, actions, inResponse.action_results || inResponse.item);
 
         if (inResponse.action_results) {
             for (i = actions.length - 1; i >= 0; i -= 1) {
@@ -572,10 +571,6 @@ enyo.kind({
 
         this.removeFinishedActions(successfulActions);
         this.storeModel();
-        if (remActions && remActions.length > 0) {
-            this.log("Removing: ", remActions);
-            collection.remove(remActions);
-        }
         collection.storeWithChilds();
         this.setActive(this.active - 1);
 
