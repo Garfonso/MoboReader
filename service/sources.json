@@ -1,35 +1,35 @@
 [
-    {
-        "library": {
-            "name": "foundations",
-            "version": "1.0"
-        }
-    },
-    {
-        "source": "utils.js"
-    },
-    {
-        "source": "config.js"
-    },
-    {
-        "source": "prologue.js"
-    },
-    {
-        "source": "ServiceAssistant.js"
-    },
-    {
-        "source": "StoreArticleContentAssistant.js"
-    },
-    {
-        "source": "GetArticleContentAssistant.js"
-    },
-    {
-        "source": "ArticleContentExistsAssistant.js"
-    },
-    {
-        "source": "DeleteArticleContentAssistant.js"
-    },
-    {
-        "source": "WipeStorageAssistant.js"
-    }
+	{
+		"library": {
+			"name": "foundations",
+			"version": "1.0"
+		}
+	},
+	{
+		"source": "libraries/utils.js"
+	},
+	{
+		"source": "libraries/config.js"
+	},
+	{
+		"source": "libraries/prologue.js"
+	},
+	{
+		"source": "assistants/ServiceAssistant.js"
+	},
+	{
+		"source": "assistants/StoreArticleContentAssistant.js"
+	},
+	{
+		"source": "assistants/GetArticleContentAssistant.js"
+	},
+	{
+		"source": "assistants/ArticleContentExistsAssistant.js"
+	},
+	{
+		"source": "assistants/DeleteArticleContentAssistant.js"
+	},
+	{
+		"source": "assistants/WipeStorageAssistant.js"
+	}
 ]

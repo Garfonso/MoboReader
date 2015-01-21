@@ -1,3 +1,6 @@
+/*jslint sloppy: true */
+/*global enyo*/
+
 enyo.kind({
     name: "moboreader.AuthDialog",
     kind: "enyo.FittableRows",
@@ -86,7 +89,7 @@ enyo.kind({
                     this.resultFail();
                 }
             }
-            this.$.webView.hide();
+            this.$.webView.hideAll();
             this.$.spinner.show();
             this.fired = true;
         } else {

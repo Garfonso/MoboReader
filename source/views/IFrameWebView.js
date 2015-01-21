@@ -1,4 +1,5 @@
-/*global PalmSystem */
+/*jslint sloppy: true */
+/*global PalmSystem, enyo */
 
 enyo.kind({
     name: "IFrameWebView",
@@ -9,11 +10,13 @@ enyo.kind({
         enableJavascript: true
     },
     events: {
-        onPageTitleChanged: ""
+        onPageTitleChanged: "",
+        onCancelAuth: ""
     },
     useWebView: false,
     useIFrame: false,
     useWebViewEnc: false,
+    useInAppBrowser: false,
     components: [
 
         {
@@ -74,9 +77,7 @@ enyo.kind({
             var devInfo = JSON.parse(PalmSystem.deviceInfo);
             if (devInfo.modelName === "Lune OS Device") {
                 this.log("LuneOS device");
-                this.useIFrame = true;
-                //this.$.iframe.addStyles("width: 1000px; height: 1000px;");
-                this.$.iframe.show();
+                this.useInAppBrowser = true;
             } else if (devInfo.platformVersionMajor === 3) {
                 //use old webview
                 this.log("webOS 3");
@@ -152,6 +153,19 @@ enyo.kind({
             this.$.iframe.setSrc(this.url);
         } else if (this.useWebView || this.useWebViewEnc) {
             this.webView.setUrl(this.url);
+        } else if (this.useInAppBrowser) {
+            navigator.InAppBrowser.close();
+            navigator.InAppBrowser.open(this.url);
+            navigator.InAppBrowser.ontitlechanged = function (title) {
+                this.log("Title changed: ", title);
+                this.doPageTitleChanged({
+                    title: title,
+                    url: navigator.InAppBrowser.url
+                });
+            }.bind(this);
+            navigator.InAppBrowser.ondoneclicked = function () {
+                this.doCancelAuth({});
+            }.bind(this);
         } else {
             throw "Unknown mode...??";
         }
@@ -185,6 +199,12 @@ enyo.kind({
             } else {
                 this.log("JavaScript was already disabled?");
             }
+        }
+    },
+    hideAll: function () {
+        this.hide();
+        if (this.useInAppBrowser) {
+            navigator.InAppBrowser.close();
         }
     }
 });

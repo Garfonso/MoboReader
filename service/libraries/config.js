@@ -1,5 +1,8 @@
+/*global Utils */
+/*exported Config, log, debug */
+
 var Config = {
-    storagePath: "/media/internal/.moboreader/"
+	storagePath: "/media/internal/.moboreader/"
 };
 
 var log = Utils.logBase;
