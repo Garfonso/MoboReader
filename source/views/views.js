@@ -179,6 +179,9 @@ enyo.kind({
     },
     addArticle: function (inSender, inEvent) {
         /*jslint unparam:true*/
+        if (!inEvent || !inEvent.url) {
+            this.warn("No url supplied. Can't add article.");
+        }
         this.$.api.addArticle(inEvent.url, this.articleCollection);
     },
 

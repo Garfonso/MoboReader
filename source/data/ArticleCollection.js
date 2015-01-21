@@ -98,7 +98,7 @@ enyo.kind({
             success: function () {console.log("Collection stored."); }
         });
 
-        this.cleanUpLocalStorace();
+        this.cleanUpLocalStorage();
     },
 
     idInCollection: function (id) {
@@ -111,7 +111,7 @@ enyo.kind({
         return false;
     },
 
-    cleanUpLocalStorace: function () {
+    cleanUpLocalStorage: function () {
         var keys = Object.keys(localStorage), i, index;
         for (i = 0; i < keys.length; i += 1) {
             index = keys[i].indexOf("moboreader-app-");
@@ -148,6 +148,7 @@ enyo.kind({
         var i, rec;
         for (i = 0; i < this.records.length; i += 1) {
             rec = this.at(i);
+            this.log("Updating article conntent for article ", i, " with title ", rec ? rec.get("title") : "rec invalid");
             if (rec) {
                 if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
                     ArticleContentHandler.checkAndDownload(rec, api);
@@ -229,7 +230,6 @@ enyo.kind({
             }
 
             if (attributes.greyout) {
-                rec.tryDestroy();
                 deletedRecs.push(rec);
             }
         }
@@ -237,6 +237,9 @@ enyo.kind({
         if (deletedRecs && deletedRecs.length > 0) {
             this.log("Removing: ", deletedRecs);
             this.remove(deletedRecs);
+            deletedRecs.forEach(function (rec) {
+                rec.tryDestroy();
+            });
         }
     }
 });

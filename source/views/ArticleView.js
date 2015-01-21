@@ -158,8 +158,8 @@ enyo.kind({
 
         if (oldValue && oldValue.attributes && oldValue.previous) {
             oldValue.set("scrollPos", this.$.scroller.scrollTop);
+            oldValue.showing = false;
             oldValue.commit();
-            oldValue.tryDestroy(true);
         }
     },
     articleModelChanged: function (oldValue) {
