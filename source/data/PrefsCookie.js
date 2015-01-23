@@ -1,3 +1,6 @@
+/*jslint sloppy: true */
+/*global enyo*/
+
 enyo.singleton({
     name: "moboreader.Prefs",
     published: {
@@ -49,7 +52,7 @@ enyo.singleton({
         this.setSortOrder(enyo.getCookie("sortOrder") || this.sortOrder);
 
         this.setFontSize(enyo.getCookie("fontSize") || this.fontSize);
-        this.setGoBackOnArchive(!(enyo.getCookie("goBackOnArchive") === false));
+        this.setGoBackOnArchive(enyo.getCookie("goBackOnArchive") !== false);
 
         this.setUseSpritz(enyo.getCookie("useSpritz") === "true" || enyo.getCookie("useSpritz") === undefined);
         this.setDownloadSpritzOnUpdate(enyo.getCookie("downloadSpritzOnUpdate") === "true");

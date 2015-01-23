@@ -1,4 +1,4 @@
-/*jslint sloppy: true*/
+/*jslint sloppy: true, browser: true */
 /*global enyo, moboreader*/
 
 enyo.singleton({
