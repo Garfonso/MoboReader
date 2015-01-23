@@ -1,4 +1,4 @@
-/*jslint sloppy: true */
+/*jslint sloppy: true, browser: true */
 /*global enyo*/
 
 enyo.kind({
@@ -81,7 +81,7 @@ enyo.kind({
         }
 
         if (typeof title === "string" && title.indexOf("token:") === 0) {
-            result = this.callback(inEvent.url, inEvent.title);
+            result = this.callback(inEvent.title);
             if (result !== undefined) {
                 if (result) {
                     this.resultOk();

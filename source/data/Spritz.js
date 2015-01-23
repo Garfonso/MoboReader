@@ -1,4 +1,5 @@
-/*global $, SpritzSettings */
+/*jslint sloppy: true, browser: true */
+/*global enyo, $, SpritzSettings, moboreader, SpritzClient, SPRITZ */
 
 enyo.singleton({
     name: "moboreader.Spritz",
@@ -65,12 +66,12 @@ enyo.singleton({
             });
         }
     },
-    finishLogin: function (url) {
+    finishLogin: function (title) {
         this.log("Spritz logged in!");
         var auth, start;
-        start = url.indexOf("login_success.html#");
+		start = title.indexOf("token: #");
         if (start > 0) {
-            auth = url.substr(start + "login_success.html#".length);
+			auth = title.substr(start + "token: #".length);
             this.log("Got token: " + auth);
             SpritzClient.setAuthResponse(auth, moboreader.Spritz.updateUsername.bind(moboreader.Spritz));
             return true;
