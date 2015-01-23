@@ -288,7 +288,7 @@
 			// update, otherwise we should be able to use the scroller's
 			// own methods to find it
 			if (c) {
-				list.$.scroller.scrollIntoView(c, this.pagePosition(list, p));
+				list.$.scroller.scrollIntoView(c, true);
 			} else {
 				// we do this to ensure we trigger the paging event when necessary
 				this.resetToPosition(list, this.pagePosition(list, p));

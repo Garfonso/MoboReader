@@ -71,7 +71,6 @@ enyo.kind({
 								horizontal: "hidden",
 								touch: true
 							},
-							onScroll: "listScrolled",
 							fixedChildSize: 50,
 							components: [
 								{kind: "moboreader.ArticleListItem" }
@@ -155,7 +154,7 @@ enyo.kind({
 			onAddArticle: "addArticle",
 			onrelaunch: "addArticle",
 			onArticleOpReturned: "continueWipe",
-			onunload: "cleanUpOnUndload",
+			onunload: "cleanUpOnUnload",
 
 			onNeedShowAuth: "showAuth",
 			onAuthOk: "refreshTap",
@@ -191,8 +190,8 @@ enyo.kind({
 		this.articleCollection.fetch({strategy: "merge", success: fetchResult.bind(this), fail: fetchResult.bind(this)});
 		this.$.articleView.setApi(this.$.api);
 	},
-	cleanUpOnUndload: function () {
-		this.log("Cleaning up on onload.");
+	cleanUpOnUnload: function () {
+		this.log("Cleaning up on unload.");
 		this.articleCollection.storeWithChilds();
 	},
 
@@ -251,18 +250,13 @@ enyo.kind({
 
 	articleSelected: function (inSender, inEvent) {
 		/*jslint unparam:true*/
-		this.lastIndex = inEvent.index;
-		this.log("Stored ", this.lastIndex, " as last index.");
-		this.scrolled = false;
-		var model = this.$.articleList.selected();
-		if (model) {
-			this.$.articleView.setArticleModel(model);
+		this.lastArticle = this.$.articleList.selected();
+		this.log("Stored ", inEvent.index, " as last index.");
+		if (this.lastArticle) {
+			this.$.articleView.setArticleModel(this.lastArticle);
 			this.$.MainPanels.setIndex(1);
 			this.$.articleList.deselectAll();
 		}
-	},
-	listScrolled: function () {
-		this.scrolled = true;
 	},
 	handleBackGesture: function () {
 		if (this.$.MainPanels.getIndex() === 2) {
@@ -273,21 +267,17 @@ enyo.kind({
 		this.$.MainPanels.setIndex(0);
 		this.$.settingsDialog.hide();
 
-		if (this.scrolled || enyo.webos.isPhone()) { //scroll to last index if list scrolled because of background operations.
-			var scrollTo = this.lastIndex;
-			if (this.lastIndex) {
-				if (scrollTo >= this.articleCollection.length) {
-					scrollTo = this.articleCollection.length - 1;
-				} else if (scrollTo < 0) {
-					scrollTo = 0;
-				}
-				this.log("Scrolling to ", scrollTo);
-				this.$.articleList.scrollToIndex(scrollTo);
-			} else {
-				this.log("Lastindex not set ", this.lastIndex);
+		if (this.lastArticle) {
+			var scrollTo = this.articleCollection.indexOf(this.lastArticle);
+			scrollTo -= 5; //list will scroll to top, allow some articles above it to show up, too.
+
+			if (scrollTo >= this.articleCollection.length) {
+				scrollTo = this.articleCollection.length - 1;
+			} else if (scrollTo < 0) {
+				scrollTo = 0;
 			}
-		} else {
-			this.log("List did not scroll");
+			this.log("Scrolling to ", scrollTo);
+			this.$.articleList.scrollToIndex(scrollTo);
 		}
 	},
 
