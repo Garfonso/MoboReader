@@ -128,7 +128,7 @@ enyo.singleton({
             }
             setTimeout(function (activityId) {
                 this.dbActivityComplete(activityId, params.id, this, {
-                    success: true,
+                    success: method === "articleContentExists" ? !!(params.id && this.storage[params.id]) : true,
                     id: params.id,
                     content: params.id ? this.storage[params.id] : undefined,
                     activityId: activityId
