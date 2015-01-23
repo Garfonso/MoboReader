@@ -1,135 +1,145 @@
 /*
-+    App-specific LESS/CSS would go here, but to make your
-+    application easier to maintain, you should try to
-+    minimize the use of custom CSS.
++	App-specific LESS/CSS would go here, but to make your
++	application easier to maintain, you should try to
++	minimize the use of custom CSS.
 +*/
 
 .main-view {
 }
 
 .selected {
-    background-color: lightblue;
+	background-color: lightblue;
+}
+
+.popup-buttons {
+	display: block;
+	margin: 5px auto;
+	color: #f2f2f2;
+	background-color: #555656;
+	border-color: rgba(15, 15, 15, 0.5);
+	padding: 10px;
+	width: 100%;
 }
 
 //the next items are used to
 //keep images and videos from
 //overlapping and to center them.
 .RIL_IMG {
-    width: 90%;
-    display: block;
-    margin: 0 auto;
+	width: 90%;
+	display: block;
+	margin: 0 auto;
 }
 
 .RIL_IMG > img {
-    max-width: 100% !important; //reset max-width.
-    display: block;
-    margin: 0 auto;
+	max-width: 100% !important; //reset max-width.
+	display: block;
+	margin: 0 auto;
 }
 
 .RIL_VIDEO {
-    width: 100%;
-    display: block;
-    margin: 0 auto;
+	width: 100%;
+	display: block;
+	margin: 0 auto;
 }
 
 .RIL_VIDEO > object {
-    display: block;
-    margin: 0 auto;
+	display: block;
+	margin: 0 auto;
 }
 
 //make article view nicely.
 .article-container {
-    width: 80%;
-    height: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 30px 0px;
-    box-sizing: border-box;
-    overflow-wrap: normal;
+	width: 80%;
+	height: 100%;
+	max-width: 600px;
+	margin: 0 auto;
+	padding: 30px 0px;
+	box-sizing: border-box;
+	overflow-wrap: normal;
 }
 
 .article-container * {
-    max-width: 100%;
+	max-width: 100%;
 }
 
 .article-container table {
-    width: 100%;
-    table-layout: fixed;
+	width: 100%;
+	table-layout: fixed;
 }
 
 .article-container img {
-    max-width: 90%;
-    display: block;
-    margin: 0 auto;
+	max-width: 90%;
+	display: block;
+	margin: 0 auto;
 }
 
 //scroll article a bit higher.
 .article-container > div > *:last-child:after {
-    content: "";
-    display: block;
-    height: 60px;
+	content: "";
+	display: block;
+	height: 60px;
 }
 
 //hide the speed select in the spritz thingie.
 .spritzer-speed {
-    display: none;
+	display: none;
 }
 
 .spritz-container {
-    max-width: 430px;
-    width: 100%;
-    position: absolute;
-    top: 30%;
-    left: 50%;
-    margin-left: -215px;
+	max-width: 430px;
+	width: 100%;
+	position: absolute;
+	top: 30%;
+	left: 50%;
+	margin-left: -215px;
 }
 
 @media (max-width: 409px) {
-    .spritz-container {
-        max-width: 430px;
-        width: 100%;
-        position: absolute;
-        top: 30%;
-        left: 0px;
-        margin-left: 0px;
-    }
+	.spritz-container {
+		max-width: 430px;
+		width: 100%;
+		position: absolute;
+		top: 30%;
+		left: 0px;
+		margin-left: 0px;
+	}
 }
 
 .spritzer-container .spritzer-control-rewind,.spritzer-container .spritzer-control-begin{
-    width:30px;
-    height:30px;
-    background-image:url('../../assets/images/sprite.png');
-    background-position:0 -120px;
-    color:transparent !important;
+	width:30px;
+	height:30px;
+	background-image:url('../../assets/images/sprite.png');
+	background-position:0 -120px;
+	color:transparent !important;
 }
 
 .spritzer-container .spritzer-control-back{
-    width:30px;
-    height:30px;
-    background-image:url('../../assets/images/sprite.png');
-    background-position:0 0;
-    color:transparent !important;
+	width:30px;
+	height:30px;
+	background-image:url('../../assets/images/sprite.png');
+	background-position:0 0;
+	color:transparent !important;
 }
 .spritzer-container .spritzer-control-pauseplay,.spritzer-container .spritzer-control-play{
-    width:30px;
-    height:30px;
-    background-image:url('../../assets/images/sprite.png');
-    background-position:0 -90px;
-    color:transparent !important;
+	width:30px;
+	height:30px;
+	background-image:url('../../assets/images/sprite.png');
+	background-position:0 -90px;
+	color:transparent !important;
 }
 
 .spritzer-container .spritzer-control-forward{
-    width:30px;
-    height:30px;
-    background-image:url('../../assets/images/sprite.png');
-    background-position:0 -30px;
-    color:transparent !important;
+	width:30px;
+	height:30px;
+	background-image:url('../../assets/images/sprite.png');
+	background-position:0 -30px;
+	color:transparent !important;
 }
 
 .spritzer-container .spritzer-control-pause{
-    width:30px;
-    height:30px;
-    background-image:url('../../assets/images/sprite.png');
-    background-position:0 -60px;
-    color:transparent !important;
+	width:30px;
+	height:30px;
+	background-image:url('../../assets/images/sprite.png');
+	background-position:0 -60px;
+	color:transparent !important;
 }
