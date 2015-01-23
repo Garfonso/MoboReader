@@ -3,13 +3,16 @@
     application rendering should be deferred until DOM is ready by wrapping
     it in a call to enyo.ready().
 */
+/*jslint sloppy: true*/
+/*global enyo, moboreader */
 
 enyo.kind({
-    name: "moboreader.Application",
-    kind: "enyo.Application",
-    view: "moboreader.MainView"
+	name: "moboreader.Application",
+	kind: "enyo.Application",
+	view: "moboreader.MainView"
 });
 
 enyo.ready(function () {
-    new moboreader.Application({name: "app"});
+	enyo.LocalStorageSource.create({name: "LocalStorageSource", prefix: "moboreader-app"});
+	new moboreader.Application({name: "app"});
 });

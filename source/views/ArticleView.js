@@ -92,7 +92,8 @@ enyo.kind({
 			name: "spritzDialog",
 			kind: "SpritzDialog",
 			onScrollTo: "scrollTo",
-			onSpritzReady: "spritzReady"
+			onSpritzReady: "spritzReady",
+			onSpritzTranslutient: "spritzTranslutient"
 		},
 		{
 			kind: "enyo.Signals",
@@ -106,21 +107,21 @@ enyo.kind({
 		}
 	],
 	bindings: [
-		{from: ".articleModel.title", to: ".$.articleTitle.content"},
-		{from: "^moboreader.Prefs.useSpritz", to: ".$.spritzBtn.showing"},
+		{from: "articleModel.title", to: "$.articleTitle.content"},
+		{from: "^.moboreader.Prefs.useSpritz", to: "$.spritzBtn.showing"},
 
-		{from: ".articleModel.favorite", to: ".$.favButton.content", transform: function (val) {
+		{from: "articleModel.favorite", to: "$.favButton.content", transform: function (val) {
 			return val ? "Unfavorite" : "Favorite";
 		} },
-		{from: ".articleModel.archived", to: ".$.archiveButton.content", transform: function (val) {
+		{from: "articleModel.archived", to: "$.archiveButton.content", transform: function (val) {
 			return val ? "Re-Add" : "Archive";
 		} },
 
-		{from: "^.moboreader.Prefs.fontSize", to: ".$.articleContent.style", transform: function (val) {
+		{from: "^.moboreader.Prefs.fontSize", to: "$.articleContent.style", transform: function (val) {
 			return "font-size: " + val + "px;";
 		}},
 
-		{from: "^.moboreader.Spritz.wordCompleted", to: ".currentWord" }
+		{from: "^.moboreader.Spritz.wordCompleted", to: "currentWord" }
 	],
 	create: function () {
 		this.inherited(arguments);
@@ -326,5 +327,8 @@ enyo.kind({
 
 	spritzReady: function () {
 		this.$.spritzBtn.addClass("onyx-affirmative");
+	},
+	spritzTranslutient: function () {
+		this.reflow();
 	}
 });

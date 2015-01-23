@@ -2,24 +2,24 @@
 /*global ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
-    name: "moboreader.AuthModel",
-    kind: "enyo.Model",
-    defaultSource: "local",
-    defaults: {
-        needLogin: true,
-        accessToken: "",
-        lastSync: 0,
-        username: "", //only stored for informational value, like showing the user what user is logged in.
-        unsyncedActivities: []
-    }
+	name: "moboreader.AuthModel",
+	kind: "enyo.Model",
+	source: "LocalStorageSource",
+	attributes: {
+		needLogin: true,
+		accessToken: "",
+		lastSync: 0,
+		username: "", //only stored for informational value, like showing the user what user is logged in.
+		unsyncedActivities: []
+	}
 });
 
 enyo.kind({
-    name: "moboreader.Ajax",
-    kind: "enyo.Ajax",
-    contentType: "application/json; charset=UTF8",
-    headers: [{"X-Accept": "application/json"}],
-    timeout: 180000
+	name: "moboreader.Ajax",
+	kind: "enyo.Ajax",
+	contentType: "application/json; charset=UTF8",
+	headers: [{"X-Accept": "application/json"}],
+	timeout: 180000
 });
 
 enyo.kind({
@@ -343,7 +343,7 @@ enyo.kind({
             articleModel.set("host", inResponse.host);
             articleModel.commit();
 
-            if (moboreader.Prefs.downloadSpritzOnUpdate) {
+			if (moboreader.Prefs.useSpritz && moboreader.Prefs.downloadSpritzOnUpdate) {
                 moboreader.Spritz.downloadSpritzModel(articleModel, content);
             } else {
                 enyo.Signals.send("onArticleDownloaded", {

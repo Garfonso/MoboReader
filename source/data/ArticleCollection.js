@@ -2,104 +2,81 @@
 /*global parseArticle, ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
-    name: "moboreader.ArticleCollection",
-    kind: "enyo.Collection",
-    model: "moboreader.ArticleModel",
-    defaultSource: "local",
-    instanceAllRecords: true,
-    published: {
-        sortOrder: "newest"
-    },
-    bindings: [
-        {from: "^.moboreader.Prefs.sortOrder", to: ".sortOrder"}
-    ],
+	name: "moboreader.ArticleCollection",
+	kind: "enyo.Collection",
+	model: "moboreader.ArticleModel",
+	source: "LocalStorageSource",
+	published: {
+		sortOrder: "newest"
+	},
+	bindings: [
+		{from: "^.moboreader.Prefs.sortOrder", to: "sortOrder"}
+	],
+	sortField: "time_added",
+	sortDescending: false,
+	sortOrderToField: {
+		newest: "time_added",
+		oldest: "time_added",
+		title: "title",
+		url: "url"
+	},
+	sortOrderToDesc: {
+		newest: true
+	},
 
-    success: function (index) {
-        //this.log("Stored: ", index);
-        return index;
-    },
+	success: function (index) {
+		//this.log("Stored: ", index);
+		return index;
+	},
 
-    fail: function (index) {
-        this.error("Failed to store: ", index);
-    },
+	fail: function (index) {
+		console.error("Failed to store: ", index);
+	},
 
-    sortOrderChanged: function () {
-        this.resortCollection();
-    },
+	sortOrderChanged: function () {
+		this.sortField = this.sortOrderToField[this.sortOrder];
+		this.sortDescending = this.sortOrderToDesc[this.sortOrder];
+		if (this.length > 0) {
+			this.log("Sort order changed to " + this.sortOrder + ", firing sort.");
+			this.sort(this.comparator.bind(this));
+			this.commit({success: function () { console.log("Collection with " + this.length + " items stored after sort."); }.bind(this) });
+		} else {
+			this.log("Sort order changed to " + this.sortOrder + ", but collection empty, omitting sort.");
+		}
+	},
 
-    getSortKey: function () {
-        var field, desc;
-        switch (this.sortOrder) {
-        case "newest":
-            field = "time_added";
-            desc = true;
-            break;
-        case "oldest":
-            field = "time_added";
-            break;
-        case "title":
-            field = "title";
-            break;
-        case "url":
-            field = "url";
-            break;
-        }
+	comparator: function (r1, r2) {
+		if (!r1 || !r2) {
+			console.warn("r1 or r2 undefined in sort.");
+			return 0;
+		}
+		var v1, v2;
+		v1 = r1.attributes[this.sortField];
+		v2 = r2.attributes[this.sortField];
 
-        return {field: field, desc: desc };
-    },
+		if (v1 === v2) {
+			return 0;
+		}
+		if (v1 > v2) {
+			return this.sortDescending ? -1 : 1;
+		}
+		return this.sortDescending ? 1 : -1;
+	},
 
-    resortCollection: function () {
-        var recs = this.records.slice(), key = this.getSortKey(), field = key.field, desc = key.desc;
-        recs.sort(function (r1, r2) {
-            if (!r1 || !r2) {
-                return 0;
-            }
-            var v1, v2;
-            v1 = r1.attributes ? r1.attributes[field] : r1[field];
-            v2 = r2.attributes ? r2.attributes[field] : r2[field];
+	storeWithChilds: function () {
+		this.forEach(function (model, i) {
+			model.commit({
+				success: this.success.bind(this, i),
+				fail: this.fail.bind(this, i)
+			});
+		}, this);
 
-            if (v1 === v2) {
-                return 0;
-            }
-            if (v1 > v2) {
-                return desc ? -1 : 1;
-            }
-            return desc ? 1 : -1;
-        });
+		this.commit({
+			success: function () { console.log("Collection with " + this.length + " items stored."); }.bind(this)
+		});
 
-        //clear and add sorted recs.
-        this.removeAll();
-        this.add(recs);
-    },
-
-    storeWithChilds: function (added) {
-        var i, rec;
-        for (i = this.records.length - 1; i >= 0; i -= 1) {
-            rec = this.at(i);
-            if (!rec) {
-                console.error("record " + i + " was undefined!!");
-            } else {
-                if (!rec.commit) {
-                    console.error("record " + JSON.stringify(rec) + " had no commit method!");
-                } else {
-                    rec.commit({
-                        success: this.success.bind(this, i),
-                        fail: this.fail.bind(this, i)
-                    });
-                }
-            }
-        }
-
-        if (added) {
-            this.resortCollection();
-        }
-
-        enyo.store.sources[this.defaultSource].commit(this, {
-            success: function () {console.log("Collection stored."); }
-        });
-
-        this.cleanUpLocalStorage();
-    },
+		//this.cleanUpLocalStorage(); //why did I need that?
+	},
 
     idInCollection: function (id) {
         var i;
@@ -126,144 +103,104 @@ enyo.kind({
         }
     },
 
-    whipe: function () {
-        this.destroyAll();
+	whipe: function () {
+		this.empty([], {destroy: true});
 
-        if (typeof enyo.store.sources[this.defaultSource].storage === "function") {
-            var models = enyo.store.sources[this.defaultSource].storage().models, key;
-            for (key in models) {
-                if (models.hasOwnProperty(key)) {
-                    if (key !== "authModel") {
-                        delete models[key];
-                    }
-                }
-            }
-        }
-
-        //save changes.
-        this.storeWithChilds();
-    },
-
-    updateArticleContent: function (api) {
-        var i, rec;
-        for (i = 0; i < this.records.length; i += 1) {
-            rec = this.at(i);
-            this.log("Updating article conntent for article ", i, " with title ", rec ? rec.get("title") : "rec invalid");
-            if (rec) {
-                if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
-                    ArticleContentHandler.checkAndDownload(rec, api);
-                    /*if (!rec.get("content")) {
-                        this.log("Downloading content for ", rec.attributes.title);
-                        api.getArticleContent(rec);
-                    } else if (moboreader.Prefs.downloadSpritzOnUpdate && !rec.get("spritzModelPersist")) {
-                        this.log("Downloading spritz for ", rec.attributes.title);
-                        moboreader.Spritz.downloadSpritzModel(rec);
-                    } else {
-                        this.log(rec.attributes.title, " already complete.");
-                    }*/
-                } else {
-                    if (rec.attributes) {
-                        //delete data.
-                        delete rec.spritzModel;
-                        delete rec.spritzModelPersist;
-                        rec.spritzOk = false;
-                    }
-                }
-            }
-        }
-    },
-
-    addRightIndex: function (hash) {
-        var i, key = this.getSortKey(), field = key.field, desc = key.desc, rec, attributes;
-        hash = parseArticle(hash);
-
-        rec = enyo.store.findLocal("moboreader.ArticleModel", hash);
-        /*if (!rec.item_id) {
-            rec = rec[0];
-        }*/
-        //console.error("Article there: " + JSON.stringify(rec));
-        if (rec) {
-            console.warn("Article already present: " + hash.title, ", " + hash.url);
-            return rec;
-        }
-
-        for (i = 0; i < this.records.length; i += 1) {
-            this.log("i: ", i);
-            rec = this.at(i);
-            if (rec.attributes) {
-                attributes = rec.attributes;
-            } else {
-                attributes = rec;
-            }
-
-            if (!attributes) {
-                this.error("rec empty? " + JSON.stringify(rec));
-            } else {
-                if (desc) {
-                    if (attributes[field] < hash[field]) {
-                        this.log(attributes[field], " < ", hash[field], " => add at ", i);
-                        this.add(hash, i);
-                        return this.at(i);
-                    }
-                } else {
-                    if (attributes[field] > hash[field]) {
-                        this.log(attributes[field], " > ", hash[field], " => add at ", i);
-                        this.add(hash, i);
-                        return this.at(i);
-                    }
-                }
-            }
-        }
-        this.add(hash);
-        return this.at(this.length - 1);
-    },
-
-    cleanUp: function () {
-        var i, rec, attributes, deletedRecs = [];
-        for (i = 0; i < this.records.length; i += 1) {
-            rec = this.at(i);
-            if (rec.attributes) {
-                attributes = rec.attributes;
-            } else {
-                attributes = rec;
-            }
-
-            if (attributes.greyout) {
-                deletedRecs.push(rec);
-            }
-        }
-
-        if (deletedRecs && deletedRecs.length > 0) {
-            this.log("Removing: ", deletedRecs);
-            this.remove(deletedRecs);
-            deletedRecs.forEach(function (rec) {
-                rec.tryDestroy();
-            });
-        }
-    },
-
-	markAllArticlesUnfound: function () {
-		var rec, i;
-		for (i = 0; i < this.records.length; i += 1) {
-			rec = this.at(i);
-			rec.onServer = false;
-		}
-	},
-
-	cleanUpAfterSlowSync: function () {
-		var rec, i, deletedRecs = [];
-		for (i = 0; i < this.records.length; i += 1) {
-			rec = this.at(i);
-			if (!rec.onServer) {
-				deletedRecs.push(rec);
+		if (typeof enyo.sources[this.source].storage === "function") {
+			var models = enyo.sources[this.source].storage().models, key;
+			for (key in models) {
+				if (models.hasOwnProperty(key)) {
+					if (key !== "authModel") {
+						delete models[key];
+					}
+				}
 			}
 		}
 
-		if (deletedRecs && deletedRecs.length > 0) {
-			this.log("Deleted " + deletedRecs.length + " articles from full sync.");
-			this.remove(deletedRecs);
-			deletedRecs.forEach(function (rec) {
+		//save changes.
+		this.storeWithChilds();
+	},
+
+	updateArticleContent: function (api) {
+		this.forEach(function (model, i) {
+			if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
+				ArticleContentHandler.checkAndDownload(model, api);
+			} else {
+				//clean up memory a bit
+				delete model.spritzModel;
+				delete model.spritzModelPersist;
+				model.spritzOk = false;
+			}
+		});
+	},
+
+	//still sorting manually here, because that will go in O(n) instead of O(n*log(n))!
+	addRightIndex: function (hash) {
+		var model, index = this.length;
+		hash = parseArticle(hash);
+
+		model = enyo.store.resolve(moboreader.ArticleModel, hash.item_id);
+		if (model) {
+			console.warn("Article already present: " + hash.title, ", " + hash.url);
+			return model;
+		}
+
+		this.forEach(function (model, i) {
+			if (this.sortDescending) {
+				if (model.get(this.sortField) < hash[this.sortField]) { //hash has to be inserted before model
+					if (i < index) {
+						index = i;
+					}
+				}
+			} else {
+				if (model.get(this.sortField) > hash[this.sortField]) { //hash has to be inserted before model
+					if (i < index) {
+						index = i;
+					}
+				}
+			}
+		});
+
+		this.add(hash, {index: index}); //add to end.
+		return this.at(index);
+	},
+
+	cleanUp: function () {
+		var deletedModels = [];
+		this.forEach(function (model) {
+			if (model.get("greyout")) {
+				deletedModels.push(model);
+			}
+		});
+		
+		if (deletedModels && deletedModels.length > 0) {
+			this.log("Removing: ", deletedModels);
+			this.remove(deletedModels);
+			deletedModels.forEach(function (rec) {
 				rec.tryDestroy();
+			});
+		}
+	},
+
+	markAllArticlesUnfound: function () {
+		this.forEach(function (model) {
+			model.onServer = false;
+		});
+	},
+
+	cleanUpAfterSlowSync: function () {
+		var deletedModels = [];
+		this.forEach(function (model) {
+			if (!model.onServer) {
+				deletedModels.push(model);
+			}
+		});
+
+		if (deletedModels && deletedModels.length > 0) {
+			this.log("Deleted " + deletedModels.length + " articles from full sync.");
+			this.remove(deletedModels);
+			deletedModels.forEach(function (model) {
+				model.tryDestroy();
 			});
 		}
 	}

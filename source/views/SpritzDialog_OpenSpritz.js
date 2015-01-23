@@ -16,8 +16,8 @@ enyo.kind({
         running: ""
     },
     bindings: [
-        {from: ".$.spritz.running", to: ".$.scrim.showing"},
-        {from: ".$.spritz.running", to: ".running"}
+        {from: "$.spritz.running", to: "$.scrim.showing"},
+        {from: "$.spritz.running", to: "running"}
     ],
     wpm: 300,
     minWpm: 300,

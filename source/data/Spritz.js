@@ -13,7 +13,7 @@ enyo.singleton({
         username: "Login"
     },
     bindings: [
-        { from: "^.moboreader.Prefs.useSpritz", to: ".available" }
+        { from: "^.moboreader.Prefs.useSpritz", to: "available" }
     ],
     dlCounter: 0,
     initialized: false,

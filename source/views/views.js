@@ -16,11 +16,11 @@ enyo.kind({
 	},
 	activity: function () { return this.pocketDL || this.spritzDL || this.dbActivities; },
 	bindings: [
-		{from: ".$.api.active", to: ".pocketDL" },
-		{from: "^.moboreader.Spritz.numDownloading", to: ".spritzDL"},
-		{from: ".activity", to: ".$.activitySpinner.showing"},
-		{from: ".articleCollection.length", to: ".$.articleCount.content" },
-		{from: ".$.ArticleContentHandler.dbActivities", to: ".dbActivities" }
+		{from: "$.api.active", to: "pocketDL" },
+		{from: "^.moboreader.Spritz.numDownloading", to: "spritzDL"},
+		{from: "activity", to: "$.activitySpinner.showing"},
+		{from: "articleCollection.length", to: "$.articleCount.content" },
+		{from: "$.ArticleContentHandler.dbActivities", to: "dbActivities" }
 	],
 	components: [
 		{
@@ -164,8 +164,10 @@ enyo.kind({
 	],
 	create: function () {
 		this.inherited(arguments);
+		this.log("Create main views.");
 
 		function fetchResult() {
+			this.log("api collection fetch successful.");
 			//do this after fetch to prevent empty list in UI.
 			this.$.articleView.setCollection(this.articleCollection);
 			this.$.articleList.set("collection", this.articleCollection);
@@ -176,9 +178,9 @@ enyo.kind({
 				if (window.PalmSystem.allowResizeOnPositiveSpaceChange) {
 					window.PalmSystem.allowResizeOnPositiveSpaceChange(false); //deactivate keyboard resizing our app.
 				}
-				this.error("Launch Params: " + JSON.stringify(webos.launchParams()));
+				this.log("Launch Params: " + JSON.stringify(webos.launchParams()));
 				if (webos.launchParams().url) {
-					this.error("Adding article: " + webos.launchParams().url);
+					this.log("Adding article: " + webos.launchParams().url);
 					this.$.api.addArticle(webos.launchParams().url, this.articleCollection);
 				}
 			}

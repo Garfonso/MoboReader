@@ -12,14 +12,14 @@ enyo.kind({
         onLogoutRequest: ""
     },
     bindings: [
-        { from: "^.moboreader.Prefs.maxDownloadedArticles", to: ".$.maxEntries.inVal", oneWay: false},
-        {from: "^.moboreader.Prefs.sortOrder", to: ".$.sortOrder.inVal", oneWay: false  },
+        { from: "^.moboreader.Prefs.maxDownloadedArticles", to: "$.maxEntries.inVal", oneWay: false},
+        {from: "^.moboreader.Prefs.sortOrder", to: "$.sortOrder.inVal", oneWay: false  },
 
-        {from: "^.moboreader.Prefs.fontSize", to: ".$.fontSize.inVal", oneWay: false  },
-        {from: "^.moboreader.Prefs.goBackOnArchive", to: ".$.goBackOnArchive.checked", oneWay: false  },
+        {from: "^.moboreader.Prefs.fontSize", to: "$.fontSize.inVal", oneWay: false  },
+        {from: "^.moboreader.Prefs.goBackOnArchive", to: "$.goBackOnArchive.checked", oneWay: false  },
 
-        {from: "^.moboreader.Prefs.useSpritz", to: ".$.useSpritz.checked", oneWay: false  },
-        {from: "^.moboreader.Prefs.downloadSpritzOnUpdate", to: ".$.downloadSpritzOnUpdate.checked", oneWay: false  }
+        {from: "^.moboreader.Prefs.useSpritz", to: "$.useSpritz.checked", oneWay: false  },
+        {from: "^.moboreader.Prefs.downloadSpritzOnUpdate", to: "$.downloadSpritzOnUpdate.checked", oneWay: false  }
     ],
     components: [
         {
