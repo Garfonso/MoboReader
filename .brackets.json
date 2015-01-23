@@ -1,19 +1,11 @@
 {
-    "JSLint.skipBlankLines": false,
-    "JSLint.options": {
-        "sloppy": true,
-        "browser": true,
-        "devel": true,
-        "predef": {
-            "enyo": false,
-            "moboreader": false,
-            "SPRITZ": false,
-            "SpritzClient": false,
-            "webos": false
-		}
-    },
     "jscodehints.detectedExclusions": [
         "D:/Dropbox/workspace/MoboReader/deploy/build/enyo.js",
-        "D:/Dropbox/workspace/MoboReader/source/views/IFrameWebView.js"
+        "D:/Dropbox/workspace/MoboReader/enyo/source/dom/platform.js",
+        "D:/Dropbox/workspace/MoboReader/enyo/source/ext/BooleanBinding.js",
+        "D:/Dropbox/workspace/MoboReader/deploy/build/app.js",
+        "D:/Dropbox/workspace/MoboReader/enyo/source/dom/Control.js",
+        "D:/Dropbox/workspace/MoboReader/enyo/source/kernel/mixins/ProxyObject.js",
+        "D:/Dropbox/workspace/MoboReader/enyo/source/boot/boot.js"
     ]
 }
