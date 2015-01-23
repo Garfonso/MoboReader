@@ -1,4 +1,4 @@
-/*jslint sloppy: true, devel: true */
+/*jslint sloppy: true, devel: true, browser: true */
 /*global ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
@@ -182,6 +182,8 @@ enyo.kind({
         this.offset = 0;
         if (slow) {
             this.authModel.set("lastSync", 0);
+			this.slowRefresh = true;
+			collection.markAllArticlesUnfound();
         }
         this.added = 0;
 
@@ -251,7 +253,8 @@ enyo.kind({
                         }
                     } else {
                         //console.error("Adding: " + JSON.stringify(article));
-                        collection.addRightIndex(article);
+                        rec = collection.addRightIndex(article);
+						rec.onServer = true;
                         this.added += 1;
                     }
                 }
@@ -261,6 +264,9 @@ enyo.kind({
             if (listLength > 0) {
                 this.downloadArticlesInner(collection);
             } else {
+				if (this.slowRefresh) {
+					collection.cleanUpAfterSlowSync();
+				}
                 collection.storeWithChilds(); //sort not necessary anymore, articles will be added at right index during download.
                 this.authModel.set("lastSync", inResponse.since || 0);
 

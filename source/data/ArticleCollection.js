@@ -1,4 +1,4 @@
-/*jslint sloppy: true, devel: true */
+/*jslint sloppy: true, devel: true, browser: true */
 /*global parseArticle, ArticleContentHandler, enyo, moboreader */
 
 enyo.kind({
@@ -221,7 +221,6 @@ enyo.kind({
     cleanUp: function () {
         var i, rec, attributes, deletedRecs = [];
         for (i = 0; i < this.records.length; i += 1) {
-            this.log("i: ", i);
             rec = this.at(i);
             if (rec.attributes) {
                 attributes = rec.attributes;
@@ -241,5 +240,31 @@ enyo.kind({
                 rec.tryDestroy();
             });
         }
-    }
+    },
+
+	markAllArticlesUnfound: function () {
+		var rec, i;
+		for (i = 0; i < this.records.length; i += 1) {
+			rec = this.at(i);
+			rec.onServer = false;
+		}
+	},
+
+	cleanUpAfterSlowSync: function () {
+		var rec, i, deletedRecs = [];
+		for (i = 0; i < this.records.length; i += 1) {
+			rec = this.at(i);
+			if (!rec.onServer) {
+				deletedRecs.push(rec);
+			}
+		}
+
+		if (deletedRecs && deletedRecs.length > 0) {
+			this.log("Deleted " + deletedRecs.length + " articles from full sync.");
+			this.remove(deletedRecs);
+			deletedRecs.forEach(function (rec) {
+				rec.tryDestroy();
+			});
+		}
+	}
 });
