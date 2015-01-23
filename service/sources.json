@@ -31,5 +31,8 @@
 	},
 	{
 		"source": "assistants/WipeStorageAssistant.js"
+	},
+	{
+		"source": "assistants/DownloadSpritzAssistant.js"
 	}
 ]
