@@ -1,4 +1,4 @@
-/*jslint sloppy: true, browser: true*/
+/*jslint sloppy: true, browser: true, devel: true*/
 /*global enyo, webos, moboreader*/
 
 enyo.kind({
@@ -83,6 +83,7 @@ enyo.kind({
 					style: "display: inline-block; margin-left: 70px; padding-top: 4px;",
 					content: "",
 					showing: true,
+					allowHtml: true,
 					ontap: "onTap"
 				},
 				{
@@ -194,7 +195,7 @@ enyo.kind({
 		this.showWPM(Math.floor(this.wpm), realWpm);
 	},
 	showWPM: function (wpm, realWpm) {
-		this.$.wpmDisplay.setContent("WPM: " + realWpm + (wpm !== realWpm ? " (Login to go faster)" : ""));
+		this.$.wpmDisplay.setContent("WPM: " + realWpm + (wpm !== realWpm ? " <div style=\"font-size:small; display:inline;\">(Login to go faster)</div>" : ""));
 	},
 
 	drag: function (inSender, inEvent) {

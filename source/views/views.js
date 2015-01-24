@@ -267,6 +267,7 @@ enyo.kind({
 		this.$.MainPanels.setIndex(0);
 		this.$.settingsDialog.hide();
 
+		//this only works, because I hacked enyo/source/ui/data/VerticalDelegate.js scrollToIndex to always scroll to top, i.e. replaced line 291 wiht list.$.scroller.scrollIntoView(c, true);
 		if (this.lastArticle) {
 			var scrollTo = this.articleCollection.indexOf(this.lastArticle);
 			scrollTo -= 5; //list will scroll to top, allow some articles above it to show up, too.
@@ -296,6 +297,8 @@ enyo.kind({
 		this.$.MainPanels.setIndex(2);
 	},
 	hideAuth: function () {
-		this.$.MainPanels.setIndex(this.lastPanelIndex || 0);
+		if (this.$.MainPanels.getIndex() === 2) {
+			this.$.MainPanels.setIndex(this.lastPanelIndex || 0);
+		}
 	}
 });
