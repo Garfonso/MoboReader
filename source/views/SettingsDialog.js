@@ -16,7 +16,7 @@ enyo.kind({
 	},
 	bindings: [
 		{ from: "^.moboreader.Prefs.maxDownloadedArticles", to: "$.maxEntries.inVal", oneWay: false},
-		{ from: "^.ArticleContentHandler.isWebOS", to: "$.maxEntries.showing", transform: function (val) { return !val; } },
+		{ from: "^.ArticleContentHandler.isWebos", to: "$.maxEntries.showing", transform: function (val) { return !val; } },
 		{from: "^.moboreader.Prefs.sortOrder", to: "$.sortOrder.inVal", oneWay: false  },
 
 		{from: "^.moboreader.Prefs.fontSize", to: "$.fontSize.inVal", oneWay: false  },
