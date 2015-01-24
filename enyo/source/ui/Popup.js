@@ -297,8 +297,8 @@
 				// if this is a rendered floating popup, remove the node from the
 				// floating layer because it won't be removed otherwise
 				var node = this.hasNode();
-				if(this.floating && node) {
-					this.node.remove();
+				if(this.floating && node && node.remove) {
+					node.remove();
 				}
 
 				sup.apply(this, arguments);	
