@@ -24,6 +24,8 @@ enyo.kind({
 			touch: true,
 			thumb: true,
 			classes: "enyo-fill",
+			horizontal: "scroll",
+			vertical: "scroll",
 			components: [
 				{
 					name: "iframe",
