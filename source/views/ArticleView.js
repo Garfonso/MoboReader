@@ -329,6 +329,6 @@ enyo.kind({
 		this.$.spritzBtn.addClass("onyx-affirmative");
 	},
 	spritzTranslutient: function () {
-		this.reflow();
+		setTimeout(this.resize.bind(this), 100);
 	}
 });

@@ -1,5 +1,5 @@
-	/*jslint sloppy: true, browser: true */
-	/*global enyo, $, SpritzSettings, moboreader, SpritzClient, SPRITZ */
+/*jslint sloppy: true, browser: true */
+/*global enyo, $, SpritzSettings, moboreader, SpritzClient, SPRITZ */
 
 enyo.singleton({
 	name: "moboreader.Spritz",
@@ -17,6 +17,7 @@ enyo.singleton({
 	],
 	dlCounter: 0,
 	initialized: false,
+	basePath: "",
 
 	availableChanged: function () {
 		this.log("Need to activate Spritz: ", moboreader.Prefs.useSpritz);
@@ -86,7 +87,8 @@ enyo.singleton({
 			script = document.createElement("script");
 		script.type = "text/javascript";
 		script.charset = "utf-8";
-		script.src = "assets/jslibraries/" + name;
+		script.src = this.basePath + "assets/jslibraries/" + name;
+		this.log("Script source: " + script.src);
 		if (id) {
 			script.id = id;
 		}

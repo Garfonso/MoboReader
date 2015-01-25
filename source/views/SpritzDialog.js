@@ -173,9 +173,9 @@ enyo.kind({
 
 		if (moboreader.Spritz.isRunning()) {
 			moboreader.Spritz.pause();
-			this.doSpritzTranslutient({});
 		} else {
 			if (inEvent.clientY > this.node.clientHeight - 58) {
+				this.doSpritzTranslutient({});
 				this.hide();
 				return;
 			}
