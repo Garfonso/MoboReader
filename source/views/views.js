@@ -1,6 +1,8 @@
 /*jslint sloppy: true, browser: true */
 /*global ArticleContentHandler, enyo, webos, moboreader */
 
+var LIST_ITEM_HEIGHT = 50;
+
 enyo.kind({
 	name: "moboreader.MainView",
 	kind: "FittableRows",
@@ -71,7 +73,7 @@ enyo.kind({
 								horizontal: "hidden",
 								touch: true
 							},
-							fixedChildSize: 50,
+							fixedChildSize: LIST_ITEM_HEIGHT,
 							components: [
 								{kind: "moboreader.ArticleListItem" }
 							]
@@ -270,8 +272,11 @@ enyo.kind({
 
 		//this only works, because I hacked enyo/source/ui/data/VerticalDelegate.js scrollToIndex to always scroll to top, i.e. replaced line 291 wiht list.$.scroller.scrollIntoView(c, true);
 		if (this.lastArticle) {
-			var scrollTo = this.articleCollection.indexOf(this.lastArticle);
-			scrollTo -= 5; //list will scroll to top, allow some articles above it to show up, too.
+			var scrollTo = this.articleCollection.indexOf(this.lastArticle),
+				listHeight = this.$.articleList.getBounds().height,
+				numArticlesOnScreen = listHeight / LIST_ITEM_HEIGHT;
+
+			scrollTo -= Math.round((numArticlesOnScreen - 1) / 2); //list will scroll to top, allow some articles above it to show up, too.
 
 			if (scrollTo >= this.articleCollection.length) {
 				scrollTo = this.articleCollection.length - 1;
