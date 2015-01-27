@@ -13,7 +13,7 @@ enyo.kind({
 		{from: "^.moboreader.Prefs.sortOrder", to: "sortOrder"}
 	],
 	sortField: "time_added",
-	sortDescending: false,
+	sortDescending: true,
 	sortOrderToField: {
 		newest: "time_added",
 		oldest: "time_added",
@@ -172,7 +172,7 @@ enyo.kind({
 				deletedModels.push(model);
 			}
 		});
-		
+
 		if (deletedModels && deletedModels.length > 0) {
 			this.log("Removing: ", deletedModels);
 			this.remove(deletedModels);
