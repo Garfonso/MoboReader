@@ -206,7 +206,7 @@ enyo.kind({
 			this.warn("No url supplied. Can't add article.");
 		}
 		this.$.api.addArticle(inEvent.url, this.articleCollection, inEvent.title);
-		this.resize();
+		//this.resize();
 	},
 
 	refreshTap: function (inSender, inEvent, slowSync) {
