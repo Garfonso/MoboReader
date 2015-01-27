@@ -335,10 +335,7 @@ enyo.kind({
 		}
 
 		articleModel.downloadingContent = false;
-		//remove links from images:
 		var content = inResponse.article;
-		//content = content.replace(/<a href=[^<]+?><div/gim, "<div");
-		//content = content.replace(/div><\/a>/gim, "div>");
 
 		//add . to end of headings:
 		content = content.replace(/([^.?!])\s*?<\s*?\/(h\d|strong|p)\s*?>/gim, "$1<span style=\"display:none;\">.</span></$2>");
@@ -346,7 +343,7 @@ enyo.kind({
 		if (!articleModel.attributes || !articleModel.previous) {
 			this.log("Article was already destroyed.");
 		} else {
-			articleModel.set("host", inResponse.host);
+			articleModel.parseArticleContent(inResponse);
 			articleModel.commit();
 
 			if (moboreader.Prefs.useSpritz && moboreader.Prefs.downloadSpritzOnUpdate) {
