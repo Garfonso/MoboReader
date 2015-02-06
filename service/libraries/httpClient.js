@@ -272,14 +272,14 @@ var httpClient = (function () {
 			}
 
 			retries[origin].received = true;
-			//Log.log_calDavDebug("Body: " + body);
+			Log.log_calDavDebug("Body: " + body.toString("utf8"));
 
 			var result = {
 				returnValue: (res.statusCode < 400),
 				etag: res.headers.etag,
 				returnCode: res.statusCode,
 				headers: res.headers,
-				body: body,
+				body: options.binary ? body : body.toString("utf8"),
 				uri: options.prefix + options.path
 			};
 			if (options.path.indexOf(":/") >= 0) {
@@ -338,7 +338,6 @@ var httpClient = (function () {
 			res = inRes;
 			Log.log_calDavDebug("STATUS: ", res.statusCode, " for ", reqName(origin, retry));
 			Log.log_calDavDebug("HEADERS: ", res.headers, " for ", reqName(origin, retry));
-			//res.setEncoding("utf8");
 			res.on("data", dataCB);
 			res.on("end", function (e) { //sometimes this does not happen. One reason are empty responses..?
 				Log.log_calDavDebug("res-end successful: ", e);
@@ -362,7 +361,15 @@ var httpClient = (function () {
 				var result = checkResult(future), req;
 				if (result.returnValue) {
 					if (data) {
-						options.headers["Content-Length"] = Buffer.byteLength(data, "utf8"); //get length of string encoded as utf8 string.
+						if (data instanceof Buffer) {
+							options.headers["Content-Length"] = data.length; //write length of buffer to header.
+						} else if (typeof data === "object") {
+							//uhm?
+							data = JSON.stringify(data);
+						}
+						if (typeof data === "string") {
+							options.headers["Content-Length"] = Buffer.byteLength(data, "utf8"); //get length of string encoded as utf8 string.
+						}
 					}
 
 					Log.log_calDavDebug("Sending request ", reqName(origin, retry), " with data ", data, " to server.");
@@ -392,7 +399,11 @@ var httpClient = (function () {
 
 					// write data to request body
 					if (data) {
-						req.write(data, "utf8");
+						if (data instanceof Buffer) {
+							req.write(data);
+						} else {
+							req.write(data, "utf8");
+						}
 					}
 					req.end();
 				} else {

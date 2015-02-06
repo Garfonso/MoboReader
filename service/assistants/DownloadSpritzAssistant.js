@@ -20,7 +20,8 @@ DownloadSpritzAssistant.prototype.modifyCss = function (css) {
 var downloadFile = function (params) {
 	"use strict";
 	var options = {
-			headers: {}
+			headers: {},
+			binary: true
 		},
 		future = new Future();
 	httpClient.parseURLIntoOptions(params.url, options);

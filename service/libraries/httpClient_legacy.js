@@ -213,13 +213,13 @@ var httpClient = (function () {
 			}
 
 			retries[origin].received = true;
-			//Log.log_calDavDebug("Body: " + body);
+			Log.log_calDavDebug("Body: " + body.toString("utf8"));
 
 			result = {
 				returnValue: (res.statusCode < 400),
 				etag: res.headers.etag,
 				returnCode: res.statusCode,
-				body: body,
+				body: options.binary ? body : body.toString("utf8"),
 				headers: res.headers,
 				uri: options.prefix + options.path
 			};
@@ -279,7 +279,6 @@ var httpClient = (function () {
 			res = inRes;
 			Log.log_calDavDebug("STATUS: ", res.statusCode, " for ", reqName(origin, retry));
 			Log.log_calDavDebug("HEADERS: ", res.headers, " for ", reqName(origin, retry));
-			//res.setEncoding("utf8");
 			addListenerOnlyOnce(res, "data", dataCB);
 			addListenerOnlyOnce(res, "end", function (e) { //sometimes this does not happen. One reason are empty responses..?
 				Log.log_calDavDebug("res-end successful: ", e);
@@ -315,7 +314,15 @@ var httpClient = (function () {
 
 		function doSendRequest() {
 			if (data) {
-				options.headers["Content-Length"] = Buffer.byteLength(data, "utf8"); //get length of string encoded as utf8 string.
+				if (data instanceof Buffer) {
+					options.headers["Content-Length"] = data.length; //write length of buffer to header.
+				} else if (typeof data === "object") {
+					//uhm?
+					data = JSON.stringify(data);
+				}
+				if (typeof data === "string") {
+					options.headers["Content-Length"] = Buffer.byteLength(data, "utf8"); //get length of string encoded as utf8 string.
+				}
 			}
 
 			Log.log_calDavDebug("Sending request ", reqName(origin, retry), " with data ", data, " to server.");
@@ -366,7 +373,11 @@ var httpClient = (function () {
 
 			// write data to request body
 			if (data) {
-				req.write(data, "utf8");
+				if (data instanceof Buffer) {
+					req.write(data);
+				} else {
+					req.write(data, "utf8");
+				}
 			}
 			req.end();
 		}
