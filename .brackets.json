@@ -6,6 +6,8 @@
         "D:/Dropbox/workspace/MoboReader/deploy/build/app.js",
         "D:/Dropbox/workspace/MoboReader/enyo/source/dom/Control.js",
         "D:/Dropbox/workspace/MoboReader/enyo/source/kernel/mixins/ProxyObject.js",
-        "D:/Dropbox/workspace/MoboReader/enyo/source/boot/boot.js"
+        "D:/Dropbox/workspace/MoboReader/enyo/source/boot/boot.js",
+        "D:/Dropbox/workspace/MoboReader/enyo/*",
+        "D:/Dropbox/workspace/MoboReader/enyo/samples/PageVisibilitySample.js"
     ]
 }
