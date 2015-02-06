@@ -1,0 +1,70 @@
+/*for Pre3: */
+@media (max-width: 489px) {
+	.spritz-container {
+		box-sizing: border-box;
+		left: 0;
+		margin-left: 0;
+		max-width: 480px;
+		position: absolute;
+		text-align: center;
+		top: 30%;
+		width: 100%;
+	}
+
+	.spritz-text-progressbar {
+		box-sizing: border-box;
+		display: block;
+		height: 5px;
+		left: 0;
+		margin: 0 auto;
+		position: absolute;
+		top: 160px;
+		width: 100%;
+	}
+
+	.spritz-wpm-text {
+		box-sizing: border-box;
+		color: black;
+		padding-right: 10px;
+		position: absolute;
+		right: 0;
+		text-align: right;
+		top: 125px;
+	}
+}
+
+/*for Veer and Pre-/+/2 */
+@media (max-width: 409px) {
+	.spritz-container {
+		box-sizing: border-box;
+		left: 0;
+		margin-left: 0;
+		max-width: 430px;
+		position: absolute;
+		text-align: center;
+		top: 10%;
+		width: 100%;
+	}
+
+	.spritz-text-progressbar {
+		box-sizing: border-box;
+		display: block;
+		height: 5px;
+		left: 0;
+		margin: 0 auto;
+		position: absolute;
+		top: 150px;
+		width: 100%;
+	}
+
+	.spritz-wpm-text {
+		box-sizing: border-box;
+		color: black;
+		padding-right: 5px;
+		position: absolute;
+		right: 0;
+		text-align: right;
+		top: 115px;
+	}
+}
+

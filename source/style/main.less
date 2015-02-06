@@ -21,6 +21,60 @@
 	width: 100%;
 }
 
+.spritz-login-button {
+	display: inline-block;
+	float: right;
+	height: 1.5em;
+	padding: 0px 5px;
+	margin-right: 15px;
+	margin-top: 9px;
+}
+
+.spritz-dialog-exit {
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	height: 56px; //height of Toolbar
+	color: #f2f2f2;
+	background-color: #555656;
+	border-color: rgba(15, 15, 15, 0.5);
+}
+
+.spritz-dialog-faster-text {
+	display: block;
+	position: absolute;
+	bottom: 60px;
+	right: 0px;
+	text-align: right;
+	color: red;
+	padding: 0 10px;
+}
+
+.spritz-dialog-slower-text {
+	display: block;
+	position: absolute;
+	bottom: 60px;
+	left: 0px;
+	text-align: left;
+	color: blue;
+	padding: 0 10px;
+}
+
+.spritz-transparent-scrim {
+	z-index: -2;
+	background-color: darkgrey;
+	width: 100%;
+	padding: 0px;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	opacity: 0.5;
+}
+
 //the next items are used to
 //keep images and videos from
 //overlapping and to center them.
@@ -83,76 +137,4 @@
 //hide the speed select in the spritz thingie.
 .spritzer-speed {
 	display: none;
-}
-
-.spritz-container {
-	max-width: 430px;
-	width: 100%;
-	position: absolute;
-	top: 30%;
-	left: 50%;
-	margin-left: -215px;
-}
-
-//for Pre3:
-@media (max-width: 489px) {
-	.spritz-container {
-		max-width: 430px;
-		width: 100%;
-		position: absolute;
-		top: 30%;
-		left: 50%;
-		margin-left: -230px;
-	}
-}
-
-//for Veer and Pre-/+/2
-@media (max-width: 409px) {
-	.spritz-container {
-		max-width: 430px;
-		width: 100%;
-		position: absolute;
-		top: 10%;
-		left: 0px;
-		margin-left: 0px;
-	}
-}
-
-.spritzer-container .spritzer-control-rewind,.spritzer-container .spritzer-control-begin{
-	width:30px;
-	height:30px;
-	background-image:url('../../assets/images/sprite.png');
-	background-position:0 -120px;
-	color:transparent !important;
-}
-
-.spritzer-container .spritzer-control-back{
-	width:30px;
-	height:30px;
-	background-image:url('../../assets/images/sprite.png');
-	background-position:0 0;
-	color:transparent !important;
-}
-.spritzer-container .spritzer-control-pauseplay,.spritzer-container .spritzer-control-play{
-	width:30px;
-	height:30px;
-	background-image:url('../../assets/images/sprite.png');
-	background-position:0 -90px;
-	color:transparent !important;
-}
-
-.spritzer-container .spritzer-control-forward{
-	width:30px;
-	height:30px;
-	background-image:url('../../assets/images/sprite.png');
-	background-position:0 -30px;
-	color:transparent !important;
-}
-
-.spritzer-container .spritzer-control-pause{
-	width:30px;
-	height:30px;
-	background-image:url('../../assets/images/sprite.png');
-	background-position:0 -60px;
-	color:transparent !important;
 }

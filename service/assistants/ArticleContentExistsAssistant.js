@@ -1,4 +1,4 @@
-/*global Utils, fs, log*/
+/*global Utils, fs, Log, Config*/
 var ArticleContentExistsAssistant = function () { "use strict"; };
 
 ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
@@ -10,7 +10,7 @@ ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
 		return outerfuture;
 	}
 
-	filename = Utils.getFileName(args.id);
+	filename = Utils.getArticlePath(args.id) + Config.contentFilename;
 
 	fs.readFile(filename, function (err, content) {
 		var obj;
@@ -20,10 +20,10 @@ ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
 			try {
 				obj = JSON.parse(content);
 			} catch (e) {
-				log("Error during parse: " + e.message);
+				Log.log("Error during parse: " + e.message);
 				outerfuture.result = {success: false, message: JSON.stringify(e), activityId: args.activityId};
 			}
-			log("Id " + args.id + " dl ok: " + ((!!obj.web) && ((!!obj.spritz) || !args.requireSpritz)));
+			Log.debug("Id " + args.id + " dl ok: " + ((!!obj.web) && ((!!obj.spritz) || !args.requireSpritz)));
 			outerfuture.result = {
 				success: (!!obj.web) && ((!!obj.spritz) || !args.requireSpritz),
 				id: args.id,

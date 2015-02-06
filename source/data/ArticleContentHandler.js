@@ -36,13 +36,14 @@ enyo.singleton({
 		this.setIsWebos(!!window.PalmSystem);
 	},
 
-	storeArticle: function (articleModel, webContent, spritzContent) {
+	storeArticle: function (articleModel, webContent, spritzContent, images) {
 		this.activityId += 1;
 
 		if (!webContent || !spritzContent) {
 			this.gettingToStore[this.activityId] = {
 				model: articleModel,
 				webContent: webContent,
+				images: images,
 				spritzContent: spritzContent,
 				getId: this.getContent(articleModel) //getting content from DB to augment it.
 			};
@@ -51,7 +52,8 @@ enyo.singleton({
 			this.privateGenericSend(articleModel, "storeArticleContent", {
 				content: {
 					web: webContent,
-					spritz: spritzContent
+					spritz: spritzContent,
+					images: images
 				},
 				activityId: this.activityId
 			});
@@ -67,6 +69,7 @@ enyo.singleton({
 				this.debugOut("Got article content!");
 				content.web = obj.webContent || content.web;
 				content.spritz = obj.spritzContent || content.spritz;
+				content.images = obj.images || content.images;
 				this.setDbActivities(this.dbActivities + 1);
 
 				this.privateGenericSend(obj.model, "storeArticleContent", {
@@ -172,7 +175,7 @@ enyo.singleton({
 	contentDownloaded: function (inSender, inEvent) {
 		/*jslint unparam: true */
 		this.debugOut("Download finished: " + inEvent.model.attributes.item_id);
-		this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz);
+		this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz, inEvent.content.images);
 
 		if (this.needDL.length > 0) {
 			var obj = this.needDL.shift();

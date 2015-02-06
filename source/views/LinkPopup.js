@@ -8,6 +8,9 @@ enyo.kind({
 	published: {
 		url: ""
 	},
+	event: {
+		onButtonTapped: ""
+	},
 
 	components: [
 		{
@@ -22,13 +25,13 @@ enyo.kind({
 		}
 	],
 	openLink: function () {
-		this.log("opening linkg...");
 		window.open(this.url);
 		this.hide();
+		this.doButtonTapped({});
 	},
 	addLink: function () {
-		this.log("Adding arcticle.");
 		enyo.Signals.send("onAddArticle", {url: this.url});
 		this.hide();
+		this.doButtonTapped({});
 	}
 });

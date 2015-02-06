@@ -5,9 +5,7 @@ enyo.kind({
 	name: "IFrameWebView",
 	published: {
 		/** url for page, updated as user navigates, relative URLs not allowed */
-		url: "",
-		/** boolean, allow page to run javascript */
-		enableJavascript: true
+		url: ""
 	},
 	events: {
 		onPageTitleChanged: "",
@@ -108,9 +106,6 @@ enyo.kind({
 		}
 	},
 
-	contentResized: function (inEvent) {
-		this.log("Content  resized: ", inEvent);
-	},
 	pageLoaded: function (inSender, inEvent) {
 		/*jslint unparam:true*/
 		this.log("Page loaded: ", inEvent);
@@ -170,37 +165,6 @@ enyo.kind({
 			}.bind(this);
 		} else {
 			throw "Unknown mode...??";
-		}
-	},
-	enableJavascriptChanged: function () {
-		var sandbox = this.$.iframe.getAttribute("sandbox"),
-			seperator = " ",
-			parts,
-			partsNew = [];
-		if (!sandbox) {
-			sandbox = "";
-			seperator = "";
-		}
-
-		if (this.enableJavascript) {
-			if (sandbox.indexOf("allow-scripts") < 0) {
-				this.$.iframe.setAttribute("sandbox", sandbox + seperator + "allow-scripts");
-			} else {
-				this.log("JavaScript was already enabled?");
-			}
-		} else {
-			if (sandbox.indexOf("allow-scripts") >= 0) {
-				parts = sandbox.split(seperator);
-				parts.forEach(function (part) {
-					if (part !== "allow-scripts") {
-						partsNew.push(part);
-					}
-				});
-				sandbox = partsNew.join(" ");
-				this.$.iframe.setAttribute("sandbox", sandbox);
-			} else {
-				this.log("JavaScript was already disabled?");
-			}
 		}
 	},
 	hideAll: function () {

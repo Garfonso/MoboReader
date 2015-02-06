@@ -51,7 +51,7 @@ enyo.kind({
 			}.bind(this), 1000);
 		} else {
 			this.authModel.addListener("change", this.bindSafely("storeModel"));
-			console.error("Having " + this.authModel.attributes.unsyncedActivities.length + " unsynced activities");
+			console.log("Having " + this.authModel.attributes.unsyncedActivities.length + " unsynced activities");
 		}
 	},
 	storeModel: function () {
@@ -236,11 +236,7 @@ enyo.kind({
 			for (key in list) {
 				if (list.hasOwnProperty(key)) {
 					listLength += 1;
-					this.log("processing: " + key);
 					article = list[key];
-
-					this.log("Content: ", article);
-
 
 					if (article.status !== "0") { //2 => delete, 1 => archive. => if not 0, delete.
 						model = enyo.store.resolve(moboreader.ArticleModel, article.item_id);
@@ -261,6 +257,7 @@ enyo.kind({
 						//console.error("Adding: " + JSON.stringify(article));
 						model = collection.addRightIndex(article);
 						model.onServer = true;
+						ArticleContentHandler.checkAndDownload(model, this);
 						this.added += 1;
 					}
 				}
@@ -311,7 +308,7 @@ enyo.kind({
 		data = {
 			consumer_key: this.consumerKey,
 			access_token: this.authModel.get("accessToken"),
-			images: 1,
+			images: ArticleContentHandler.isWebos ? 0 : 1,
 			videos: 1,
 			refresh: articleModel.get("content") === undefined ? 0 : 1,
 			url: articleModel.get("url"), //if available uses resolved url, otherwise any other URL source.
@@ -346,12 +343,12 @@ enyo.kind({
 			articleModel.parseArticleContent(inResponse);
 			articleModel.commit();
 
-			if (moboreader.Prefs.useSpritz && moboreader.Prefs.downloadSpritzOnUpdate) {
-				moboreader.Spritz.downloadSpritzModel(articleModel, content);
+			if (moboreader.Prefs.useSpritz && moboreader.Prefs.downloadSpritzOnUpdate && moboreader.Spritz.getAvailable()) {
+				moboreader.Spritz.downloadSpritzModel(articleModel, {web: content, images: inResponse.images});
 			} else {
 				enyo.Signals.send("onArticleDownloaded", {
 					id: articleModel.get(articleModel.primaryKey),
-					content: {web: content},
+					content: {web: content, images: inResponse.images},
 					model: articleModel
 				});
 			}
@@ -498,13 +495,10 @@ enyo.kind({
 			switch (obj.action) {
 			case "add":
 				//try to add. Not sure that really works. Add call wants item id??
-				this.log("Adding: ", result);
 				articleModel = collection.addRightIndex(result);
-				this.log("Resulting model: ", articleModel);
 				ArticleContentHandler.checkAndDownload(articleModel, this);
 				break;
 			case "readd":
-				this.log("Adding back: " + JSON.stringify(result));
 				articleModel = collection.addRightIndex(result);
 				ArticleContentHandler.checkAndDownload(articleModel, this);
 				break;

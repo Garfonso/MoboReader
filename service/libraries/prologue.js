@@ -18,7 +18,9 @@ var path = require('path'); //required for vCard converter.
 console.error("--------->Loaded Libraries OK1");
 
 process.on("uncaughtException", function (e) {
-	log("Uncaought error:", e);
+	log("Uncaought error: ", e.message);
 	//throw e;
 });
 
+var servicePath = fs.realpathSync(".");
+var checkResult = require(servicePath + "/libraries/checkResult.js");

@@ -165,7 +165,6 @@ enyo.kind({
 	],
 	create: function () {
 		this.inherited(arguments);
-		this.log("Create main views.");
 
 		function fetchResult() {
 			this.log("api collection fetch successful.");
@@ -254,7 +253,6 @@ enyo.kind({
 	articleSelected: function (inSender, inEvent) {
 		/*jslint unparam:true*/
 		this.lastArticle = this.$.articleList.selected();
-		this.log("Stored ", inEvent.index, " as last index.");
 		if (this.lastArticle) {
 			this.$.articleView.setArticleModel(this.lastArticle);
 			this.$.MainPanels.setIndex(1);
@@ -283,7 +281,6 @@ enyo.kind({
 			} else if (scrollTo < 0) {
 				scrollTo = 0;
 			}
-			this.log("Scrolling to ", scrollTo);
 			this.$.articleList.scrollToIndex(scrollTo);
 		}
 	},

@@ -93,7 +93,7 @@ enyo.kind({
 			kind: "SpritzDialog",
 			onScrollTo: "scrollTo",
 			onSpritzReady: "spritzReady",
-			onSpritzTranslutient: "spritzTranslutient"
+			onSpritzTranslutient: "resizeOurself"
 		},
 		{
 			kind: "enyo.Signals",
@@ -103,12 +103,13 @@ enyo.kind({
 		},
 		{
 			kind: "moboreader.LinkPopup",
-			name: "linkPopup"
+			name: "linkPopup",
+			onButtonTapped: "resizeOurself" //somehow toolbar goes missing after click on add?
 		}
 	],
 	bindings: [
 		{from: "articleModel.title", to: "$.articleTitle.content"},
-		{from: "^.moboreader.Prefs.useSpritz", to: "$.spritzBtn.showing"},
+		{from: "^.moboreader.Spritz.available", to: "$.spritzBtn.showing"},
 
 		{from: "articleModel.favorite", to: "$.favButton.content", transform: function (val) {
 			return val ? "Unfavorite" : "Favorite";
@@ -132,7 +133,6 @@ enyo.kind({
 	},
 	handleBackGesture: function (inSender, inEvent) {
 		/*jslint unparam:true*/
-		this.log("Incomming back gesture!! showing: ", this.$.spritzDialog.showing, " running: ", this.$.spritzDialog.running);
 		if (this.$.spritzDialog.showing) {
 			if (!this.$.spritzDialog.preventBack) {
 				if (this.$.spritzDialog.running) {
@@ -250,13 +250,14 @@ enyo.kind({
 				this.articleModel.webContent = inEvent.content.web;
 				this.$.articleContent.setContent(inEvent.content.web);
 				this.received = true;
+				this.$.scroller.resize();
 
 				if (this.timeoutId) {
 					clearTimeout(this.timeoutId);
 				}
 				this.timeoutID = setTimeout(function () {
 					this.processChildren(this.$.articleContent.node);
-					this.log("Scrolling to " + this.articleModel.get("scrollPos"));
+					this.log("Scrolling to ", this.articleModel.get("scrollPos") || 1);
 					this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
 					this.$.scroller.$.strategy.showThumbs();
 				}.bind(this), 300);
@@ -273,7 +274,6 @@ enyo.kind({
 		}
 	},
 	linkClick: function (event) {
-		this.log("Link clicked: ", event);
 		var url = event.target.href;
 		this.$.linkPopup.setUrl(url);
 		this.$.linkPopup.showAtEvent(event);
@@ -299,25 +299,22 @@ enyo.kind({
 		this.articleModel.doDelete(this.api, this.collection);
 	},
 	copyTap: function () {
-		return undefined;
+		enyo.webos.setClipboard(this.articleModel.get("url"));
 	},
 
 	spritzTap: function () {
 		this.$.spritzDialog.prepareSpritz(this.articleModel);
 	},
 	currentWordChanged: function () {
-		this.log("Current Word: ", this.currentWord, " model: ", this.articleModel, " spritz: ", this.articleModel.spritzOk);
 		if (this.articleModel && this.articleModel.spritzOk && this.currentWord - this.lastScrollWord > 20) {
 			var ratio = this.currentWord / this.articleModel.spritzModel.getWordCount();
-			this.log("Ratio: ", ratio);
-			this.log("Scroll Val: ", this.$.scroller.getScrollBounds().maxTop * ratio);
+			this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);
 			this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);
 			this.lastScrollWord = this.currentWord;
 		}
 	},
 	scrollTo: function (inSender, inEvent) {
 		/*jslint unparam:true*/
-		this.log("Incomming scroll event: ", inEvent);
 		this.$.scroller.scrollTo(0, this.$.scroller.scrollTop - inEvent.dy);
 	},
 
@@ -328,7 +325,7 @@ enyo.kind({
 	spritzReady: function () {
 		this.$.spritzBtn.addClass("onyx-affirmative");
 	},
-	spritzTranslutient: function () {
+	resizeOurself: function () {
 		setTimeout(this.resize.bind(this), 100);
 	}
 });

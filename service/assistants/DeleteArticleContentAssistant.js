@@ -11,11 +11,11 @@ DeleteArticleContentAssistant.prototype.run = function (outerfuture) {
 		return outerfuture;
 	}
 
-	filename = Utils.getFileName(args.id);
+	filename = Utils.getArticlePath(args.id);
 
-	fs.unlink(filename, function (err) {
-		if (err) {
-			outerfuture.result = {success: false, message: JSON.stringify(err), activityId: args.activityId};
+	Utils.rmdir(filename).then(function (future) {
+		if (future.result !== true) {
+			outerfuture.result = {success: false, message: JSON.stringify(future.result), activityId: args.activityId};
 		} else {
 			outerfuture.result = {success: true, id: args.id, activityId: args.activityId};
 		}

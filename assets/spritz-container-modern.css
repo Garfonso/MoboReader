@@ -1,0 +1,30 @@
+.spritz-container {
+	box-sizing: border-box;
+	left: 50%;
+	margin-left: -215px;
+	max-width: 430px;
+	position: absolute;
+	text-align: center;
+	top: 30%;
+	width: 100%;
+}
+
+.spritz-text-progressbar {
+	box-sizing: border-box;
+	display: block;
+	height: 5px;
+	margin: 0px auto;
+	position: absolute;
+	top: 160px;
+	width: 100%;
+}
+
+.spritz-wpm-text {
+	box-sizing: border-box;
+	color: black;
+	padding-right: 10px;
+	position: absolute;
+	right: 0;
+	text-align: right;
+	top: 125px;
+}

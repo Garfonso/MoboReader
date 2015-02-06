@@ -1,13 +1,13 @@
 enyo.depends(
-    "AddDialog.js",
-    "AuthDialog.js",
-    "ArticleListItem.js",
-    "ArticleView.js",
-    "IFrameWebView.js",
-    "LinkPopup.js",
-    "PickerWithHintAndBinding.js",
-    "SettingsDialog.js",
-    "SpritzDialog.js",
-    "TouchScrollStrategyWithThumbs.js",
-    "views.js"
+	"AddDialog.js",
+	"AuthDialog.js",
+	"ArticleListItem.js",
+	"ArticleView.js",
+	"IFrameWebView.js",
+	"LinkPopup.js",
+	"PickerWithHintAndBinding.js",
+	"SettingsDialog.js",
+	"SpritzDialog.js",
+	"TouchScrollStrategyWithThumbs.js",
+	"views.js"
 );

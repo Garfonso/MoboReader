@@ -94,7 +94,6 @@ enyo.kind({
 	},
 
 	doFavorite: function (api, collection) {
-		console.log("Is fav: ", this.get("favorite") !== 0);
 		if (this.get("favorite") === 0) {
 			api.articleAction(this, "favorite", collection);
 		} else {

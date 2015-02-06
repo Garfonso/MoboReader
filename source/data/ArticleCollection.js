@@ -37,11 +37,8 @@ enyo.kind({
 		this.sortField = this.sortOrderToField[this.sortOrder];
 		this.sortDescending = this.sortOrderToDesc[this.sortOrder];
 		if (this.length > 0) {
-			this.log("Sort order changed to " + this.sortOrder + ", firing sort.");
 			this.sort(this.comparator.bind(this));
 			this.commit({success: function () { console.log("Collection with " + this.length + " items stored after sort."); }.bind(this) });
-		} else {
-			this.log("Sort order changed to " + this.sortOrder + ", but collection empty, omitting sort.");
 		}
 	},
 
@@ -174,7 +171,6 @@ enyo.kind({
 		});
 
 		if (deletedModels && deletedModels.length > 0) {
-			this.log("Removing: ", deletedModels);
 			this.remove(deletedModels);
 			deletedModels.forEach(function (rec) {
 				rec.tryDestroy();
