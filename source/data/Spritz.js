@@ -283,6 +283,10 @@ enyo.singleton({
 		this.spritzController.showSpritzer();
 		this.pause();
 
+		//update progress
+		this.setWordCompleted(spritzModel.getCurrentIndex());
+		this.setTotalWords(spritzModel.getWordCount());
+
 		return -1;
 	},
 	stop: function () {
