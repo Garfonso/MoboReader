@@ -8,7 +8,7 @@ enyo.singleton({
 		isWebos: true
 	},
 	activityId: 0,
-	gettingToStore: {},
+	gettingToStore: false,
 	gettingToDL: false,
 	storage: {}, //used if not webOS.
 	needDL: [],
@@ -62,28 +62,32 @@ enyo.singleton({
 	},
 	gotContent: function (inSender, inEvent) {
 		/*jslint unparam: true */
-		Object.keys(this.gettingToStore).forEach(function (activityId) {
-			var obj = this.gettingToStore[activityId],
-				content = inEvent.content || {};
-			if (obj.getId === inEvent.activityId) {
-				this.debugOut("Got article content!");
-				content.web = obj.webContent || content.web;
-				content.spritz = obj.spritzContent || content.spritz;
-				content.images = obj.images || content.images;
-				this.setDbActivities(this.dbActivities + 1);
+		if (this.gettingToStore) {
+			Object.keys(this.gettingToStore).forEach(function (activityId) {
+				var obj = this.gettingToStore[activityId],
+					content = inEvent.content || {};
+				if (obj.getId === inEvent.activityId) {
+					this.debugOut("Got article content!");
+					obj.model.set("contentAvailable",  true);
+					content.web = obj.webContent || content.web;
+					content.spritz = obj.spritzContent || content.spritz;
+					content.images = obj.images || content.images;
+					this.setDbActivities(this.dbActivities + 1);
 
-				this.privateGenericSend(obj.model, "storeArticleContent", {
-					content: content,
-					activityId: activityId
-				});
-				delete this.gettingToStore[activityId];
-			}
-		}.bind(this));
+					this.privateGenericSend(obj.model, "storeArticleContent", {
+						content: content,
+						activityId: activityId
+					});
+					delete this.gettingToStore[activityId];
+				}
+			}.bind(this));
+		}
 
 		if (this.gettingToDL) {
 			if (this.gettingToDL.activityId === inEvent.activityId) {
 				if (!inEvent.success) {
 					this.debugOut("Need download: " + this.gettingToDL.model.attributes.item_id);
+					this.gettingToDL.model.set("contentAvailable",  false);
 					if (!this.downloading || this.downloading === this.gettingToDL.model.attributes.item_id) {
 						this.debugOut("Doing direct.");
 						this.gettingToDL.api.getArticleContent(this.gettingToDL.model);
@@ -94,6 +98,7 @@ enyo.singleton({
 					}
 				} else {
 					this.log("Article ok, don't download.");
+					this.gettingToDL.model.set("contentAvailable",  true);
 				}
 				delete this.gettingToDL;
 			}
@@ -122,8 +127,8 @@ enyo.singleton({
 				service: "info.mobo.moboreader.service",
 				method: method
 			});
-			req.response(this.dbActivityComplete.bind(this, params.activityId, params.id));
-			req.error(this.dbError.bind(this, params.activityId, params.id));
+			req.response(this.dbActivityComplete.bind(this, params.activityId, params.id, method));
+			req.error(this.dbError.bind(this, params.activityId, params.id, method));
 
 			req.go(params);
 		} else {
@@ -131,7 +136,7 @@ enyo.singleton({
 				this.storage[params.id] = params.content;
 			}
 			setTimeout(function (activityId) {
-				this.dbActivityComplete(activityId, params.id, this, {
+				this.dbActivityComplete(activityId, params.id, method, this, {
 					success: method === "articleContentExists" ? !!(params.id && this.storage[params.id]) : true,
 					id: params.id,
 					content: params.id ? this.storage[params.id] : undefined,
@@ -175,6 +180,7 @@ enyo.singleton({
 	contentDownloaded: function (inSender, inEvent) {
 		/*jslint unparam: true */
 		this.debugOut("Download finished: " + inEvent.model.attributes.item_id);
+		inEvent.model.set("contentAvailable", !!(inEvent.content && inEvent.content.web && (inEvent.content.spritz || !moboreader.Prefs.downloadSpritzOnUpdate)));
 		this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz, inEvent.content.images);
 
 		if (this.needDL.length > 0) {
@@ -195,22 +201,24 @@ enyo.singleton({
 			this.checkAndDownload(req.model, req.api);
 		}
 	},
-	dbActivityComplete: function (activityId, id, inSender, inEvent) {
+	dbActivityComplete: function (activityId, id, method, inSender, inEvent) {
 		/*jslint unparam: true */
 		this.debugOut("Incomming response: " + inEvent.success + " for id " + activityId);
 		this.setDbActivities(this.dbActivities - 1);
 		inEvent.activityId = activityId;
 		inEvent.id = id;
+		inEvent.method = method;
 		enyo.Signals.send("onArticleOpReturned", inEvent);
 		this.sendNext();
 	},
-	dbError: function (activityId, id, inSender, inEvent) {
+	dbError: function (activityId, id, method, inSender, inEvent) {
 		/*jslint unparam: true */
 		this.log("dbFailed: " + JSON.stringify(inEvent));
 		this.setDbActivities(this.dbActivities - 1);
 		enyo.Signals.send("onArticleOpReturned", {
 			id: id,
 			success: false,
+			method: method,
 			activityId: activityId
 		});
 		this.sendNext();
