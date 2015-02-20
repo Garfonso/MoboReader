@@ -61,7 +61,7 @@ enyo.singleton({
 		this.setGoBackOnArchive(enyo.getCookie("goBackOnArchive") !== false);
 
 		this.setUseSpritz(enyo.getCookie("useSpritz") === "true" || enyo.getCookie("useSpritz") === undefined);
-		this.setDownloadSpritzOnUpdate(enyo.getCookie("downloadSpritzOnUpdate") === "true" && this.useSpritz);
+		this.setDownloadSpritzOnUpdate((enyo.getCookie("downloadSpritzOnUpdate") === "true" || enyo.getCookie("downloadSpritzOnUpdate") === undefined) && this.useSpritz);
 		this.setMinWPM(parseInt(enyo.getCookie("minWPM"), 10) || this.minWPM);
 		this.setMaxWPM(parseInt(enyo.getCookie("maxWPM"), 10) || this.maxWPM);
 	}
