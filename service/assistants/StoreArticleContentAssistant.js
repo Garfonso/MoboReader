@@ -36,7 +36,7 @@ var getFileEnding = function (images, num) {
 
 var downloadImage = function (id, image) {
 	"use strict";
-	var options = { headers: {}}, imId = image.image_id, future = new Future();
+	var options = { headers: {}, binary: true}, imId = image.image_id, future = new Future();
 	httpClient.parseURLIntoOptions(image.src, options);
 
 	httpClient.sendRequest(options).then(function requestCallback(f) {
