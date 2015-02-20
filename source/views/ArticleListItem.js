@@ -26,12 +26,18 @@ enyo.kind({
 		{from: "model.title", to: "$.articleTitle.content"},
 		{from: "model.image_src", to: "$.articleImage.src"},
 		{from: "model.host", to: "$.host.content"},
-		{from: "model.greyout", to: "style", transform: function (v) {
+		{from: "model.articleStateColor", to: "style", transform: function (v) {
 			var style = "height: 50px;";
 			if (v) {
-				style += " background-color: lightgray;";
+				style += " background-color: " + v;
 			}
 			return style;
+		}},
+		{from: "model.contentAvailable", to: "style", transform: function (v) {
+			var style = "height: 50px;";
+			if (v) {
+
+			}
 		}}
 	]
 });

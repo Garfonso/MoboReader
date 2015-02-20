@@ -75,6 +75,23 @@ enyo.kind({
 	kind: "enyo.Model",
 	primaryKey: "item_id",
 	source: "LocalStorageSource",
+	attributes: {
+		contentAvailable: false, //will change to true, if backend has downloaded content.
+		greyout: false          //will change to true, if article is archived/deleted and vanish on next refresh.
+	},
+	computed: {
+		articleStateColor: ["contentAvailable", "greyout", {cached: true}]
+	},
+
+	articleStateColor: function () {
+		if (this.attributes.greyout) {
+			return "lightgray";
+		}
+		if (!this.attributes.contentAvailable) {
+			return "lightyellow";
+		}
+		return "white";
+	},
 
 	parse: function (data) {
 		return parseArticle(data);
