@@ -75,31 +75,6 @@ enyo.kind({
 		//this.cleanUpLocalStorage(); //why did I need that?
 	},
 
-    idInCollection: function (id) {
-        var i;
-        for (i = 0; i < this.records.length; i += 1) {
-            if (this.records[i].attributes && this.records[i].attributes.item_id === id) {
-                return true;
-            }
-        }
-        return false;
-    },
-
-    cleanUpLocalStorage: function () {
-        var keys = Object.keys(localStorage), i, index;
-        for (i = 0; i < keys.length; i += 1) {
-            index = keys[i].indexOf("moboreader-app-");
-
-            if (keys[i].indexOf("spritz.telemetry") === 0 ||
-                    (index === 0 &&
-                        keys[i] !== "moboreader-app-authModel" &&
-                        keys[i] !== "moboreader-app-pocket-unread-list" &&
-                        !this.idInCollection(keys[i].substr(index + "moboreader-app-".length)))) {
-                localStorage.removeItem(keys[i]);
-            }
-        }
-    },
-
 	whipe: function () {
 		this.empty([], {destroy: true});
 
@@ -120,6 +95,7 @@ enyo.kind({
 
 	updateArticleContent: function (api) {
 		this.forEach(function (model, i) {
+			model.set("contentAvailable", false);
 			if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
 				ArticleContentHandler.checkAndDownload(model, api);
 			} else {
