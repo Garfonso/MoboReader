@@ -30,7 +30,6 @@ enyo.kind({
 					tag: "iframe",
 					classes: "enyo-fill",
 					touch: true,
-					fit: true,
 					attributes: {
 						//pocket:
 						//sandbox: "allow-popups allow-top-navigation allow-same-origin allow-scripts allow-forms", ok!
@@ -171,6 +170,21 @@ enyo.kind({
 		this.hide();
 		if (this.useInAppBrowser) {
 			navigator.InAppBrowser.close();
+		}
+	},
+
+	pasteIntoWebview: function () {
+		if (this.useIFrame) {
+			this.$.iframe.focus();
+		} else if (this.useWebView || this.useWebViewEnc) {
+			this.webView.focus();
+			this.webView.callBrowserAdapter("paste");
+		}
+
+		if (window.PalmSystem) {
+			window.PalmSystem.paste();
+		} else {
+			document.execCommand("paste");
 		}
 	}
 });

@@ -4,12 +4,16 @@
 enyo.kind({
 	name: "moboreader.AuthDialog",
 	kind: "enyo.FittableRows",
+	classes: "enyo-fill",
 	published: {
 		callback: "",
 		redirectURL: "",
 		serviceName: "",
 		cancelable: false
 	},
+	bindings: [
+		{from: "$.webView.showing", to: "$.pasteBtn.showing" }
+	],
 	events: {
 		onHideAuth: ""
 	},
@@ -17,8 +21,10 @@ enyo.kind({
 		{
 			kind: "onyx.Toolbar",
 			style: "text-align: center;",
-			name: "message",
-			content: "Preparing login"
+			components: [
+				{name: "message", content: "Preparing login"},
+				{kind: "onyx.Button", name: "pasteBtn", content: "Paste", ontap: "pasteIntoWebview", style: "float: right;" }
+			]
 		},
 		{
 			name: "spinner",
@@ -108,17 +114,19 @@ enyo.kind({
 	resultFail: function (inSender, inEvent) {
 		/*jslint unparam:true*/
 		this.$.message.setContent("Failed to log in. Please try again later.");
+		this.$.webView.hideAll();
 		this.$.retryBtn.show();
 		this.retryFunc = inEvent.callback;
 	},
 	doRetry: function () {
 		if (this.retryFunc && typeof this.retryFunc === "function") {
 			this.retryFunc();
-			this.$.webView.hide();
+			this.$.webView.hideAll();
 			this.$.spinner.show();
 		} else {
 			this.$.retryBtn.hide();
 			if (this.url) {
+				this.$.webView.show();
 				this.$.webView.setUrl(this.url);
 			}
 			this.fired = false;
@@ -129,5 +137,8 @@ enyo.kind({
 		if (this.cancelable) {
 			enyo.Signals.send("onHideAuth");
 		}
+	},
+	pasteIntoWebview: function () {
+		this.$.webView.pasteIntoWebview();
 	}
 });
