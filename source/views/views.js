@@ -198,6 +198,7 @@ enyo.kind({
 
 	showAddDialog: function () {
 		this.$.addDialog.doShow();
+		this.closeToolbarPopup();
 	},
 	addArticle: function (inSender, inEvent) {
 		/*jslint unparam:true*/
@@ -216,6 +217,7 @@ enyo.kind({
 			this.$.api.downloadArticles(this.articleCollection, slowSync);
 			this.$.refreshPopup.hide();
 		}
+		this.closeToolbarPopup();
 	},
 	refreshFullSyncTap: function () {
 		this.refreshTap(null, null, true);
@@ -244,6 +246,7 @@ enyo.kind({
 	},
 	settingsTap: function () {
 		this.$.settingsDialog.show();
+		this.closeToolbarPopup();
 	},
 	logoutOfPocket: function () {
 		this.loggingOut = true;
@@ -302,6 +305,11 @@ enyo.kind({
 	hideAuth: function () {
 		if (this.$.MainPanels.getIndex() === 2) {
 			this.$.MainPanels.setIndex(this.lastPanelIndex || 0);
+		}
+	},
+	closeToolbarPopup: function () {
+		if (this && this.$ && this.$.moreToolbar && this.$.moreToolbar.$ && this.$.moreToolbar.$.menu) {
+			this.$.moreToolbar.$.menu.hide();
 		}
 	}
 });
