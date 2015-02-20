@@ -172,13 +172,18 @@ enyo.kind({
 		}
 	},
 	downloadingDone: function (inSender, inEvent) {
+		if (!this.articleModel) {
+			return;
+		}
+
 		/*jslint unparam:true*/
-		if (inEvent.id === this.dlId) {
+		if (inEvent.id === this.dlId || (inEvent.success && inEvent.model.get(this.articleModel.primaryKey) === this.articleModel.get(this.articleModel.primaryKey))) {
 			if (inEvent.success) {
 				this.$.downloadingSpritzData.hide();
 				this.$.spritzer.show();
 				this.$.spritzControl.show();
 				this.setWPM(this.wpm);
+				this.log("==========> Updating spritz model.");
 				this.dlId = moboreader.Spritz.start(this.articleModel);
 				this.doSpritzReady();
 			} else {
@@ -237,16 +242,12 @@ enyo.kind({
 		}
 	},
 	currentWordChanged: function () {
-		if (!this.running) {
-			return;
-		}
 		if (Math.abs(this.currentWord - this.lastAnimateWord) > 5) {
 			this.$.spritzTextProgress.animateProgressTo(100 * (this.currentWord / this.totalWords));
 			this.lastAnimateWord = this.currentWord;
 		}
 	},
 	runningChanged: function () {
-		this.log("Running changed to ", this.running);
 		if (webos.setWindowProperties) {
 			webos.setWindowProperties({ blockScreenTimeout: this.running});
 		}

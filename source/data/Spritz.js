@@ -266,7 +266,6 @@ enyo.singleton({
 			articleModel.spritzModel = this.restoreSpritzModel(articleModel.spritzModelPersist);
 			articleModel.spritzOk = true;
 			spritzModel = articleModel.spritzModel;
-			spritzModel.reset();
 		} else {
 			this.log("Need to download spritz model from ", articleModel.attributes.url);
 			if (articleModel.spritzDownloading >= 0) {
@@ -367,7 +366,7 @@ enyo.singleton({
 		return this.dlCounter;
 	},
 	fetchSuccess: function (articleModel, dlId, content, result) {
-		this.log("Got spritzData: ", result);
+		this.log("Got spritzData: ", result, " for model ", articleModel);
 		if (!articleModel.attributes || !articleModel.previous) {
 			this.log("Article was already destroyed.");
 		} else {
@@ -382,22 +381,24 @@ enyo.singleton({
 		enyo.Signals.send("onArticleDownloaded", {
 			id: !!articleModel.get ? articleModel.get(articleModel.primaryKey) : articleModel.item_id,
 			content: content,
-			model: articleModel
+			model: articleModel,
+			success: true
 		});
 
-		enyo.Signals.send("onSpritzDL", {id: dlId, success: true});
+		enyo.Signals.send("onSpritzDL", {id: dlId, success: true, model: articleModel});
 		this.setNumDownloading(this.numDownloading - 1);
 	},
-	fetchError: function (articleModel, dlId, content) {
-		this.log("Error fetching: ", (articleModel.get ? articleModel.get("url") : articleModel.url));
-		enyo.Signals.send("onSpritzDL", {id: dlId, success: false});
+	fetchError: function (articleModel, dlId, content, result) {
+		this.log("Error fetching: ", (articleModel.get ? articleModel.get("title") : articleModel.title), " result: ", result);
+		enyo.Signals.send("onSpritzDL", {id: dlId, success: false, model: articleModel});
 		this.setNumDownloading(this.numDownloading - 1);
 		delete articleModel.spritzDownloading;
 
 		enyo.Signals.send("onArticleDownloaded", {
 			id: !!articleModel.get ? articleModel.get(articleModel.primaryKey) : articleModel.item_id,
 			content: content,
-			model: articleModel
+			model: articleModel,
+			success: false
 		});
 	},
 

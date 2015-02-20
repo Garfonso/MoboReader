@@ -98,7 +98,7 @@ enyo.kind({
 		{
 			kind: "enyo.Signals",
 			onbackbutton: "handleBackGesture",
-			onArticleDownloaded: "contentReceived",
+			//onArticleDownloaded: "contentReceived",
 			onArticleOpReturned: "dbOp"
 		},
 		{
@@ -147,6 +147,7 @@ enyo.kind({
 			if (this.articleModel) {
 				this.cleanUpArticle(this.articleModel);
 			}
+			this.articleModel = false;
 			this.doBack();
 		}
 
@@ -162,18 +163,20 @@ enyo.kind({
 			oldValue.showing = false;
 			oldValue.commit();
 		}
+
+		if (this.oldListener) {
+			oldValue.removeListener("destroy", this.oldListener);
+		}
+		delete this.oldListener;
 	},
 	articleModelChanged: function (oldValue) {
 		this.$.spritzDialog.hide();
 		if (oldValue) {
-			if (this.oldListener) {
-				oldValue.removeListener("destroy", this.oldListener);
-			}
-
 			this.cleanUpArticle(oldValue);
 		}
 
 		this.received = false;
+		this.first = true;
 		this.$.scroller.$.strategy.hideThumbs();
 		this.$.spritzBtn.removeClass("onyx-affirmative");
 		this.$.spritzBtn.setDisabled(true);
@@ -227,12 +230,21 @@ enyo.kind({
 		}
 	},
 	dbOp: function (inSender, inEvent) { //filter events here.
-		if (inEvent.activityId === this.articleOpId) {
-			if (inEvent.success && inEvent.content && inEvent.content.web) {
-				this.contentReceived(inSender, inEvent);
-			} else {
-				this.$.articleContent.setContent("Need to download content...");
-				this.downloadContent();
+		if (!this.articleModel) {
+			return;
+		}
+		if (inEvent.id === this.articleModel.get(this.articleModel.primaryKey)) { //our article is affected
+			if (inEvent.method === "getArticleContent") {
+				if (inEvent.success && inEvent.content && inEvent.content.web) {
+					this.contentReceived(inSender, inEvent);
+				} else if (this.first) {
+					this.$.articleContent.setContent("Need to download content...");
+					this.downloadContent(); //don't set this directly.
+					this.first = false; //prevent multiple downloads of one article.
+				}
+			} else if (inEvent.method === "storeArticleContent") {
+				//do this in order to get modified article from DB that has image links directed to local storage
+				this.articleOpId = ArticleContentHandler.getContent(this.articleModel);
 			}
 		}
 	},
@@ -255,7 +267,7 @@ enyo.kind({
 				if (this.timeoutId) {
 					clearTimeout(this.timeoutId);
 				}
-				this.timeoutID = setTimeout(function () {
+				this.timeoutId = setTimeout(function () {
 					this.processChildren(this.$.articleContent.node);
 					this.log("Scrolling to ", this.articleModel.get("scrollPos") || 1);
 					this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
@@ -280,35 +292,46 @@ enyo.kind({
 
 		event.preventDefault();
 	},
+	closeToolbarPopup: function () {
+		if (this && this.$ && this.$.moreToolbar && this.$.moreToolbar.$ && this.$.moreToolbar.$.menu) {
+			this.$.moreToolbar.$.menu.hide();
+		}
+	},
 
 	refreshTap: function () {
+		this.$.articleContent.setContent("Re-Downloading content.");
 		moboreader.Spritz.resetArticle(this.articleModel);
 		this.api.getArticleContent(this.articleModel);
+		this.closeToolbarPopup();
 	},
 	archiveTap: function () {
 		this.articleModel.doArchive(this.api, this.collection);
 		if (moboreader.Prefs.getGoBackOnArchive()) {
 			this.doBack();
 		}
+		this.closeToolbarPopup();
 	},
 	favoriteTap: function () {
 		this.articleModel.doFavorite(this.api, this.collection);
+		this.closeToolbarPopup();
 	},
 	deleteTap: function () {
 		this.doBack();
 		this.articleModel.doDelete(this.api, this.collection);
+		this.closeToolbarPopup();
 	},
 	copyTap: function () {
 		enyo.webos.setClipboard(this.articleModel.get("url"));
+		this.closeToolbarPopup();
 	},
 
 	spritzTap: function () {
 		this.$.spritzDialog.prepareSpritz(this.articleModel);
+		this.closeToolbarPopup();
 	},
 	currentWordChanged: function () {
-		if (this.articleModel && this.articleModel.spritzOk && this.currentWord - this.lastScrollWord > 20) {
+		if (this.articleModel && this.articleModel.spritzOk && Math.abs(this.currentWord - this.lastScrollWord) > 20) {
 			var ratio = this.currentWord / this.articleModel.spritzModel.getWordCount();
-			this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);
 			this.$.scroller.scrollTo(0, this.$.scroller.getScrollBounds().maxTop * ratio);
 			this.lastScrollWord = this.currentWord;
 		}
