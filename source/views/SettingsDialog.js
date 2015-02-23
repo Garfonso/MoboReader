@@ -21,6 +21,7 @@ enyo.kind({
 
 		{from: "^.moboreader.Prefs.fontSize", to: "$.fontSize.inVal", oneWay: false  },
 		{from: "^.moboreader.Prefs.goBackOnArchive", to: "$.goBackOnArchive.checked", oneWay: false  },
+		{from: "^.moboreader.Prefs.showImagesInList", to: "$.showImagesInList.checked", oneWay: false  },
 
 		{from: "^.moboreader.Prefs.useSpritz", to: "$.useSpritz.checked", oneWay: false  },
 		{from: "^.moboreader.Prefs.downloadSpritzOnUpdate", to: "$.downloadSpritzOnUpdate.checked", oneWay: false  }
@@ -77,6 +78,17 @@ enyo.kind({
 										{
 											kind: "onyx.Checkbox",
 											name: "goBackOnArchive",
+											style: "float: right;"
+										}
+									]
+								},
+								{
+									style: "overflow: hidden; padding: 10px;",
+									components: [
+										{ content: "Show images in article list", style: "float: left; "},
+										{
+											kind: "onyx.Checkbox",
+											name: "showImagesInList",
 											style: "float: right;"
 										}
 									]

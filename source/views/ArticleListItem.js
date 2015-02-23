@@ -33,11 +33,6 @@ enyo.kind({
 			}
 			return style;
 		}},
-		{from: "model.contentAvailable", to: "style", transform: function (v) {
-			var style = "height: 50px;";
-			if (v) {
-
-			}
-		}}
+		{from: "^.moboreader.Prefs.showImagesInList", to: "$.articleImage.showing"}
 	]
 });

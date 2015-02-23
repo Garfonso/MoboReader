@@ -1,10 +1,10 @@
 {
-    "id": "info.mobo.moboreader",
-    "version": "1.0.0",
-    "vendor": "Mobo Mobile Apps",
-    "type": "web",
-    "main": "index.html",
-    "title": "MoboReader",
-    "icon": "icon.png",
-    "uiRevision": 2
+	"id": "info.mobo.moboreader",
+	"version": "1.0.1",
+	"vendor": "Mobo Mobile Apps",
+	"type": "web",
+	"main": "index.html",
+	"title": "MoboReader",
+	"icon": "icon.png",
+	"uiRevision": 2
 }

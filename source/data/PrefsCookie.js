@@ -11,6 +11,7 @@ enyo.singleton({
 		//display options:
 		fontSize: 16,
 		goBackOnArchive: false,
+		showImagesInList: true,
 
 		//spritz options
 		useSpritz: true,
@@ -29,6 +30,9 @@ enyo.singleton({
 	},
 	goBackOnArchiveChanged: function () {
 		enyo.setCookie("goBackOnArchive", this.goBackOnArchive);
+	},
+	showImagesInListChanged: function () {
+		enyo.setCookie("showImagesInList", this.showImagesInList);
 	},
 	useSpritzChanged: function () {
 		enyo.setCookie("useSpritz", this.useSpritz);
@@ -59,6 +63,11 @@ enyo.singleton({
 
 		this.setFontSize(enyo.getCookie("fontSize") || this.fontSize);
 		this.setGoBackOnArchive(enyo.getCookie("goBackOnArchive") !== false);
+		if (enyo.webos.isPhone()) {
+			this.setShowImagesInList(enyo.getCookie("showImagesInList") === true); //default to false
+		} else {
+			this.setShowImagesInList(enyo.getCookie("showImagesInList") !== false); //default to true
+		}
 
 		this.setUseSpritz(enyo.getCookie("useSpritz") === "true" || enyo.getCookie("useSpritz") === undefined);
 		this.setDownloadSpritzOnUpdate((enyo.getCookie("downloadSpritzOnUpdate") === "true" || enyo.getCookie("downloadSpritzOnUpdate") === undefined) && this.useSpritz);

@@ -8,3 +8,7 @@ A node.js service for webOS and LuneOS is included. It allows complete download 
 
 Icon aknowledgement:
 http://www.iconarchive.com/show/flurry-extras-8-icons-by-iynque/Pocket-icon.html
+
+Changelog:
+1.0.1: Added setting to hide images in article list to speed up scrolling on legacy phones.
+1.0.0: Initial release
