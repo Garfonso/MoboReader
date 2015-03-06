@@ -1,4 +1,4 @@
-/*jslint sloppy: true, browser: true */
+/*jslint sloppy: true, browser: true, devel: true */
 /*global enyo, moboreader*/
 
 enyo.singleton({
@@ -8,7 +8,7 @@ enyo.singleton({
 		isWebos: true
 	},
 	activityId: 0,
-	gettingToStore: false,
+	gettingToStore: {},
 	gettingToDL: false,
 	storage: {}, //used if not webOS.
 	needDL: [],
@@ -25,8 +25,9 @@ enyo.singleton({
 		}
 	],
 
-	debugOut: function () {
+	debugOut: function (msg) {
 		//noop or console.error for on device debugging.
+		console.log(msg);
 		return undefined;
 	},
 
@@ -40,6 +41,7 @@ enyo.singleton({
 		this.activityId += 1;
 
 		if (!webContent || !spritzContent) {
+			this.debugOut("Not all content there ( mobo: " + (!!webContent) + ", spritz: " + (!!spritzContent) + "). See what service has for us.");
 			this.gettingToStore[this.activityId] = {
 				model: articleModel,
 				webContent: webContent,
@@ -67,7 +69,7 @@ enyo.singleton({
 				var obj = this.gettingToStore[activityId],
 					content = inEvent.content || {};
 				if (obj.getId === inEvent.activityId) {
-					this.debugOut("Got article content!");
+					this.debugOut("Got article content from activity " + obj.getId + " for " + obj.model.get("item_id"));
 					obj.model.set("contentAvailable",  true);
 					content.web = obj.webContent || content.web;
 					content.spritz = obj.spritzContent || content.spritz;
@@ -79,6 +81,8 @@ enyo.singleton({
 						activityId: activityId
 					});
 					delete this.gettingToStore[activityId];
+				} else {
+					this.debugOut("Wrong activity id: " + inEvent.activityId + " for " + obj.getId);
 				}
 			}.bind(this));
 		}
@@ -124,7 +128,7 @@ enyo.singleton({
 
 		if (this.isWebos) {
 			req = new enyo.ServiceRequest({
-				service: "info.mobo.moboreader.service",
+				service: "palm://info.mobo.moboreader.service",
 				method: method
 			});
 			req.response(this.dbActivityComplete.bind(this, params.activityId, params.id, method));
