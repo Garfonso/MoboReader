@@ -95,7 +95,6 @@ enyo.kind({
 
 	updateArticleContent: function (api) {
 		this.forEach(function (model, i) {
-			model.set("contentAvailable", false);
 			if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
 				ArticleContentHandler.checkAndDownload(model, api);
 			} else {
