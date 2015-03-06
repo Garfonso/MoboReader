@@ -109,6 +109,7 @@ var checkPaths = function (paths) {
 
 DownloadSpritzAssistant.prototype.run = function (outerfuture) {
 	"use strict";
+	Log.debug("****************** DownloadSpritzAssistant ", this.controller.args);
 	var args = this.controller.args,
 		future = new Future(),
 		filesToLoad = [

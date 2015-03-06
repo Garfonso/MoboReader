@@ -5,6 +5,7 @@ var GetArticleContentAssistant = function () { "use strict"; };
 GetArticleContentAssistant.prototype.run = function (outerfuture) {
 	"use strict";
 	var args = this.controller.args, articlePath, future = new Future();
+	Log.debug("****************** GetArticleContentAssistant ", args);
 
 	if (!args.id) {
 		outerfuture.result = {success: false, message: "Need id argument!", activityId: args.activityId};

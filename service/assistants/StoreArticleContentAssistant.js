@@ -120,6 +120,7 @@ var replaceImgTags = function (c, articlePath) {
 StoreArticleContentAssistant.prototype.run = function (outerfuture) {
 	"use strict";
 	var args = this.controller.args, articlePath, future = new Future();
+	Log.debug("****************** StoreArticleContentAssistant ", args.id, " ", args.activityId, " web: ", !!(args.content && args.content.web), " spritz: ", !!(args.content && args.content.spritz), " images: ", !!(args.content && args.content.images));
 
 	if (!args.id) {
 		outerfuture.result = {success: false, message: "Need id argument!", activityId: args.activityId};
@@ -179,9 +180,10 @@ StoreArticleContentAssistant.prototype.run = function (outerfuture) {
 		});
 	});
 
-	//download images:
-	//future.then(function
-
-	outerfuture.result = {success: true, id: args.id, activityId: args.activityId};
-	delete writing[args.id];
+	//all done
+	future.then(function allDone() {
+		Log.debug("****************** StoreArticleContentAssistant successful done for ", args.id, " and ", args.activityId);
+		outerfuture.result = {success: true, id: args.id, activityId: args.activityId};
+		delete writing[args.id];
+	});
 };

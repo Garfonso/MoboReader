@@ -4,6 +4,7 @@ var ArticleContentExistsAssistant = function () { "use strict"; };
 ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
 	"use strict";
 	var args = this.controller.args, filename;
+	Log.debug("****************** ArticleContentExistsAssistant ", args);
 
 	if (!args.id) {
 		outerfuture.result = {success: false, message: "Need id argument!", activityId: args.activityId};

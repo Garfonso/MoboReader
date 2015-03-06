@@ -1,10 +1,11 @@
-/*global Utils, fs */
+/*global Utils, fs, Log */
 
 var DeleteArticleContentAssistant = function () { "use strict"; };
 
 DeleteArticleContentAssistant.prototype.run = function (outerfuture) {
 	"use strict";
 	var args = this.controller.args, filename;
+	Log.debug("****************** DeleteArticleContentAssistant ", args);
 
 	if (!args.id) {
 		outerfuture.result = {success: false, message: "Need id argument!", activityId: args.activityId};

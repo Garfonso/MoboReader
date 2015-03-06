@@ -34,5 +34,8 @@
 	},
 	{
 		"source": "assistants/DownloadSpritzAssistant.js"
+	},
+	{
+		"source": "assistants/KeepRunningAssistant.js"
 	}
 ]

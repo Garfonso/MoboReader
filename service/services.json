@@ -39,6 +39,12 @@
 					"name": "downloadSpritz",
 					"assistant": "DownloadSpritzAssistant",
 					"public": true
+				},
+				{
+					"name": "keepRunning",
+					"assistant": "KeepRunningAssistant",
+					"subscribe": true,
+					"public": true
 				}
 			]
 		}
