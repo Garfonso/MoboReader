@@ -161,6 +161,16 @@ enyo.kind({
 			onNeedShowAuth: "showAuth",
 			onAuthOk: "refreshTap",
 			onHideAuth: "hideAuth"
+		},
+		{
+			name: "keepServiceRunning",
+			kind: "enyo.LunaService",
+			service: "luna://info.mobo.moboreader.service",
+			method: "keepRunning",
+			onResponse: "gotPing",
+			onError: "serviceError",
+			subscribe: true,
+			resubscribe: true
 		}
 	],
 	create: function () {
@@ -190,6 +200,8 @@ enyo.kind({
 		this.articleCollection.set("url", "pocket-unread-list");
 		this.articleCollection.fetch({strategy: "merge", success: fetchResult.bind(this), fail: fetchResult.bind(this)});
 		this.$.articleView.setApi(this.$.api);
+
+		this.serviceError(); //take a shortcut here ;)
 	},
 	cleanUpOnUnload: function () {
 		this.log("Cleaning up on unload.");
@@ -311,5 +323,19 @@ enyo.kind({
 		if (this && this.$ && this.$.moreToolbar && this.$.moreToolbar.$ && this.$.moreToolbar.$.menu) {
 			this.$.moreToolbar.$.menu.hide();
 		}
+	},
+	gotPing: function (inSender, inEvent) {
+		//this.log("Got ping: ", inEvent.seq);
+	},
+	serviceError: function (inSender, inEvent) {
+		if (inEvent) {
+			this.error("Service Error: ", inEvent.message);
+		}
+		if (this.request) {
+			this.request.cancel();
+		}
+		setTimeout(function () {
+			this.request = this.$.keepServiceRunning.send({subscribe: true, resubscribe: true});
+		}.bind(this), 1000);
 	}
 });
