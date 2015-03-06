@@ -56,18 +56,29 @@ enyo.singleton({
 		if (moboreader.Prefs.useSpritz) {
 			this.log("Need to activate Spritz: ", moboreader.Prefs.useSpritz);
 			if (ArticleContentHandler.isWebos) {
-				this.req = new enyo.ServiceRequest({
-					service: "info.mobo.moboreader.service",
-					method: "downloadSpritz"
-				});
-				this.req.response(this.loadScripts.bind(this));
-				this.req.error(this.loadScripts.bind(this));
-
-				this.req.go({});
+				this.log("Spritz: We are on webOS, call service.");
+				this.callServiceToLoadSpritz();
 			} else {
+				this.log("Spritz: Browser, just load scripts.");
 				setTimeout(this.loadScripts.bind(this), 500);
 			}
 		}
+	},
+
+	callServiceToLoadSpritz: function () {
+		this.log("Asking service to load spritz.");
+		if (this.req) {
+			this.req.cancel();
+		}
+		this.req = new enyo.ServiceRequest({
+			service: "luna://info.mobo.moboreader.service",
+			method: "downloadSpritz"
+		});
+		this.req.response(this.loadScripts.bind(this));
+		this.req.error(this.loadScripts.bind(this));
+
+		this.log("Sending out the request.");
+		this.req.go({});
 	},
 
 	loadScripts: function () {
