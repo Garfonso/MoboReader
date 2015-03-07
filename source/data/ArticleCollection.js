@@ -94,9 +94,11 @@ enyo.kind({
 	},
 
 	updateArticleContent: function (api) {
+		var ids = [], models = [];
 		this.forEach(function (model, i) {
 			if (i < moboreader.Prefs.maxDownloadedArticles || ArticleContentHandler.isWebos) {
-				ArticleContentHandler.checkAndDownload(model, api);
+				ids.push(model.get(model.primaryKey));
+				models.push(model);
 			} else {
 				//clean up memory a bit
 				delete model.spritzModel;
@@ -104,6 +106,9 @@ enyo.kind({
 				model.spritzOk = false;
 			}
 		});
+
+		this.log("Checking " + ids.length + " articles for content requirements.");
+		ArticleContentHandler.checkAndDownloadMultiple(ids, models, api);
 	},
 
 	//still sorting manually here, because that will go in O(n) instead of O(n*log(n))!

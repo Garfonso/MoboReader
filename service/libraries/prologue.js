@@ -23,4 +23,7 @@ process.on("uncaughtException", function (e) {
 });
 
 var servicePath = fs.realpathSync(".");
-var checkResult = require(servicePath + "/libraries/checkResult.js");
+var libPath = servicePath + "/libraries/";
+var checkResult = require(libPath + "checkResult.js");
+
+var writingArticles = {};

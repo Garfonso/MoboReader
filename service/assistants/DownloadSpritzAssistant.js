@@ -1,14 +1,14 @@
 /*jslint node: true */
-/*global fs, path, Config, Future, servicePath, Utils, Log*/
+/*global fs, path, Config, Future, libPath, Utils, Log*/
 var DownloadSpritzAssistant = function () {
 	"use strict";
 };
 
 var nodejsMajorVersion = Number(process.version.match(/^v\d+\.(\d+)/)[1]);
 if (nodejsMajorVersion >= 4) {
-	var httpClient = require(servicePath + "/libraries/httpClient.js");
+	var httpClient = require(libPath + "httpClient.js");
 } else {
-	var httpClient = require(servicePath + "/libraries/httpClient_legacy.js");
+	var httpClient = require(libPath + "httpClient_legacy.js");
 }
 
 DownloadSpritzAssistant.prototype.modifyCss = function (css) {

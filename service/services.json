@@ -45,6 +45,11 @@
 					"assistant": "KeepRunningAssistant",
 					"subscribe": true,
 					"public": true
+				},
+				{
+					"name": "downloadImages",
+					"assistant": "DownloadImagesAssistant",
+					"public": true
 				}
 			]
 		}

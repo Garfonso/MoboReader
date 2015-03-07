@@ -411,7 +411,7 @@ enyo.kind({
 		if (articleModel && action) {
 			actionObj = {
 				action: action,
-				item_id: articleModel.get("item_id"),
+				item_id: articleModel.get(articleModel.primaryKey),
 				time: Math.round(Date.now() / 1000)
 			};
 			this.addNoDuplicates(actions, actionObj);

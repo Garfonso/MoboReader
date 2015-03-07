@@ -8,8 +8,6 @@ enyo.singleton({
 		isWebos: true
 	},
 	activityId: 0,
-	gettingToStore: {},
-	gettingToDL: false,
 	storage: {}, //used if not webOS.
 	needDL: [],
 	checkQueue: [],
@@ -20,7 +18,6 @@ enyo.singleton({
 	components: [
 		{
 			kind: "enyo.Signals",
-			onArticleOpReturned: "gotContent",
 			onArticleDownloaded: "contentDownloaded"
 		}
 	],
@@ -37,18 +34,36 @@ enyo.singleton({
 		this.setIsWebos(!!window.PalmSystem);
 	},
 
-	storeArticle: function (articleModel, webContent, spritzContent, images) {
+	getForStoreCallback: function (params, inEvent) {
+		var content = inEvent.content || {};
+		this.debugOut("Got article content from for " + params.model.get(params.model.primaryKey));
+		content.web = params.webContent || content.web;
+		content.spritz = params.spritzContent || content.spritz;
+		content.images = params.images || content.images;
+		this.setDbActivities(this.dbActivities + 1);
+
+		this.privateGenericSend(params.model, "storeArticleContent", {
+			content: content,
+			activityId: params.storeActivityId
+		});
+	},
+	storeArticle: function (articleModel, webContent, spritzContent, images, override) {
 		this.activityId += 1;
 
-		if (!webContent || !spritzContent) {
+		if ((!webContent || !spritzContent) && !override) {
 			this.debugOut("Not all content there ( mobo: " + (!!webContent) + ", spritz: " + (!!spritzContent) + "). See what service has for us.");
-			this.gettingToStore[this.activityId] = {
-				model: articleModel,
-				webContent: webContent,
-				images: images,
-				spritzContent: spritzContent,
-				getId: this.getContent(articleModel) //getting content from DB to augment it.
-			};
+			//getting content from DB to augment it.
+			this.getContent(articleModel, {
+				onSuccess: this.getForStoreCallback.bind(this, {
+					model: articleModel,
+					webContent: webContent,
+					images: images,
+					spritzContent: spritzContent,
+					storeActivityId: this.activityId
+				}),
+				//if we can't get from db, just store it.
+				onFailure: this.storeArticle.bind(this, articleModel, webContent, spritzContent, images, override)
+			});
 		} else {
 			this.setDbActivities(this.dbActivities + 1);
 			this.privateGenericSend(articleModel, "storeArticleContent", {
@@ -61,52 +76,6 @@ enyo.singleton({
 			});
 		}
 		return this.activityId;
-	},
-	gotContent: function (inSender, inEvent) {
-		/*jslint unparam: true */
-		if (this.gettingToStore) {
-			Object.keys(this.gettingToStore).forEach(function (activityId) {
-				var obj = this.gettingToStore[activityId],
-					content = inEvent.content || {};
-				if (obj.getId === inEvent.activityId) {
-					this.debugOut("Got article content from activity " + obj.getId + " for " + obj.model.get("item_id"));
-					obj.model.set("contentAvailable",  true);
-					content.web = obj.webContent || content.web;
-					content.spritz = obj.spritzContent || content.spritz;
-					content.images = obj.images || content.images;
-					this.setDbActivities(this.dbActivities + 1);
-
-					this.privateGenericSend(obj.model, "storeArticleContent", {
-						content: content,
-						activityId: activityId
-					});
-					delete this.gettingToStore[activityId];
-				} else {
-					this.debugOut("Wrong activity id: " + inEvent.activityId + " for " + obj.getId);
-				}
-			}.bind(this));
-		}
-
-		if (this.gettingToDL) {
-			if (this.gettingToDL.activityId === inEvent.activityId) {
-				if (!inEvent.success) {
-					this.debugOut("Need download: " + this.gettingToDL.model.attributes.item_id);
-					this.gettingToDL.model.set("contentAvailable",  false);
-					if (!this.downloading || this.downloading === this.gettingToDL.model.attributes.item_id) {
-						this.debugOut("Doing direct.");
-						this.gettingToDL.api.getArticleContent(this.gettingToDL.model);
-						this.downloading = this.gettingToDL.model.attributes.item_id;
-					} else {
-						this.debugOut("Planing for later. Current DL: " + this.downloading);
-						this.needDL.push(this.gettingToDL);
-					}
-				} else {
-					this.log("Article ok, don't download.");
-					this.gettingToDL.model.set("contentAvailable",  true);
-				}
-				delete this.gettingToDL;
-			}
-		}
 	},
 
 	privateGenericSend: function (articleModel, method, inParams) {
@@ -131,8 +100,8 @@ enyo.singleton({
 				service: "palm://info.mobo.moboreader.service",
 				method: method
 			});
-			req.response(this.dbActivityComplete.bind(this, params.activityId, params.id, method));
-			req.error(this.dbError.bind(this, params.activityId, params.id, method));
+			req.response(this.dbActivityComplete.bind(this, params.activityId, params.id, method, params.onSuccess));
+			req.error(this.dbError.bind(this, params.activityId, params.id, method, params.onFailure));
 
 			req.go(params);
 		} else {
@@ -150,11 +119,14 @@ enyo.singleton({
 		}
 		return this.activityId;
 	},
-	getContent: function (articleModel) {
-		return this.privateGenericSend(articleModel, "getArticleContent");
+	getContent: function (articleModel, params) {
+		return this.privateGenericSend(articleModel, "getArticleContent", params);
 	},
-	articleContentExists: function (articleModel) {
-		return this.privateGenericSend(articleModel, "articleContentExists", {requireSpritz: moboreader.Prefs.downloadSpritzOnUpdate});
+	articleContentExists: function (articleModel, params) {
+		if (undefined === params.requireSpritz) {
+			params.requireSpritz = moboreader.Prefs.downloadSpritzOnUpdate;
+		}
+		return this.privateGenericSend(articleModel, "articleContentExists", params);
 	},
 	deleteContent: function (articleModel) {
 		return this.privateGenericSend(articleModel, "deleteArticleContent");
@@ -164,16 +136,25 @@ enyo.singleton({
 	},
 
 	checkAndDownload: function (articleModel, api) {
-		if (!this.gettingToDL) {
-			this.debugOut("Checking: " + articleModel.attributes.item_id);
-			var activityId = this.articleContentExists(articleModel);
-			this.gettingToDL = {
-				model: articleModel,
-				api: api,
-				activityId: activityId
-			};
+		var id = articleModel.get(articleModel.primaryKey);
+		if (!this.checking) {
+			this.checking = id;
+			this.debugOut("Checking: " + id);
+			this.articleContentExists(articleModel, {
+				onSuccess: function (inEvent) {
+					if (!inEvent.success) {
+						this.debugOut("Need download: " + id);
+						articleModel.set("contentAvailable", false);
+						this.needDL.push({model: articleModel, api: api});
+					} else {
+						this.log("Article ok, don't download.");
+						articleModel.set("contentAvailable",  true);
+					}
+					this.downloadNext();
+				}.bind(this)
+			});
 		} else {
-			this.debugOut("Checking LATER: " + articleModel.attributes.item_id);
+			this.debugOut("Checking LATER: " + id + " currently doing: " + this.checking);
 			this.checkQueue.unshift({
 				model: articleModel,
 				api: api
@@ -181,31 +162,90 @@ enyo.singleton({
 		}
 	},
 
+	downloadMultiple: function (models, api, inEvent) {
+		this.debugOut("Got multiple result: " + JSON.stringify(inEvent.idsStatus));
+		function getModelById(id) {
+			var i;
+			for (i = 0; i < models.length; i += 1) {
+				if (models[i].get(models[i].primaryKey) === id) {
+					return models[i];
+				}
+			}
+		}
+
+		var status = inEvent.idsStatus;
+		if (status) {
+			Object.keys(status).forEach(function processContentStatus(id) {
+				var model = getModelById(id);
+				if (!model) {
+					this.warn("No model for id " + id);
+					return;
+				}
+				if (status[id].all) {
+					this.debugOut(id + " all there, no need to dl.");
+				} else if (!status[id].web || !status[id].spritz) {
+					this.needDL.push({
+						model: model,
+						api: api
+					});
+				} else {
+					//only need images, call service to handle that.
+					this.privateGenericSend(model, "downloadImages");
+				}
+			}.bind(this));
+		}
+
+		this.downloadNext();
+	},
+	checkAndDownloadMultiple: function (ids, models, api) {
+		this.privateGenericSend(null, "articleContentExists", {
+			ids: ids,
+			onSuccess: this.downloadMultiple.bind(this, models, api),
+			onFailure: function () { console.error("Failed to check events for required downloads."); }
+		});
+	},
+
 	contentDownloaded: function (inSender, inEvent) {
 		/*jslint unparam: true */
-		this.debugOut("Download finished: " + inEvent.model.attributes.item_id);
+		this.debugOut("Download finished: " + inEvent.model.get(inEvent.model.primaryKey));
 		inEvent.model.set("contentAvailable", !!(inEvent.content && inEvent.content.web && (inEvent.content.spritz || !moboreader.Prefs.downloadSpritzOnUpdate)));
 		this.storeArticle(inEvent.model, inEvent.content.web, inEvent.content.spritz, inEvent.content.images);
 
+		if (inEvent.model.get(inEvent.model.primaryKey) === this.downloading) {
+			this.downloading = false;
+		}
+
+		this.downloadNext();
+	},
+
+	downloadNext: function () {
+		if (this.downloading) {
+			this.debugOut("Already downloading " + this.downloading + ". Waiting downloads: " + this.needDL.length + ".");
+			return;
+		}
 		if (this.needDL.length > 0) {
 			var obj = this.needDL.shift();
 			obj.api.getArticleContent(obj.model);
-			this.downloading = obj.model.attributes.item_id;
+			this.downloading = obj.model.get(obj.model.primaryKey);
 			this.debugOut("Download started: " + this.downloading);
 		} else {
 			this.debugOut("all downloads finished.");
 			this.downloading = false;
 		}
 	},
-
 	//this will mix queue a bit up.. hm..
-	sendNext: function () {
+	sendNext: function (doneId, method) {
+		if (doneId === this.checking && method === "articleContentExists") {
+			this.checking = false;
+		}
 		var req = this.checkQueue.shift();
 		if (req) {
 			this.checkAndDownload(req.model, req.api);
+		} else {
+			this.downloadNext();
 		}
 	},
-	dbActivityComplete: function (activityId, id, method, inSender, inEvent) {
+	dbActivityComplete: function (activityId, id, method, callback, inSender, inEvent) {
 		/*jslint unparam: true */
 		this.debugOut("Incomming response: " + inEvent.success + " for id " + activityId);
 		this.setDbActivities(this.dbActivities - 1);
@@ -213,9 +253,12 @@ enyo.singleton({
 		inEvent.id = id;
 		inEvent.method = method;
 		enyo.Signals.send("onArticleOpReturned", inEvent);
-		this.sendNext();
+		this.sendNext(id, method);
+		if (typeof callback === "function") {
+			callback(inEvent);
+		}
 	},
-	dbError: function (activityId, id, method, inSender, inEvent) {
+	dbError: function (activityId, id, method, callback, inSender, inEvent) {
 		/*jslint unparam: true */
 		this.log("dbFailed: " + JSON.stringify(inEvent));
 		this.setDbActivities(this.dbActivities - 1);
@@ -225,6 +268,9 @@ enyo.singleton({
 			method: method,
 			activityId: activityId
 		});
-		this.sendNext();
+		this.sendNext(id, method);
+		if (typeof callback === "function") {
+			callback(inEvent);
+		}
 	}
 });
