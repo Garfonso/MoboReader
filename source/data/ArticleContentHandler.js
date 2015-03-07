@@ -172,6 +172,7 @@ enyo.singleton({
 	checkAndDownloadMultiple: function (ids, models, api) {
 		this.privateGenericSend(null, "articleContentExists", {
 			ids: ids,
+			requireSpritz: moboreader.Prefs.downloadSpritzOnUpdate,
 			onSuccess: this.downloadMultiple.bind(this, models, api),
 			onFailure: function () { console.error("Failed to check events for required downloads."); }
 		});
