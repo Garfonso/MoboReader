@@ -24,11 +24,13 @@ var ImageHandler = (function () {
 			Log.log("WARNING: Missing image object for ", num, " in ", images);
 			return ".jpg";
 		}
+
 		if (!img.src) {
-			Log.log("WARNING: Image without src??");
-			img.src = "INVALID.jpg";
+			Log.log("WARNING: Image without src??", img, ", ", num, " images: ", images);
+			src = "INVALID.jpg";
+		} else {
+			src = img.src;
 		}
-		src = img.src;
 
 		if (src.indexOf("?") >= 0) {
 			src = src.substring(0, src.indexOf("?"));
