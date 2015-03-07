@@ -4,7 +4,7 @@ var ArticleContentExistsAssistant = function () { "use strict"; };
 
 var ImageHandler = require(libPath + "ImageHandler.js");
 
-function processId(id, resObj) {
+function processId(id, resObj, requireSpritz) {
 	"use strict";
 	var future = new Future(), filename;
 
@@ -29,6 +29,10 @@ function processId(id, resObj) {
 					web: (!!obj.web),
 					spritz: (!!obj.spritz)
 				};
+				if (!requireSpritz) {
+					resObj[id].spritz = true;
+				}
+				Log.debug("Result before image check: ", resObj[id], "spritz: ", (!!obj.spritz));
 				if (obj.images) {
 					Log.debug("Having images.");
 					future.nest(ImageHandler.checkImages(id, obj.images));
@@ -49,11 +53,12 @@ function processId(id, resObj) {
 		}
 
 		result = future.result;
+		Log.debug("result from check images: ", result);
 		if (!resObj[id]) {
 			resObj[id] = {};
 		}
 		resObj[id].images = result;
-		resObj[id].all = result;
+		resObj[id].all = resObj[id].web && resObj[id].spritz && result;
 		future.result = resObj;
 	});
 
@@ -82,7 +87,7 @@ ArticleContentExistsAssistant.prototype.run = function (outerfuture) {
 	ids.forEach(function (id) {
 		future.then(function () {
 			var result = checkResult(future);
-			future.nest(processId(id, result));
+			future.nest(processId(id, result, args.requireSpritz));
 		});
 	});
 
