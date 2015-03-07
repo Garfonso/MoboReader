@@ -64,7 +64,7 @@ var ImageHandler = (function () {
 			} else {
 				delete result.body;
 				Log.log("Download of image ", id, "_", imId, " failed: ", result);
-				if (result.returnCode >= 400 && result.returnCode < 500) {
+				if (result.returnCode >= 300 && result.returnCode < 500) {
 					Log.debug("Unrecoverable error ", result.returnCode, " don't try again.");
 					future.result = true;
 				} else {
@@ -77,6 +77,13 @@ var ImageHandler = (function () {
 	}
 
 	function checkImages(id, images, keys) {
+		if (!keys) {
+			if (!images) {
+				return new Future(true); //no images at all, return.
+			}
+			keys = Object.keys(images);
+		}
+
 		if (!keys.length || keys.length <= 0) {
 			Log.debug("No more images, can return now.", keys);
 			return new Future(true);
@@ -117,7 +124,7 @@ var ImageHandler = (function () {
 		checkImages: checkImages,
 
 		replaceImgTags: function (c, articlePath) {
-			var index = 0, searchString = "<!--IMG_", start, end, num, filetype, url;
+			var index = 0, searchString = "<!--IMG_", start, end, num, filetype, url, imgText;
 
 			index = c.web.indexOf(searchString);
 			while (index < c.web.length && index > 0) {
@@ -133,14 +140,16 @@ var ImageHandler = (function () {
 
 				if (!c.images[num]) {
 					c.images[num] = {src: "INVALID.jpg"};
+					Log.log("No image object for ", num, " in images array ", c.images);
+					imgText = "";
+				} else {
+					//build new url:
+					url = articlePath + num + filetype;
+					imgText = '<div class="RIL_IMG"><img src="' + url + '"><p class="RIL_CAPTION">' + (c.images[num].caption || "") + '</p></div>';
 				}
 
-				//build new url:
-				url = articlePath + num + filetype;
-
 				//replace image tag:
-				c.web = c.web.replace(searchString + num + "-->", '<div class="RIL_IMG"><img src="' + url + '"><p class="RIL_CAPTION">' + (c.images[num].caption || "") + '</p></div>');
-
+				c.web = c.web.replace(searchString + num + "-->", imgText);
 				index = c.web.indexOf(searchString, end); //will be -1 if none found anymore.
 			}
 		}
