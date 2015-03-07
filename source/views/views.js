@@ -164,7 +164,7 @@ enyo.kind({
 		},
 		{
 			name: "keepServiceRunning",
-			kind: "enyo.LunaService",
+			kind: "enyo.PalmService",
 			service: "luna://info.mobo.moboreader.service",
 			method: "keepRunning",
 			onResponse: "gotPing",
