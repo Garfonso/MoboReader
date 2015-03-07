@@ -14,5 +14,5 @@ var debug = Utils.logBase;
 var Log = {
 	log: log,
 	debug: debug,
-	log_calDavDebug: Utils.logOff
+	log_httpClient: Utils.logOff
 };
