@@ -1,20 +1,8 @@
-/*global Utils, fs, Log, Config, Future, checkResult */
+/*jslint node: true */
+/*global Utils, fs, Log, Config, Future, checkResult, libPath */
 var ArticleContentExistsAssistant = function () { "use strict"; };
 
-function checkForAllImages(obj) {
-	"use strict";
-	var allOk = true;
-	//if no images, i.e. need no image download.
-	if (obj.images && Object.keys(obj.images).length > 0) {
-		Object.keys(obj.images).forEach(function (img) {
-			if (!obj.images[img].done) {
-				Log.debug("Image ", obj.images[img], " missing.");
-				allOk = false;
-			}
-		});
-	}
-	return allOk;
-}
+var ImageHandler = require(libPath + "ImageHandler.js");
 
 function processId(id, resObj) {
 	"use strict";
@@ -22,30 +10,51 @@ function processId(id, resObj) {
 
 	filename = Utils.getArticlePath(id) + Config.contentFilename;
 
-	fs.readFile(filename, function (err, content) {
-		var obj, imagesFine;
-		if (err) {
-			resObj[id] = {all: false, message: "IO Error: " + err.message};
-			future.result = resObj;
-		} else {
-			try {
-				obj = JSON.parse(content);
-			} catch (e) {
-				Log.log("Error during parse: " + e.message);
-				resObj[id] = {all: false, message: "Error during parse " + e.message};
-				future.result = resObj;
-				return;
+	future.now(function loadFile() {
+		fs.readFile(filename, function (err, content) {
+			var obj, imagesFine;
+			if (err) {
+				resObj[id] = {all: false, message: "IO Error: " + err.message};
+				future.result = false;
+			} else {
+				try {
+					obj = JSON.parse(content);
+				} catch (e) {
+					Log.log("Error during parse: " + e.message);
+					resObj[id] = {all: false, message: "Error during parse " + e.message};
+					future.result = false;
+					return;
+				}
+				resObj[id] = {
+					web: (!!obj.web),
+					spritz: (!!obj.spritz)
+				};
+				if (obj.images) {
+					Log.debug("Having images.");
+					future.nest(ImageHandler.checkImages(id, obj.images));
+				} else {
+					Log.debug("No images, all fine.");
+					future.result = true;
+				}
 			}
-			imagesFine = checkForAllImages(obj);
-			Log.debug("Id ", id, " content ok: ", (imagesFine && !!obj.web && !!obj.spritz));
-			resObj[id] = {
-				web: (!!obj.web),
-				spritz: (!!obj.spritz),
-				images: imagesFine,
-				all: (!!obj.web && !!obj.spritz && imagesFine)
-			};
+		});
+	});
+
+	future.then(function checkAllImages() {
+		var exception = future.exception,
+			result;
+		if (exception) {
 			future.result = resObj;
+			return;
 		}
+
+		result = future.result;
+		if (!resObj[id]) {
+			resObj[id] = {};
+		}
+		resObj[id].images = result;
+		resObj[id].all = result;
+		future.result = resObj;
 	});
 
 	return future;
