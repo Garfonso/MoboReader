@@ -106,6 +106,7 @@ enyo.singleton({
 		return this.privateGenericSend(null, "wipeStorage");
 	},
 
+	//============================ checkAndDownload ======
 	checkAndDownload: function (articleModel, api) {
 		var id = articleModel.get(articleModel.primaryKey);
 		if (!this.checking) {
@@ -119,7 +120,7 @@ enyo.singleton({
 						this.needDL.push({model: articleModel, api: api});
 					} else {
 						this.log("Article ok, don't download.");
-						articleModel.set("contentAvailable",  true);
+						articleModel.set("contentAvailable", true);
 					}
 					this.downloadNext();
 				}.bind(this)
@@ -153,15 +154,15 @@ enyo.singleton({
 					return;
 				}
 				if (status[id].all) {
+					model.set("contentAvailable", true);
 					this.debugOut(id + " all there, no need to dl.");
-				} else if (!status[id].web || !status[id].spritz) {
+				} else {
+					model.set("contentAvailable", false);
 					this.needDL.push({
 						model: model,
-						api: api
+						api: api,
+						onlyImages: (status[id].web && status[id].spritz) //only need images, call service to handle that.
 					});
-				} else {
-					//only need images, call service to handle that.
-					this.privateGenericSend(model, "downloadImages");
 				}
 			}.bind(this));
 		}
@@ -196,7 +197,11 @@ enyo.singleton({
 		}
 		if (this.needDL.length > 0) {
 			var obj = this.needDL.shift();
-			obj.api.getArticleContent(obj.model);
+			if (obj.onlyImages) {
+				this.privateGenericSend(obj.model, "downloadImages");
+			} else {
+				obj.api.getArticleContent(obj.model);
+			}
 			this.downloading = obj.model.get(obj.model.primaryKey);
 			this.debugOut("Download started: " + this.downloading);
 		} else {
@@ -208,6 +213,9 @@ enyo.singleton({
 	sendNext: function (doneId, method) {
 		if (doneId === this.checking && method === "articleContentExists") {
 			this.checking = false;
+		}
+		if (doneId === this.downloading && method === "downloadImages") {
+			this.downloading = false;
 		}
 		var req = this.checkQueue.shift();
 		if (req) {
