@@ -14,7 +14,6 @@ var httpClient = (function () {
 	var proxy = {port: 0, host: "", valid: false},
 		httpsProxy = {port: 0, host: "", valid: false},
 		globalReqNum = 0,
-		ignoreSSLCertificateErrors = {},
 		retries = {};
 
 	function setProxy(proxyString, inProxy) {
@@ -77,7 +76,7 @@ var httpClient = (function () {
 		options.prefix = options.protocol + "//" + options.headers.host + ":" + options.port;
 		options.originalUrl = inUrl;
 
-		if (ignoreSSLCertificateErrors[options.host] && options.protocol === "https:") {
+		if (options.ignoreSSLCertificateErrors && options.protocol === "https:") {
 			options.rejectUnauthorized = false;
 			options.requestCert = true;
 		}
@@ -198,7 +197,7 @@ var httpClient = (function () {
 		}
 	}
 
-	function sendRequestImpl(options, data, retry, origin) {
+	function sendRequestImpl(options, data, retry, origin, authretry) {
 		var body = new Buffer(0),
 			future = new Future(),
 			res,
@@ -285,7 +284,8 @@ var httpClient = (function () {
 				returnCode: res.statusCode,
 				headers: res.headers,
 				body: options.binary ? body : body.toString("utf8"),
-				uri: options.prefix + options.path
+				uri: options.prefix + options.path,
+				method: options.method
 			};
 			if (options.path.indexOf(":/") >= 0) {
 				result.uri = options.path; //path already was complete, maybe because of proxy usage.
@@ -322,6 +322,21 @@ var httpClient = (function () {
 				result.parsedBody = xml.xmlstr2json(body.toString("utf8"));
 				Log.log_calDavParsingDebug("Parsed Body: ", result.parsedBody);
 				future.result = result;
+			} else if (res.statusCode === 401 && typeof options.authCallback === "function") {
+				future.nest(options.authCallback(result));
+
+				future.then(function authFailureCBResultHandling() {
+					var cbResult = future.result;
+					if (cbResult.returnValue === true && !authretry) {
+						if (cbResult.newAuthHeader) {
+							options.headers.Authorization = cbResult.newAuthHeader;
+						}
+						Log.debug("Retrying request with new auth data.");
+						future.nest(sendRequestImpl(options, data, 0, origin, true)); //retry request once with new auth.
+					} else {
+						future.result = result; //just give back the old, failed, result non the less?
+					}
+				});
 			} else {
 				future.result = result;
 			}
@@ -336,6 +351,7 @@ var httpClient = (function () {
 				checkRetry("Connection closed " + (e ? " with error." : " without error."));
 			} else {
 				Log.log("Connection ", reqName(origin, retry), " closed, but no answer, yet? Wait a little longer.");
+				setTimeout(timeoutCB, 60000);
 			}
 		}
 
@@ -424,18 +440,14 @@ var httpClient = (function () {
 
 	return {
 		sendRequest: function (options, data) {
-			options.path = encodeURI(decodeURI(options.path)); //make sure URI is properly encoded.
+			//Log.debug("before encode: ", options.path);
+			//options.path = encodeURI(decodeURI(options.path)); //make sure URI is properly encoded.
+			//Log.debug("After encode: ", options.path);
 			return sendRequestImpl(options, data);
 		},
 
 		parseURLIntoOptions: function (inUrl, options) {
 			return parseURLIntoOptionsImpl(inUrl, options);
-		},
-
-		setIgnoreSSLCertificateErrorsForHost: function (inUrl, value) {
-			var tmpOptions = {};
-			parseURLIntoOptionsImpl(inUrl, tmpOptions);
-			ignoreSSLCertificateErrors[tmpOptions.host] = value;
 		}
 	};
 }());
