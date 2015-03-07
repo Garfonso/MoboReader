@@ -1,5 +1,5 @@
 /*jslint node: true */
-/*global fs, Utils, Future, Config, Log, path, libPath, writingArticles: true */
+/*global fs, Utils, Future, Config, Log, path, libPath, writingArticles: true, checkResult */
 
 var ImageHandler = require(libPath + "ImageHandler.js");
 
@@ -23,17 +23,19 @@ DownloadImagesAssistant.prototype.run = function (outerfuture) {
 
 	articlePath = Utils.getArticlePath(args.id);
 
-	path.exists(articlePath, function (exists) {
-		if (exists) {
-			future.result = true;
-		} else {
-			delete writingArticles[args.id];
-			outerfuture.result = {success: false, message: "Path not found: " + articlePath, activityId: args.activityId};
-		}
+	future.now(function () {
+		path.exists(articlePath, function (exists) {
+			if (exists) {
+				future.result = true;
+			} else {
+				delete writingArticles[args.id];
+				outerfuture.result = {success: false, message: "Path not found: " + articlePath, activityId: args.activityId};
+			}
+		});
 	});
 
 	future.then(function readFile() {
-		future.getResult(); //consume result.
+		Log.debug("Path check result: ", checkResult(future)); //consume result
 		fs.readFile(articlePath + Config.contentFilename, function (err, content) {
 			if (err) {
 				delete writingArticles[args.id];
@@ -54,7 +56,7 @@ DownloadImagesAssistant.prototype.run = function (outerfuture) {
 
 	//store content to update images status
 	future.then(function storeContent() {
-		future.getResult(); //consume result
+		Log.debug("ImageHandler result: ", checkResult(future)); //consume result
 		Log.debug("Trying to store ", !!articleContent);
 		fs.writeFile(articlePath + Config.contentFilename, JSON.stringify(articleContent), function (err) {
 			delete writingArticles[args.id];
