@@ -12,7 +12,7 @@ var ImageHandler = (function () {
 	"use strict";
 
 	function getFileEnding(images, num) {
-		var img;
+		var img, src;
 		if (num === undefined) {
 			//assume single image:
 			img = images;
@@ -28,8 +28,14 @@ var ImageHandler = (function () {
 			Log.log("WARNING: Image without src??");
 			img.src = "INVALID.jpg";
 		}
+		src = img.src;
 
-		return img.src.substring(img.src.lastIndexOf("."));
+		if (src.indexOf("?") >= 0) {
+			src = src.substring(0, src.indexOf("?"));
+			Log.debug("Url truncated to ", src, " from ", img.src);
+		}
+
+		return src.substring(src.lastIndexOf("."));
 	}
 
 	function downloadImage(id, image) {
