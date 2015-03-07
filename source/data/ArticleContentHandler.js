@@ -34,47 +34,18 @@ enyo.singleton({
 		this.setIsWebos(!!window.PalmSystem);
 	},
 
-	getForStoreCallback: function (params, inEvent) {
-		var content = inEvent.content || {};
-		this.debugOut("Got article content from for " + params.model.get(params.model.primaryKey));
-		content.web = params.webContent || content.web;
-		content.spritz = params.spritzContent || content.spritz;
-		content.images = params.images || content.images;
-		this.setDbActivities(this.dbActivities + 1);
-
-		this.privateGenericSend(params.model, "storeArticleContent", {
-			content: content,
-			activityId: params.storeActivityId
-		});
-	},
-	storeArticle: function (articleModel, webContent, spritzContent, images, override) {
+	storeArticle: function (articleModel, webContent, spritzContent, images) {
 		this.activityId += 1;
 
-		if ((!webContent || !spritzContent) && !override) {
-			this.debugOut("Not all content there ( mobo: " + (!!webContent) + ", spritz: " + (!!spritzContent) + "). See what service has for us.");
-			//getting content from DB to augment it.
-			this.getContent(articleModel, {
-				onSuccess: this.getForStoreCallback.bind(this, {
-					model: articleModel,
-					webContent: webContent,
-					images: images,
-					spritzContent: spritzContent,
-					storeActivityId: this.activityId
-				}),
-				//if we can't get from db, just store it.
-				onFailure: this.storeArticle.bind(this, articleModel, webContent, spritzContent, images, override)
-			});
-		} else {
-			this.setDbActivities(this.dbActivities + 1);
-			this.privateGenericSend(articleModel, "storeArticleContent", {
-				content: {
-					web: webContent,
-					spritz: spritzContent,
-					images: images
-				},
-				activityId: this.activityId
-			});
-		}
+		this.setDbActivities(this.dbActivities + 1);
+		this.privateGenericSend(articleModel, "storeArticleContent", {
+			content: {
+				web: webContent,
+				spritz: spritzContent,
+				images: images
+			},
+			activityId: this.activityId
+		});
 		return this.activityId;
 	},
 
