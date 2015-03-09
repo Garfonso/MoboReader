@@ -7,5 +7,6 @@
 	"main": "index.html",
 	"title": "MoboReader",
 	"icon": "icon.png",
+	"keywords": ["pocket", "read it later"],
 	"uiRevision": 2
 }
