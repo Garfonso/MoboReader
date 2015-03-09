@@ -160,7 +160,9 @@ enyo.kind({
 
 			onNeedShowAuth: "showAuth",
 			onAuthOk: "refreshTap",
-			onHideAuth: "hideAuth"
+			onHideAuth: "hideAuth",
+
+			onSpritzIsAvaiable: "checkAll"
 		},
 		{
 			name: "keepServiceRunning",
@@ -337,5 +339,9 @@ enyo.kind({
 		setTimeout(function () {
 			this.request = this.$.keepServiceRunning.send({subscribe: true, resubscribe: true});
 		}.bind(this), 1000);
+	},
+
+	checkAll: function () {
+		this.articleCollection.updateArticleContent(this.$.api);
 	}
 });

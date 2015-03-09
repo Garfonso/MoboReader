@@ -53,6 +53,8 @@ enyo.singleton({
 	},
 
 	requestedChanged: function () {
+		this.log("navigator components: " + JSON.stringify(Object.keys(navigator)));
+
 		if (moboreader.Prefs.useSpritz) {
 			this.log("Need to activate Spritz: ", moboreader.Prefs.useSpritz);
 			if (ArticleContentHandler.isWebos) {
@@ -125,6 +127,7 @@ enyo.singleton({
 		if (result) {
 			this.log("Spritz loaded.");
 			this.setAvailable(true);
+			enyo.Signals.send("onSpritzIsAvaiable", {});
 		} else {
 			this.error("Could not load Spritz.");
 			moboreader.Prefs.setUseSpritz(false);
