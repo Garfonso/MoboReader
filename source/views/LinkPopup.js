@@ -8,7 +8,7 @@ enyo.kind({
 	published: {
 		url: ""
 	},
-	event: {
+	events: {
 		onButtonTapped: ""
 	},
 
