@@ -108,11 +108,15 @@ enyo.singleton({
 
 	//============================ checkAndDownload ======
 	checkAndDownload: function (articleModel, api) {
-		var id = articleModel.get(articleModel.primaryKey);
+		if (!articleModel) {
+			this.log("Article undefined: " + JSON.stringify(articleModel));
+			return;
+		}
+
+		var id = articleModel.get(articleModel.primaryKey), activityId;
 		if (!this.checking) {
 			this.checking = id;
-			this.debugOut("Checking: " + id);
-			this.articleContentExists(articleModel, {
+			activityId = this.articleContentExists(articleModel, {
 				onSuccess: function (inEvent) {
 					if (!inEvent.success) {
 						this.debugOut("Need download: " + id);
@@ -122,9 +126,12 @@ enyo.singleton({
 						this.log("Article ok, don't download.");
 						articleModel.set("contentAvailable", true);
 					}
+					this.checking = false;
+					this.sendNext();
 					this.downloadNext();
 				}.bind(this)
 			});
+			this.debugOut("Checking: " + id + " witch activity " + activityId);
 		} else {
 			this.debugOut("Checking LATER: " + id + " currently doing: " + this.checking);
 			this.checkQueue.unshift({
@@ -213,9 +220,11 @@ enyo.singleton({
 	//this will mix queue a bit up.. hm..
 	sendNext: function (doneId, method) {
 		if (doneId === this.checking && method === "articleContentExists") {
+			this.debugOut("Check of " + this.checking + " done.");
 			this.checking = false;
 		}
 		if (doneId === this.downloading && method === "downloadImages") {
+			this.debugOut("Download of " + this.checking + " done.");
 			this.downloading = false;
 		}
 		var req = this.checkQueue.shift();
@@ -227,7 +236,7 @@ enyo.singleton({
 	},
 	dbActivityComplete: function (activityId, id, method, callback, inSender, inEvent) {
 		/*jslint unparam: true */
-		this.debugOut("Incomming response: " + inEvent.success + " for id " + activityId);
+		this.debugOut("Incomming response: " + inEvent.success + " for id " + activityId + " and model id " + id);
 		this.setDbActivities(this.dbActivities - 1);
 		inEvent.activityId = activityId;
 		inEvent.id = id;
@@ -240,7 +249,8 @@ enyo.singleton({
 	},
 	dbError: function (activityId, id, method, callback, inSender, inEvent) {
 		/*jslint unparam: true */
-		this.log("dbFailed: " + JSON.stringify(inEvent));
+		this.debugOut("Incomming failure for id " + activityId + " and model id " + id);
+		this.log("dbFailed: " + inEvent.message);
 		this.setDbActivities(this.dbActivities - 1);
 		enyo.Signals.send("onArticleOpReturned", {
 			id: id,
