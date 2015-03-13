@@ -12,7 +12,7 @@ var ImageHandler = (function () {
 	"use strict";
 
 	function getFileEnding(images, num) {
-		var img, src;
+		var img, src, ending;
 		if (num === undefined) {
 			//assume single image:
 			img = images;
@@ -37,7 +37,14 @@ var ImageHandler = (function () {
 			Log.debug("Url truncated to ", src, " from ", img.src);
 		}
 
-		return src.substring(src.lastIndexOf("."));
+		ending = src.substring(src.lastIndexOf("."));
+		ending = ending.toLowerCase();
+		if (ending !== ".png" && ending !== ".bmp" && ending !== ".tif" && ending !== ".gif" && ending !== ".svg") {
+			Log.debug("Ending probably problematic. Just return jpg: " + ending);
+			ending = ".jpg";
+		}
+
+		return ending;
 	}
 
 	function downloadImage(id, image) {
