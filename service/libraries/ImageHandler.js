@@ -68,6 +68,7 @@ var ImageHandler = (function () {
 				Log.log("Download of image ", id, "_", imId, " failed: ", result);
 				if (result.returnCode >= 300 && result.returnCode < 500) {
 					Log.debug("Unrecoverable error ", result.returnCode, " don't try again.");
+					image.unrecoverable = true;
 					future.result = true;
 				} else {
 					future.result = false;
@@ -78,7 +79,7 @@ var ImageHandler = (function () {
 		return future;
 	}
 
-	function checkImages(id, images, keys) {
+	function checkImages(id, images, keys, noDownload) {
 		if (!keys) {
 			if (!images) {
 				return new Future(true); //no images at all, return.
@@ -98,21 +99,26 @@ var ImageHandler = (function () {
 			//image invalid??
 			image.done = true;
 			Log.log("Image without or invalid src: ", image, " skipping.");
-			return checkImages(id, images, keys);
+			return checkImages(id, images, keys, noDownload);
 		}
 
 		path.exists(imgFilename, function (exists) {
 			if (exists) {
 				Log.debug("Image ", imgFilename, " already exists: ", exists, ". Check next one.");
 				image.done = true;
-				future.nest(checkImages(id, images, keys));
+				future.nest(checkImages(id, images, keys, noDownload));
 			} else {
-				Log.debug("Start download of ", imgFilename);
-				downloadImage(id, image).then(function dlCallback(f) {
-					Log.debug("Download of ", imgFilename, " done. Result: ", f.result);
-					image.done = !!f.result;
-					future.nest(checkImages(id, images, keys));
-				});
+				if (noDownload) {
+					image.done = image.unrecoverable || false; //keep unrecoverable image failures here.
+					future.nest(checkImages(id, images, keys, noDownload));
+				} else {
+					Log.debug("Start download of ", imgFilename);
+					downloadImage(id, image).then(function dlCallback(f) {
+						Log.debug("Download of ", imgFilename, " done. Result: ", f.result);
+						image.done = !!f.result;
+						future.nest(checkImages(id, images, keys, noDownload));
+					});
+				}
 			}
 		});
 

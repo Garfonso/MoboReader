@@ -4,15 +4,32 @@ var ArticleContentExistsAssistant = function () { "use strict"; };
 
 var ImageHandler = require(libPath + "ImageHandler.js");
 
+function checkIfAllImagesExist(obj) {
+	"use strict";
+	var allOk = true;
+	if (!obj) {
+		return false;
+	}
+	//if no images, i.e. need no image download.
+	if (obj && obj.images && Object.keys(obj.images).length > 0) {
+		Object.keys(obj.images).forEach(function (img) {
+			if (!obj.images[img].done && !obj.images[img].unrecoverable) {
+				Log.debug("Image ", obj.images[img], " missing.");
+				allOk = false;
+			}
+		});
+	}
+	return allOk;
+}
+
 function processId(id, resObj, requireSpritz) {
 	"use strict";
-	var future = new Future(), filename;
+	var future = new Future(), filename, obj;
 
 	filename = Utils.getArticlePath(id) + Config.contentFilename;
 
 	future.now(function loadFile() {
 		fs.readFile(filename, function (err, content) {
-			var obj, imagesFine;
 			if (err) {
 				resObj[id] = {all: false, message: "IO Error: " + err.message};
 				future.result = false;
@@ -35,7 +52,7 @@ function processId(id, resObj, requireSpritz) {
 				Log.debug("Result before image check: ", resObj[id], "spritz: ", (!!obj.spritz));
 				if (obj.images) {
 					Log.debug("Having images.");
-					future.nest(ImageHandler.checkImages(id, obj.images));
+					future.nest(ImageHandler.checkImages(id, obj.images, null, true));
 				} else {
 					Log.debug("No images, all fine.");
 					future.result = true;
@@ -57,8 +74,8 @@ function processId(id, resObj, requireSpritz) {
 		if (!resObj[id]) {
 			resObj[id] = {};
 		}
-		resObj[id].images = result;
-		resObj[id].all = resObj[id].web && resObj[id].spritz && result;
+		resObj[id].images = checkIfAllImagesExist(obj);
+		resObj[id].all = resObj[id].web && resObj[id].spritz && resObj[id].images;
 		future.result = resObj;
 	});
 

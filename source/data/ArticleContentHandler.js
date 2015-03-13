@@ -203,15 +203,33 @@ enyo.singleton({
 			this.debugOut("Already downloading " + this.downloading + ". Waiting downloads: " + this.needDL.length + ".");
 			return;
 		}
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = false;
+		}
+
 		if (this.needDL.length > 0) {
 			var obj = this.needDL.shift();
 			if (obj.onlyImages) {
+				this.debugOut("Need only images.");
 				this.privateGenericSend(obj.model, "downloadImages");
 			} else {
+				this.debugOut("Need article content.");
 				obj.api.getArticleContent(obj.model);
 			}
 			this.downloading = obj.model.get(obj.model.primaryKey);
 			this.debugOut("Download started: " + this.downloading);
+
+			if (this.needDL.length) {
+				if (!this.timeout) {
+					this.timeout = setTimeout(function () {
+						this.debugOut("Download of " + this.downloading + " taking too long. Do next one.");
+						this.downloading = false;
+						this.timeout = false;
+						this.downloadNext();
+					}.bind(this), 30000);
+				}
+			}
 		} else {
 			this.debugOut("all downloads finished.");
 			this.downloading = false;
@@ -224,7 +242,7 @@ enyo.singleton({
 			this.checking = false;
 		}
 		if (doneId === this.downloading && method === "downloadImages") {
-			this.debugOut("Download of " + this.checking + " done.");
+			this.debugOut("Download of " + this.downloading + " done.");
 			this.downloading = false;
 		}
 		var req = this.checkQueue.shift();

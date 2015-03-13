@@ -340,7 +340,7 @@ enyo.singleton({
 	},
 
 	downloadSpritzModel: function (articleModel, content) {
-		var articleHtml, locale, start, end, tmpNode, text;
+		var articleHtml, locale, start, end, tmpNode, text, id = articleModel ? articleModel.get(articleModel.primaryKey) : false;
 		if (!content) {
 			content = { web: articleModel.webContent };
 		}
@@ -348,6 +348,7 @@ enyo.singleton({
 		this.dlCounter += 1;
 		this.setNumDownloading(this.numDownloading + 1);
 		articleModel.spritzDownloading = this.dlCounter;
+		this.log("Starting spritz download of " + id);
 
 		if (!articleHtml) {
 			SpritzClient.fetchContents(articleModel.get ? articleModel.get("url") : articleModel.url,
@@ -380,7 +381,8 @@ enyo.singleton({
 		return this.dlCounter;
 	},
 	fetchSuccess: function (articleModel, dlId, content, result) {
-		this.log("Got spritzData: ", result, " for model ", articleModel);
+		var id = articleModel ? articleModel.get(articleModel.primaryKey) : false, spritzPersist;
+		this.log("Got spritzData for " + id + ": ", result, ". Model: ", articleModel);
 		if (!articleModel.attributes || !articleModel.previous) {
 			this.log("Article was already destroyed.");
 		} else {
@@ -389,7 +391,7 @@ enyo.singleton({
 		}
 		delete articleModel.spritzDownloading;
 
-		var spritzPersist = this.storeSpritzModel(result);
+		spritzPersist = this.storeSpritzModel(result);
 		content.spritz = spritzPersist;
 
 		enyo.Signals.send("onArticleDownloaded", {
@@ -403,13 +405,14 @@ enyo.singleton({
 		this.setNumDownloading(this.numDownloading - 1);
 	},
 	fetchError: function (articleModel, dlId, content, result) {
-		this.log("Error fetching: ", (articleModel.get ? articleModel.get("title") : articleModel.title), " result: ", result);
+		var id = articleModel ? articleModel.get(articleModel.primaryKey) : false;
+		this.log("Error fetching " + id + ": ", (articleModel.get ? articleModel.get("title") : articleModel.title), " result: ", result);
 		enyo.Signals.send("onSpritzDL", {id: dlId, success: false, model: articleModel});
 		this.setNumDownloading(this.numDownloading - 1);
 		delete articleModel.spritzDownloading;
 
 		enyo.Signals.send("onArticleDownloaded", {
-			id: !!articleModel.get ? articleModel.get(articleModel.primaryKey) : articleModel.item_id,
+			id: id,
 			content: content,
 			model: articleModel,
 			success: false

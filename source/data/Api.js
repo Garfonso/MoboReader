@@ -297,11 +297,13 @@ enyo.kind({
 	 ******************* Article Content *****************************************************
 	 *****************************************************************************************/
 	getArticleContent: function (articleModel) {
-		var req, data;
+		var req, data, id = articleModel ? articleModel.get(articleModel.primaryKey) : false;
 
 		if (this.authModel.get("needLogin") || articleModel.downloadingContent) {
+			this.error("No download possible, need login (" + this.authModel.get("needLogin") + ") or already downloading (" + articleModel.downloadingContent + ") for id " + id);
 			return;
 		}
+		this.log("Starting download of " + id);
 		articleModel.downloadingContent = true;
 
 		this.setActive(this.active + 1);
@@ -323,7 +325,8 @@ enyo.kind({
 	},
 	gotArticleContent: function (articleModel, inSender, inResponse) {
 		/*jslint unparam: true, regexp: true */
-		this.log("Got content: ", inResponse);
+		var id = articleModel ? articleModel.get(articleModel.primaryKey) : false, content;
+		this.log("Got content for " + id + ": ", inResponse);
 		this.setActive(this.active - 1);
 		if (this.checkForUnauthorized(inResponse)) {
 			this.log("Not authorized? => start auth.");
@@ -332,13 +335,13 @@ enyo.kind({
 		}
 
 		articleModel.downloadingContent = false;
-		var content = inResponse.article;
+		content = inResponse.article;
 
 		//add . to end of headings:
 		content = content.replace(/([^.?!])\s*?<\s*?\/(h\d|strong|p)\s*?>/gim, "$1<span style=\"display:none;\">.</span></$2>");
 
 		if (!articleModel.attributes || !articleModel.previous) {
-			this.log("Article was already destroyed.");
+			this.error("Article " + id + " was already destroyed.");
 		} else {
 			articleModel.parseArticleContent(inResponse);
 			articleModel.commit();
@@ -356,15 +359,16 @@ enyo.kind({
 	},
 	downloadContentFailed: function (articleModel, inSender, inResponse) {
 		/*jslint unparam: true */
+		var id = articleModel ? articleModel.get(articleModel.primaryKey) : false;
 		articleModel.downloadingContent = false;
 		this.setActive(this.active - 1);
-		this.log("Failed to download: ", inResponse, " for ", articleModel);
+		this.log("Failed to download " + id + ": ", inResponse, " for ", articleModel);
 		if (this.checkForUnauthorized(inResponse)) {
 			this.log("Not authorized? => start auth.");
 			this.logout();
 		}
 		enyo.Signals.send("onArticleDownloaded", {
-			id: articleModel.get(articleModel.primaryKey),
+			id: id,
 			content: {},
 			model: articleModel
 		});
