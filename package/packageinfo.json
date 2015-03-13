@@ -2,7 +2,7 @@
 	"id": "info.mobo.moboreader",
 	"package_format_version": 2,
 	"loc_name": "MoboReader",
-	"version": "1.1.4",
+	"version": "1.1.5",
 	"vendor": "Mobo Mobile Apps",
 	"vendor_url": "http://webos.mobo.info",
 	"app": "info.mobo.moboreader",
