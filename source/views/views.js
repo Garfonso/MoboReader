@@ -7,6 +7,7 @@ enyo.kind({
 	name: "moboreader.MainView",
 	kind: "FittableRows",
 	fit: true,
+	classes: "main-view",
 	published: {
 		pocketDL: 0,
 		spritzDL: 0,
@@ -211,6 +212,9 @@ enyo.kind({
 	cleanUpOnUnload: function () {
 		this.log("Cleaning up on unload.");
 		this.articleCollection.storeWithChilds();
+		if (this.request) {
+			this.request.cancel();
+		}
 	},
 
 	showAddDialog: function () {
@@ -334,6 +338,11 @@ enyo.kind({
 		//this.log("Got ping: ", inEvent.seq);
 	},
 	serviceError: function (inSender, inEvent) {
+		if (!window.PalmSystem) {
+			this.log("In Browser.");
+			return;
+		}
+
 		if (inEvent) {
 			this.error("Service Error: ", inEvent.message);
 		}

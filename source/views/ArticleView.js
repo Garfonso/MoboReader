@@ -262,12 +262,12 @@ enyo.kind({
 				this.articleModel.webContent = inEvent.content.web;
 				this.$.articleContent.setContent(inEvent.content.web);
 				this.received = true;
-				this.$.scroller.resize();
 
 				if (this.timeoutId) {
 					clearTimeout(this.timeoutId);
 				}
 				this.timeoutId = setTimeout(function () {
+					this.$.scroller.$.strategy.verticalChanged();
 					this.processChildren(this.$.articleContent.node);
 					this.log("Scrolling to ", this.articleModel.get("scrollPos") || 1);
 					this.$.scroller.setScrollTop(this.articleModel.get("scrollPos") || 1);
