@@ -302,6 +302,7 @@ enyo.kind({
 				scrollTo = 0;
 			}
 			this.$.articleList.scrollToIndex(scrollTo);
+			this.lastArticle.showing = false; //allow it to be deleted.
 		}
 	},
 

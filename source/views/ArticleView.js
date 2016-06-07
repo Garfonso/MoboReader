@@ -305,10 +305,11 @@ enyo.kind({
 		this.closeToolbarPopup();
 	},
 	archiveTap: function () {
-		this.articleModel.doArchive(this.api, this.collection);
 		if (moboreader.Prefs.getGoBackOnArchive()) {
+			this.articleModel.showing = false;
 			this.doBack();
 		}
+		this.articleModel.doArchive(this.api, this.collection);
 		this.closeToolbarPopup();
 	},
 	favoriteTap: function () {
