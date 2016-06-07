@@ -83,7 +83,9 @@ enyo.kind({
 			for (key in models) {
 				if (models.hasOwnProperty(key)) {
 					if (key !== "authModel") {
+						//manually clean LocalStorage...
 						delete models[key];
+						enyo.sources.LocalStorageSource.save(key);
 					}
 				}
 			}
