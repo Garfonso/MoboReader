@@ -9,14 +9,16 @@ var parseArticle = function (data) {
 		return data;
 	}
 
-	if (data.length >= 1) {
-		console.error("Data was array... hm. " + JSON.stringify(data));
-		data = data[0];
-	}
+	if (!data.item_id) {
+		if (data.length >= 1) {
+			console.error("Data was array... hm. " + JSON.stringify(data));
+			data = data[0];
+		}
 
-	if (!data || typeof data !== "object") { //is called also for commit, data seems empty then.
-		console.error("Undefined data!! " + typeof data);
-		return data;
+		if (!data || typeof data !== "object") { //is called also for commit, data seems empty then.
+			console.error("Undefined data!! " + typeof data);
+			return data;
+		}
 	}
 
 	if (data.image) {
