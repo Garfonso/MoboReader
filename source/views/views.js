@@ -196,6 +196,9 @@ enyo.kind({
 					this.$.api.addArticle(webos.launchParams().url, this.articleCollection);
 				}
 			}
+
+			//cleanUp all models not in collection:
+			cleanUpAllModelsNotInCollection(this.articleCollection);
 		}
 
 		this.articleCollection = new moboreader.ArticleCollection({url: "pocket-unread-list"});

@@ -72,6 +72,29 @@ var parseArticle = function (data) {
 	return data;
 };
 
+var cleanUpAllModelsNotInCollection = function (collection) {
+	var models = enyo.sources.LocalStorageSource.storage().models, keys = Object.keys(models), model, cleaned = 0;
+	console.log("Doing clean up of " + keys.length + " models.");
+	keys.forEach(function (key) {
+		console.log("Testing " + key);
+		if (key !== "authModel") {
+			if (!collection.has(key)) {
+				cleaned += 1;
+				console.log("Cleaning up model " + key);
+				model = enyo.store.resolve(moboreader.ArticleModel, key);
+				if (!model) {
+					console.log("Could not get model for " + key + ". Doing things manually.");
+					delete models[key];
+					enyo.sources.LocalStorageSource.save(key);
+				} else {
+					model.destroy();
+				}
+			}
+		}
+	});
+	console.log("Needed to clean " + cleaned + " of " + keys.length);
+};
+
 enyo.kind({
 	name: "moboreader.ArticleModel",
 	kind: "enyo.Model",
@@ -133,15 +156,18 @@ enyo.kind({
 	},
 
 	tryDestroy: function (notShowing) {
+		console.log("tryDestroy called for " + this.get("item_id"));
 		if (notShowing === true) {
 			this.showing = false;
 		}
 		if (this.showing || this.get("status") === "0") {
+			console.log("was showing " + this.showing + " or not 0 " + this.get("status"));
 			return;
 		}
 
+		console.log("Need to be destroyed.");
 		this.destroy({
-			success: function () { return undefined; },
+			success: function () { console.log("Destruction of " + JSON.stringify(this) + " succeeded."); }.bind(this),
 			fail: function () { console.error("Destruction of " + JSON.stringify(this) + " failed."); }.bind(this)
 		});
 	},
